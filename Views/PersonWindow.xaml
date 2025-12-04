@@ -1,0 +1,201 @@
+<Window x:Class="Contract2512.Views.PersonWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d"
+        Title="Физическое лицо" Height="980" Width="880"
+        WindowStartupLocation="CenterScreen">
+    <Grid Margin="10">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+
+        <ScrollViewer Grid.Row="0" VerticalScrollBarVisibility="Auto">
+            <StackPanel>
+                <!-- Основные данные -->
+                <GroupBox Header="Основные данные" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Фамилия:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="LastNameTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Имя:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="FirstNameTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Отчество:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="PatronymicTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Дата рождения:" VerticalAlignment="Center" Margin="0,10"/>
+                            <DatePicker Grid.Row="3" Grid.Column="1" x:Name="DateOfBirthPicker" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Пол:" VerticalAlignment="Center" Margin="0,10"/>
+                            <ComboBox Grid.Row="4" Grid.Column="1" x:Name="GenderComboBox" DisplayMemberPath="Name" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Место рождения:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="5" Grid.Column="1" x:Name="PlaceOfBirthTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Гражданство:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="6" Grid.Column="1" x:Name="CitizenshipTextBox" Text="Российская Федерация" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="СНИЛС:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="7" Grid.Column="1" x:Name="SnilsTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="8" Grid.Column="0" Text="ИНН:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="8" Grid.Column="1" x:Name="InnTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="9" Grid.Column="0" Text="Место работы:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="9" Grid.Column="1" x:Name="WorkplaceTextBox" Margin="0,5"/>
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Паспорт -->
+                <GroupBox Header="Паспортные данные" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Серия:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="PassportSeriesTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Номер:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="PassportNumberTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Дата выдачи:" VerticalAlignment="Center" Margin="0,10"/>
+                            <DatePicker Grid.Row="2" Grid.Column="1" x:Name="IssuanceDatePicker" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Кем выдан:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="IssuedByTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Код подразделения:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="DivisionCodeTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Дата регистрации:" VerticalAlignment="Center" Margin="0,10"/>
+                            <DatePicker Grid.Row="5" Grid.Column="1" x:Name="RegistrationDatePicker" Margin="0,5"/>
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Контакты -->
+                <GroupBox Header="Контактные данные" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Адрес регистрации:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="0" Grid.Column="1" x:Name="RegistrationAddressTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Контактный телефон:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="1" Grid.Column="1" x:Name="ContactPhoneTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="E-mail:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="2" Grid.Column="1" x:Name="EmailTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Домашний телефон:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="HomePhoneTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Рабочий телефон:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="WorkPhoneTextBox" Margin="0,5"/>
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
+
+                <!-- Образование -->
+                <GroupBox Header="Образование" Margin="0,0,0,10">
+                    <StackPanel Margin="10">
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="Auto"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="Дата поступления:" VerticalAlignment="Center" Margin="0,10"/>
+                            <DatePicker Grid.Row="0" Grid.Column="1" x:Name="EnrollmentDatePicker" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="1" Grid.Column="0" Text="Базовое образование:" VerticalAlignment="Center" Margin="0,10"/>
+                            <ComboBox Grid.Row="1" Grid.Column="1" x:Name="BaseEducationComboBox" DisplayMemberPath="Name" SelectedValuePath="Id" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="2" Grid.Column="0" Text="Уровень образования:" VerticalAlignment="Center" Margin="0,10"/>
+                            <ComboBox Grid.Row="2" Grid.Column="1" x:Name="EducationLevelComboBox" DisplayMemberPath="Name" SelectedValuePath="Id" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="3" Grid.Column="0" Text="Серия документа:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="3" Grid.Column="1" x:Name="EducationSeriesTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="4" Grid.Column="0" Text="Номер документа:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="4" Grid.Column="1" x:Name="EducationNumberTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="5" Grid.Column="0" Text="Дата выдачи:" VerticalAlignment="Center" Margin="0,10"/>
+                            <DatePicker Grid.Row="5" Grid.Column="1" x:Name="EducationIssueDatePicker" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="6" Grid.Column="0" Text="Кем выдан:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="6" Grid.Column="1" x:Name="EducationIssuedByTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="7" Grid.Column="0" Text="Место выдачи:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="7" Grid.Column="1" x:Name="EducationPlaceOfIssueTextBox" Margin="0,5"/>
+
+                            <TextBlock Grid.Row="8" Grid.Column="0" Text="Специальность:" VerticalAlignment="Center" Margin="0,10"/>
+                            <TextBox Grid.Row="8" Grid.Column="1" x:Name="EducationSpecialtyTextBox" Margin="0,5"/>
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,10,0,0">
+            <Button x:Name="SaveButton" Content="Сохранить" Width="120" Height="30" 
+                   Margin="0,0,10,0" Click="SaveButton_Click"/>
+            <Button x:Name="CancelButton" Content="Отмена" Width="100" Height="30" Click="CancelButton_Click"/>
+        </StackPanel>
+    </Grid>
+</Window>
