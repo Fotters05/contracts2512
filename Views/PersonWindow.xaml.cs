@@ -3,10 +3,14 @@ using System.Linq;
 using System.Windows;
 using Contract2512.Models;
 using Contract2512.Services;
+using Wpf.Ui.Controls;
+using MessageBox = System.Windows.MessageBox;
+using MessageBoxButton = System.Windows.MessageBoxButton;
+using MessageBoxImage = System.Windows.MessageBoxImage;
 
 namespace Contract2512.Views
 {
-    public partial class PersonWindow : Window
+    public partial class PersonWindow : FluentWindow
     {
         private Person _person;
         private bool _isEditMode;
@@ -243,6 +247,39 @@ namespace Contract2512.Views
         {
             DialogResult = false;
             Close();
+        }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+                MaximizeRestoreButton.Content = "□";
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+                MaximizeRestoreButton.Content = "❐";
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
+        private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+            {
+                DragMove();
+            }
         }
 
     }
