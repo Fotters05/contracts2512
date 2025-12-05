@@ -270,6 +270,36 @@
             </Style.Triggers>
         </Style>
 
+        <!-- Стиль для текстового поля -->
+        <SolidColorBrush x:Key="BorderColor" Color="#64748B"/>
+        <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#1E293B" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        Background="Transparent"
+                                        Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
     </Window.Resources>
 
     <!-- 🎨 Общий стеклянный фон окна -->
@@ -305,7 +335,7 @@
                     <TextBlock Text="─" 
                               FontSize="16"
                               FontWeight="Bold"
-                              Foreground="{StaticResource TextPrimary}"/>
+                              Foreground="{StaticResource TextPrimary}" Height="22"/>
                 </Button>
                 
                 <!-- Кнопка развернуть/восстановить -->
@@ -315,9 +345,9 @@
                        ToolTip="Развернуть">
                     <TextBlock x:Name="MaximizeIcon"
                               Text="□" 
-                              FontSize="14"
+                              FontSize="20"
                               FontWeight="Bold"
-                              Foreground="{StaticResource TextPrimary}"/>
+                              Foreground="{StaticResource TextPrimary}" Height="32"/>
                 </Button>
                 
                 <!-- Кнопка закрыть -->
@@ -433,7 +463,8 @@
                        Effect="{StaticResource CardShadow}">
                     <DataGrid x:Name="PersonsDataGrid" 
                              Style="{StaticResource DarkDataGridStyle}"
-                             ClipToBounds="True">
+                             ClipToBounds="True"
+                             MouseDoubleClick="PersonsDataGrid_MouseDoubleClick">
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
                         </DataGrid.ColumnHeaderStyle>
@@ -462,18 +493,33 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Панель кнопок -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-                    <Button Content="Создать договор" 
-                           x:Name="CreateContractButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="CreateContractButton_Click"
-                           Margin="0,0,8,0"/>
-                    <Button Content="Просмотреть" 
-                           x:Name="ViewContractButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="ViewContractButton_Click"/>
-                </StackPanel>
+                <!-- Панель кнопок и поиска -->
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Button Content="Создать договор" 
+                               x:Name="CreateContractButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="CreateContractButton_Click"
+                               Margin="0,0,8,0"/>
+                        <Button Content="Просмотреть" 
+                               x:Name="ViewContractButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="ViewContractButton_Click"/>
+                    </StackPanel>
+                    <TextBox Grid.Column="1" 
+                            x:Name="ContractSearchTextBox"
+                            Style="{StaticResource DarkTextBoxStyle}"
+                            Margin="8,0,0,0"
+                            TextChanged="ContractSearchTextBox_TextChanged">
+                        <TextBox.ToolTip>
+                            <ToolTip Content="Поиск по номеру договора"/>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                </Grid>
 
                 <!-- DataGrid -->
                     <Border Grid.Row="1" 

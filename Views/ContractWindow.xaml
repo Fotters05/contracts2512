@@ -605,7 +605,8 @@
                         <DatePicker Grid.Row="2" Grid.Column="1" 
                                    x:Name="ContractDatePicker" 
                                    Margin="0,5"
-                                   Style="{StaticResource DarkDatePickerStyle}"/>
+                                   Style="{StaticResource DarkDatePickerStyle}"
+                                   SelectedDateChanged="ContractDatePicker_SelectedDateChanged"/>
 
                         <TextBlock Grid.Row="3" Grid.Column="0" 
                                   Text="Программа обучения:" 

@@ -50,3 +50,5 @@ C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win
 C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win\lib\net8.0\System.Diagnostics.EventLog.dll
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\App.baml
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Contract2512.sourcelink.json
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonContractsWindow.baml
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonContractsWindow.g.cs

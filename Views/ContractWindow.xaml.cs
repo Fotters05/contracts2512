@@ -101,6 +101,30 @@ namespace Contract2512.Views
             }
         }
 
+        private void ContractDatePicker_SelectedDateChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            // Перегенерируем номер договора при изменении даты, если тип договора выбран
+            if (ContractTypeComboBox.SelectedItem is ContractType contractType)
+            {
+                // Проверяем, что текущий номер был сгенерирован автоматически (имеет правильный формат)
+                string currentNumber = ContractNumberTextBox.Text;
+                if (!string.IsNullOrWhiteSpace(currentNumber))
+                {
+                    string key = ExtractKeyFromContractTypeName(contractType.Name);
+                    if (!string.IsNullOrWhiteSpace(key) && currentNumber.StartsWith(key + "-"))
+                    {
+                        // Номер был сгенерирован автоматически, перегенерируем с новой датой
+                        GenerateContractNumber(contractType);
+                    }
+                }
+                else
+                {
+                    // Если номер пустой, генерируем новый
+                    GenerateContractNumber(contractType);
+                }
+            }
+        }
+
         private void GenerateContractNumber(ContractType contractType)
         {
             if (contractType == null || string.IsNullOrWhiteSpace(contractType.Name))
@@ -112,33 +136,31 @@ namespace Contract2512.Views
             if (string.IsNullOrWhiteSpace(key))
                 return;
 
-            // Текущая дата для формата дд.мм.гг
-            DateTime today = DateTime.Today;
-            string dateStr = today.ToString("dd.MM.yy");
+            // Используем дату из DatePicker или текущую дату
+            DateTime contractDate = ContractDatePicker.SelectedDate ?? DateTime.Today;
+            string dateStr = contractDate.ToString("dd.MM.yy");
 
             using (var db = new AppDbContext())
             {
-                // Находим все договоры с таким же ключом и датой (формат: "ДОП-01 04.12.25")
+                // Находим все договоры с таким же ключом (формат: "ДОП-01 04.12.25")
                 var existingContracts = db.Contracts
                     .Where(c => c.ContractNumber.StartsWith(key + "-"))
                     .Select(c => c.ContractNumber)
                     .ToList();
 
-                // Определяем следующий номер для текущей даты
+                // Определяем следующий номер среди всех договоров с таким ключом (независимо от даты)
                 int nextNumber = 1;
                 if (existingContracts.Any())
                 {
-                    // Извлекаем номера из существующих договоров с текущей датой
+                    // Извлекаем номера из всех существующих договоров с таким ключом
                     // Формат: "ДОП-01 04.12.25" -> извлекаем "01"
+                    // Ищем паттерн "КЛЮЧ-XX" (любая дата после)
+                    string escapedKey = System.Text.RegularExpressions.Regex.Escape(key);
                     var numbers = existingContracts
-                        .Where(cn => cn.Contains(dateStr)) // Только договоры с текущей датой
                         .Select(cn => 
                         {
-                            // Ищем паттерн "КЛЮЧ-XX дата"
-                            // Экранируем ключ и дату для регулярного выражения
-                            string escapedKey = System.Text.RegularExpressions.Regex.Escape(key);
-                            string escapedDate = System.Text.RegularExpressions.Regex.Escape(dateStr);
-                            var match = System.Text.RegularExpressions.Regex.Match(cn, $@"^{escapedKey}-(\d{{2}})\s+{escapedDate}");
+                            // Ищем паттерн "КЛЮЧ-XX" (любые цифры после дефиса)
+                            var match = System.Text.RegularExpressions.Regex.Match(cn, $@"^{escapedKey}-(\d{{2}})\s+");
                             if (match.Success && match.Groups.Count > 1 && int.TryParse(match.Groups[1].Value, out int num))
                                 return num;
                             return 0;

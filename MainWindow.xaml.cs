@@ -12,6 +12,8 @@ namespace Contract2512
 {
     public partial class MainWindow : FluentWindow
     {
+        private System.Collections.ObjectModel.ObservableCollection<Contract> _allContracts;
+
         public MainWindow()
         {
             InitializeComponent();
@@ -211,7 +213,10 @@ namespace Contract2512
                             contract.Listener.Contacts = db.Contacts.Find(contract.Listener.ContactsId.Value);
                         }
                     }
-                    ContractsDataGrid.ItemsSource = contracts;
+                    
+                    // Сохраняем все договоры для фильтрации
+                    _allContracts = new System.Collections.ObjectModel.ObservableCollection<Contract>(contracts);
+                    ApplyContractFilter();
                 }
             }
             catch (Exception ex)
@@ -222,6 +227,32 @@ namespace Contract2512
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Error);
             }
+        }
+
+        private void ApplyContractFilter()
+        {
+            if (_allContracts == null)
+                return;
+
+            string searchText = ContractSearchTextBox?.Text?.Trim() ?? "";
+            
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ContractsDataGrid.ItemsSource = _allContracts;
+            }
+            else
+            {
+                var filtered = _allContracts
+                    .Where(c => c.ContractNumber != null && 
+                               c.ContractNumber.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                    .ToList();
+                ContractsDataGrid.ItemsSource = filtered;
+            }
+        }
+
+        private void ContractSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ApplyContractFilter();
         }
 
         private void AddPersonButton_Click(object sender, RoutedEventArgs e)
@@ -611,6 +642,16 @@ namespace Contract2512
         private void NavigationViewItem_Click(object sender, RoutedEventArgs e)
         {
 
+        }
+
+        private void PersonsDataGrid_MouseDoubleClick(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (PersonsDataGrid.SelectedItem is Person selectedPerson)
+            {
+                var window = new PersonContractsWindow(selectedPerson);
+                window.Owner = this;
+                window.ShowDialog();
+            }
         }
     }
 

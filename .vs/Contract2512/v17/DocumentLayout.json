@@ -3,12 +3,12 @@
   "WorkspaceRootPath": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\",
   "Documents": [
     {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\personcontractswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\personcontractswindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\contractwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\contractwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:mainwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\programwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -17,6 +17,10 @@
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\personwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\personwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\contractwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
+      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\contractwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -207,6 +211,18 @@
             {
               "$type": "Document",
               "DocumentIndex": 0,
+              "Title": "PersonContractsWindow.xaml",
+              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonContractsWindow.xaml",
+              "RelativeDocumentMoniker": "Views\\PersonContractsWindow.xaml",
+              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonContractsWindow.xaml",
+              "RelativeToolTip": "Views\\PersonContractsWindow.xaml",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
+              "WhenOpened": "2025-12-05T13:11:47.843Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
               "Title": "MainWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\MainWindow.xaml",
               "RelativeDocumentMoniker": "MainWindow.xaml",
@@ -218,19 +234,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "ProgramWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
-              "RelativeDocumentMoniker": "Views\\ProgramWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
-              "RelativeToolTip": "Views\\ProgramWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:56:06.999Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 11,
+              "DocumentIndex": 12,
               "Title": "ContractWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\ContractWindow.xaml.cs",
@@ -242,7 +246,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Services\\AppDbContext.cs",
@@ -266,7 +270,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 4,
               "Title": "ContractWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml",
               "RelativeDocumentMoniker": "Views\\ContractWindow.xaml",
@@ -290,7 +294,19 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 10,
+              "Title": "ProgramWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Views\\ProgramWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
+              "RelativeToolTip": "Views\\ProgramWindow.xaml.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA4AAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-04T21:56:06.999Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 5,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
@@ -298,12 +314,11 @@
               "RelativeToolTip": "MainWindow.xaml.cs",
               "ViewState": "AgIAADgBAAAAAAAAAAApwEwBAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:29:20.58Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:29:20.58Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
+              "DocumentIndex": 7,
               "Title": "App.config",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.config",
               "RelativeDocumentMoniker": "App.config",
@@ -311,12 +326,11 @@
               "RelativeToolTip": "App.config",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAgAAABuAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2025-12-04T21:43:33.809Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:43:33.809Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "App.xaml",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml",
               "RelativeDocumentMoniker": "App.xaml",
@@ -328,7 +342,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "NpgsqlDbConfiguration.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\NpgsqlDbConfiguration.cs",
               "RelativeDocumentMoniker": "Services\\NpgsqlDbConfiguration.cs",
@@ -340,7 +354,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 10,
+              "DocumentIndex": 11,
               "Title": "PersonWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\PersonWindow.xaml.cs",
@@ -352,7 +366,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 12,
+              "DocumentIndex": 13,
               "Title": "App.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml.cs",
               "RelativeDocumentMoniker": "App.xaml.cs",
@@ -364,7 +378,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 13,
+              "DocumentIndex": 14,
               "Title": "AssemblyInfo.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\AssemblyInfo.cs",
               "RelativeDocumentMoniker": "AssemblyInfo.cs",
@@ -376,7 +390,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 14,
+              "DocumentIndex": 15,
               "Title": "WordDocumentService.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\WordDocumentService.cs",
               "RelativeDocumentMoniker": "Services\\WordDocumentService.cs",
@@ -388,7 +402,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 15,
+              "DocumentIndex": 16,
               "Title": "StudyOption.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\StudyOption.cs",
               "RelativeDocumentMoniker": "Models\\StudyOption.cs",
@@ -400,7 +414,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 16,
+              "DocumentIndex": 17,
               "Title": "Signer.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Signer.cs",
               "RelativeDocumentMoniker": "Models\\Signer.cs",
@@ -412,7 +426,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 17,
+              "DocumentIndex": 18,
               "Title": "ProgramView.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\ProgramView.cs",
               "RelativeDocumentMoniker": "Models\\ProgramView.cs",
@@ -424,7 +438,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 18,
+              "DocumentIndex": 19,
               "Title": "Person.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Person.cs",
               "RelativeDocumentMoniker": "Models\\Person.cs",
@@ -436,7 +450,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 19,
+              "DocumentIndex": 20,
               "Title": "PaymentOption.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\PaymentOption.cs",
               "RelativeDocumentMoniker": "Models\\PaymentOption.cs",
@@ -448,7 +462,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 21,
+              "DocumentIndex": 22,
               "Title": "Passport.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Passport.cs",
               "RelativeDocumentMoniker": "Models\\Passport.cs",
@@ -460,7 +474,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 20,
+              "DocumentIndex": 21,
               "Title": "LearningProgram.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\LearningProgram.cs",
               "RelativeDocumentMoniker": "Models\\LearningProgram.cs",
@@ -472,7 +486,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 23,
+              "DocumentIndex": 24,
               "Title": "Gender.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Gender.cs",
               "RelativeDocumentMoniker": "Models\\Gender.cs",
@@ -484,7 +498,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 22,
+              "DocumentIndex": 23,
               "Title": "EducationLevel.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\EducationLevel.cs",
               "RelativeDocumentMoniker": "Models\\EducationLevel.cs",
@@ -496,7 +510,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 24,
+              "DocumentIndex": 25,
               "Title": "Education.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Education.cs",
               "RelativeDocumentMoniker": "Models\\Education.cs",
@@ -508,7 +522,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 25,
+              "DocumentIndex": 26,
               "Title": "ContractType.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\ContractType.cs",
               "RelativeDocumentMoniker": "Models\\ContractType.cs",
@@ -520,7 +534,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 26,
+              "DocumentIndex": 27,
               "Title": "Contract.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Contract.cs",
               "RelativeDocumentMoniker": "Models\\Contract.cs",
@@ -532,7 +546,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 27,
+              "DocumentIndex": 28,
               "Title": "Contacts.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Contacts.cs",
               "RelativeDocumentMoniker": "Models\\Contacts.cs",
@@ -544,7 +558,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 28,
+              "DocumentIndex": 29,
               "Title": "BaseEducation.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\BaseEducation.cs",
               "RelativeDocumentMoniker": "Models\\BaseEducation.cs",
