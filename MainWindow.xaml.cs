@@ -59,6 +59,7 @@ namespace Contract2512
             BtnPersons.Tag = null;
             BtnContracts.Tag = null;
             BtnPrograms.Tag = null;
+            BtnContractTypes.Tag = null;
             
             // Устанавливаем выделение выбранной кнопки
             if (selectedButton != null)
@@ -73,6 +74,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Visible;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnContracts_Click(object sender, RoutedEventArgs e)
@@ -81,6 +83,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Visible;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnPrograms_Click(object sender, RoutedEventArgs e)
@@ -89,6 +92,25 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Visible;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnContractTypes_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnContractTypes);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Visible;
+            LoadContractTypes();
+        }
+
+        private void BtnSupport_Click(object sender, RoutedEventArgs e)
+        {
+            // Не обновляем выделение меню, так как это не вкладка, а окно
+            var window = new SupportWindow();
+            window.Owner = this;
+            window.ShowDialog();
         }
 
         private void PersonsDataGridBorder_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -105,6 +127,19 @@ namespace Contract2512
         }
 
         private void ContractsDataGridBorder_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Border border)
+            {
+                var rect = new System.Windows.Rect(0, 0, border.ActualWidth, border.ActualHeight);
+                border.Clip = new System.Windows.Media.RectangleGeometry(rect)
+                {
+                    RadiusX = 12,
+                    RadiusY = 12
+                };
+            }
+        }
+
+        private void ContractTypesDataGridBorder_SizeChanged(object sender, SizeChangedEventArgs e)
         {
             if (sender is System.Windows.Controls.Border border)
             {
@@ -651,6 +686,119 @@ namespace Contract2512
                 var window = new PersonContractsWindow(selectedPerson);
                 window.Owner = this;
                 window.ShowDialog();
+            }
+        }
+
+        private void LoadContractTypes()
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var contractTypes = db.ContractTypes.ToList();
+                    ContractTypesDataGrid.ItemsSource = contractTypes;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при загрузке типов договоров: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void AddContractTypeButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new ContractTypeWindow();
+            window.Owner = this;
+            if (window.ShowDialog() == true)
+            {
+                LoadContractTypes();
+            }
+        }
+
+        private void EditContractTypeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ContractTypesDataGrid.SelectedItem is ContractType selectedContractType)
+            {
+                var window = new ContractTypeWindow(selectedContractType);
+                window.Owner = this;
+                if (window.ShowDialog() == true)
+                {
+                    LoadContractTypes();
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите тип договора для редактирования!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void DeleteContractTypeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ContractTypesDataGrid.SelectedItem is ContractType selectedContractType)
+            {
+                var result = System.Windows.MessageBox.Show(
+                    $"Вы уверены, что хотите удалить тип договора \"{selectedContractType.Name}\"?",
+                    "Подтверждение удаления",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Question);
+
+                if (result == System.Windows.MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (var db = new AppDbContext())
+                        {
+                            // Проверяем, используется ли этот тип договора
+                            var contractsCount = db.Contracts.Count(c => c.ContractTypeId == selectedContractType.Id);
+                            if (contractsCount > 0)
+                            {
+                                System.Windows.MessageBox.Show(
+                                    $"Невозможно удалить тип договора, так как он используется в {contractsCount} договоре(ах)!",
+                                    "Ошибка",
+                                    System.Windows.MessageBoxButton.OK,
+                                    System.Windows.MessageBoxImage.Warning);
+                                return;
+                            }
+
+                            var contractType = db.ContractTypes.Find(selectedContractType.Id);
+                            if (contractType != null)
+                            {
+                                db.ContractTypes.Remove(contractType);
+                                db.SaveChanges();
+                                LoadContractTypes();
+                                System.Windows.MessageBox.Show(
+                                    "Тип договора успешно удален!",
+                                    "Успех",
+                                    System.Windows.MessageBoxButton.OK,
+                                    System.Windows.MessageBoxImage.Information);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show(
+                            $"Ошибка при удалении: {ex.Message}",
+                            "Ошибка",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите тип договора для удаления!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
             }
         }
     }

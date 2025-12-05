@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Users\Fotters\source\repos\Contract2512\App.xaml
-5-360602251
+7-1216223205
 
-27-1825700903
+31-1804684861
 207-288712569
-MainWindow.xaml;Views\ContractWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramWindow.xaml;
+MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;
 
 False
 

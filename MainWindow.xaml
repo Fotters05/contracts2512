@@ -379,43 +379,70 @@
                 BorderThickness="0,0,1,0"
                 Padding="20" Margin="0,-32,0,0">
 
-            <StackPanel>
+            <Grid>
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
 
-                <TextBlock Text="Система управления договорами"
+                <TextBlock Grid.Row="0"
+                           Text="Система управления договорами"
                            FontSize="20"
                            Foreground="White"
                            FontWeight="SemiBold"
                            Margin="4 0 0 24"
                            TextWrapping="Wrap"/>
 
-                <!-- Физические лица -->
-                <Border x:Name="BtnPersons"
+                <StackPanel Grid.Row="1">
+                    <!-- Физические лица -->
+                    <Border x:Name="BtnPersons"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnPersons_Click">
+                        <TextBlock Text="👥  Физические лица"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
+
+                    <!-- Договоры -->
+                    <Border x:Name="BtnContracts"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnContracts_Click">
+                        <TextBlock Text="📄  Договоры"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
+
+                    <!-- Программы -->
+                    <Border x:Name="BtnPrograms"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnPrograms_Click">
+                        <TextBlock Text="📚  Программы"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
+
+                    <!-- Типы договоров -->
+                    <Border x:Name="BtnContractTypes"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnContractTypes_Click">
+                        <TextBlock Text="📋  Типы договоров"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
+                </StackPanel>
+
+                <!-- Тех поддержка -->
+                <Border Grid.Row="2"
+                        x:Name="BtnSupport"
                         Style="{StaticResource MenuItemStyle}"
-                        MouseLeftButtonDown="BtnPersons_Click">
-                    <TextBlock Text="👥  Физические лица"
+                        MouseLeftButtonDown="BtnSupport_Click"
+                        Margin="0,20,0,0">
+                    <TextBlock Text="💬  Тех поддержка"
                                FontSize="16"
                                Foreground="{StaticResource TextPrimary}"/>
                 </Border>
-
-                <!-- Договоры -->
-                <Border x:Name="BtnContracts"
-                        Style="{StaticResource MenuItemStyle}"
-                        MouseLeftButtonDown="BtnContracts_Click">
-                    <TextBlock Text="📄  Договоры"
-                               FontSize="16"
-                               Foreground="{StaticResource TextPrimary}"/>
-                </Border>
-
-                <!-- Программы -->
-                <Border x:Name="BtnPrograms"
-                        Style="{StaticResource MenuItemStyle}"
-                        MouseLeftButtonDown="BtnPrograms_Click">
-                    <TextBlock Text="📚  Программы"
-                               FontSize="16"
-                               Foreground="{StaticResource TextPrimary}"/>
-                </Border>
-
-            </StackPanel>
+            </Grid>
 
         </Border>
 
@@ -711,6 +738,61 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                 </ScrollViewer>
+            </Grid>
+
+            <!-- Типы договоров -->
+            <Grid x:Name="ContractTypesPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Панель кнопок -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                    <Button Content="Добавить тип" 
+                           x:Name="AddContractTypeButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="AddContractTypeButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Редактировать" 
+                           x:Name="EditContractTypeButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="EditContractTypeButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Удалить" 
+                           x:Name="DeleteContractTypeButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="DeleteContractTypeButton_Click"/>
+                </StackPanel>
+
+                <!-- DataGrid -->
+                <Border Grid.Row="1" 
+                       x:Name="ContractTypesDataGridBorder"
+                       Background="{StaticResource DataGridBackground}"
+                       CornerRadius="12"
+                       BorderBrush="#475569"
+                       BorderThickness="1"
+                       ClipToBounds="True"
+                       SizeChanged="ContractTypesDataGridBorder_SizeChanged"
+                       Effect="{StaticResource CardShadow}">
+                    <DataGrid x:Name="ContractTypesDataGrid" 
+                             Style="{StaticResource DarkDataGridStyle}"
+                             ClipToBounds="True">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DarkDataGridCellStyle}"/>
+                        </DataGrid.CellStyle>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DarkDataGridRowStyle}"/>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
+                            <DataGridTextColumn Header="Путь к файлу" Binding="{Binding FilePath}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
             </Grid>
         </Grid>
         </Grid>

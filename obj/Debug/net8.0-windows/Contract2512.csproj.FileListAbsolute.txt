@@ -52,3 +52,7 @@ C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\App.baml
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Contract2512.sourcelink.json
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonContractsWindow.baml
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonContractsWindow.g.cs
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\ContractTypeWindow.baml
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\ContractTypeWindow.g.cs
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\SupportWindow.baml
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\SupportWindow.g.cs

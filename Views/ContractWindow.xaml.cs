@@ -98,6 +98,99 @@ namespace Contract2512.Views
                 
                 // Автоматически генерируем номер договора
                 GenerateContractNumber(contractType);
+                
+                // Показываем/скрываем поля в зависимости от типа договора
+                UpdateFieldsVisibility(contractType);
+            }
+        }
+
+        private void UpdateFieldsVisibility(ContractType contractType)
+        {
+            // Проверяем, является ли тип договора "ПК" (повышение квалификации)
+            bool isPK = contractType.Name != null && 
+                       (contractType.Name.Contains("ПК") || 
+                        contractType.Name.Contains("повышение квалификации") ||
+                        contractType.Name.Contains("повышения квалификации"));
+
+            // Проверяем, является ли тип договора "ПП" (профессиональная переподготовка)
+            bool isPP = contractType.Name != null && 
+                       (contractType.Name.Contains("ПП") || 
+                        contractType.Name.Contains("профпереподготовк") ||
+                        contractType.Name.Contains("профессиональной переподготовки") ||
+                        contractType.Name.Contains("профессиональная переподготовка"));
+
+            // Показываем/скрываем поля для опций 1.4 и 1.5
+            if (isPK || isPP)
+            {
+                // Показываем поля для ПК или ПП
+                ItogDocumentLabel.Visibility = Visibility.Visible;
+                ItogDocumentComboBox.Visibility = Visibility.Visible;
+                TimeOptionLabel.Visibility = Visibility.Visible;
+                TimeOptionComboBox.Visibility = Visibility.Visible;
+                
+                // Скрываем обычное поле "Учебная нагрузка"
+                StudyOptionComboBox.Visibility = Visibility.Collapsed;
+                StudyOptionLabel.Visibility = Visibility.Collapsed;
+                
+                // Загружаем опции в зависимости от типа договора
+                if (isPK)
+                {
+                    LoadPKOptions();
+                }
+                else if (isPP)
+                {
+                    LoadPPOptions();
+                }
+            }
+            else
+            {
+                // Скрываем поля для ПК/ПП
+                ItogDocumentLabel.Visibility = Visibility.Collapsed;
+                ItogDocumentComboBox.Visibility = Visibility.Collapsed;
+                TimeOptionLabel.Visibility = Visibility.Collapsed;
+                TimeOptionComboBox.Visibility = Visibility.Collapsed;
+                
+                // Показываем обычное поле "Учебная нагрузка"
+                StudyOptionComboBox.Visibility = Visibility.Visible;
+                StudyOptionLabel.Visibility = Visibility.Visible;
+            }
+        }
+
+        private void LoadPKOptions()
+        {
+            // Загружаем опции для итогового документа (1.4) для ПК
+            var itogOptions = GetItogDocumentOptions();
+            ItogDocumentComboBox.ItemsSource = itogOptions;
+            if (itogOptions.Any())
+            {
+                ItogDocumentComboBox.SelectedIndex = 0;
+            }
+            
+            // Загружаем опции для учебной нагрузки (1.5) для ПК
+            var timeOptions = GetTimeOptions();
+            TimeOptionComboBox.ItemsSource = timeOptions;
+            if (timeOptions.Any())
+            {
+                TimeOptionComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private void LoadPPOptions()
+        {
+            // Загружаем опции для итогового документа (1.4) для ПП
+            var itogOptions = GetPPItogDocumentOptions();
+            ItogDocumentComboBox.ItemsSource = itogOptions;
+            if (itogOptions.Any())
+            {
+                ItogDocumentComboBox.SelectedIndex = 0;
+            }
+            
+            // Загружаем опции для учебной нагрузки (1.5) для ПП
+            var timeOptions = GetPPTimeOptions();
+            TimeOptionComboBox.ItemsSource = timeOptions;
+            if (timeOptions.Any())
+            {
+                TimeOptionComboBox.SelectedIndex = 0;
             }
         }
 
@@ -694,6 +787,7 @@ namespace Contract2512.Views
                 replacements["{{Seria Number, Kem_Vidan}}"] = "";
             }
             replacements["{{Adress_Registracii}}"] = payerContacts?.RegistrationAddress ?? "";
+            replacements["{{Snils}}"] = payer.Snils ?? "";
 
             // Данные слушателя - берем телефон и email из таблицы contacts (такая же логика как для телефона)
             string listenerPhone = listenerContacts?.ContactPhone ?? "";
@@ -775,35 +869,140 @@ namespace Contract2512.Views
                 replacements["{{option2}}"] = "";
             }
 
-            // Вариант учебной нагрузки - берем из выбранного в комбобоксе
-            if (StudyOptionComboBox.SelectedItem is StudyOption selectedStudyOption)
+            // Проверяем, является ли тип договора "ПК" (повышение квалификации)
+            bool isPK = contractType.Name != null && 
+                       (contractType.Name.Contains("ПК") || 
+                        contractType.Name.Contains("повышение квалификации") ||
+                        contractType.Name.Contains("повышения квалификации"));
+
+            // Проверяем, является ли тип договора "ПП" (профессиональная переподготовка)
+            bool isPP = contractType.Name != null && 
+                       (contractType.Name.Contains("ПП") || 
+                        contractType.Name.Contains("профпереподготовк") ||
+                        contractType.Name.Contains("профессиональной переподготовки") ||
+                        contractType.Name.Contains("профессиональная переподготовка"));
+
+            if (isPK || isPP)
             {
-                // Заменяем выбранную опцию на текст, остальные на пустую строку
-                replacements[$"{{{{{selectedStudyOption.OptionKey}}}}}"] = selectedStudyOption.Text;
+                // Для типа договора ПК или ПП используем опции 1.4 и 1.5
                 
-                // Все остальные опции заменяем на пустую строку
+                // Опция итогового документа (1.4)
+                if (ItogDocumentComboBox.SelectedItem is ItogDocumentOption selectedItogOption)
+                {
+                    replacements[$"{{{{{selectedItogOption.OptionKey}}}}}"] = selectedItogOption.Text;
+                    // Остальные опции итогового документа - пустые
+                    for (int i = 1; i <= 2; i++)
+                    {
+                        string optionKey = $"Option_Itog{i}";
+                        if (optionKey != selectedItogOption.OptionKey)
+                        {
+                            replacements[$"{{{{{optionKey}}}}}"] = "";
+                        }
+                    }
+                }
+                else
+                {
+                    // По умолчанию - первая опция
+                    if (isPK)
+                    {
+                        replacements["{{Option_Itog1}}"] = GetItogDocumentOptions().FirstOrDefault()?.Text ?? "";
+                    }
+                    else if (isPP)
+                    {
+                        replacements["{{Option_Itog1}}"] = GetPPItogDocumentOptions().FirstOrDefault()?.Text ?? "";
+                    }
+                    replacements["{{Option_Itog2}}"] = "";
+                }
+
+                // Опция учебной нагрузки (1.5)
+                if (TimeOptionComboBox.SelectedItem is TimeOption selectedTimeOption)
+                {
+                    replacements[$"{{{{{selectedTimeOption.OptionKey}}}}}"] = selectedTimeOption.Text;
+                    // Все остальные опции времени заменяем на пустую строку
+                    for (int i = 1; i <= 6; i++)
+                    {
+                        string optionKey = $"Option_Time{i}";
+                        if (optionKey != selectedTimeOption.OptionKey)
+                        {
+                            replacements[$"{{{{{optionKey}}}}}"] = "";
+                        }
+                    }
+                }
+                else
+                {
+                    // По умолчанию - первая опция
+                    TimeOption defaultTimeOption = null;
+                    if (isPK)
+                    {
+                        defaultTimeOption = GetTimeOptions().FirstOrDefault();
+                    }
+                    else if (isPP)
+                    {
+                        defaultTimeOption = GetPPTimeOptions().FirstOrDefault();
+                    }
+                    
+                    if (defaultTimeOption != null)
+                    {
+                        replacements[$"{{{{{defaultTimeOption.OptionKey}}}}}"] = defaultTimeOption.Text;
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            string optionKey = $"Option_Time{i}";
+                            if (optionKey != defaultTimeOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                }
+
+                // Скрываем старые опции учебной нагрузки
                 for (int i = 1; i <= 5; i++)
                 {
-                    string optionKey = $"Option_study{i}";
-                    if (optionKey != selectedStudyOption.OptionKey)
-                    {
-                        replacements[$"{{{{{optionKey}}}}}"] = "";
-                    }
+                    replacements[$"{{{{Option_study{i}}}}}"] = "";
                 }
             }
             else
             {
-                // По умолчанию - первая опция
-                var defaultStudyOption = GetStudyOptions().FirstOrDefault();
-                if (defaultStudyOption != null)
+                // Для других типов договоров используем старые опции учебной нагрузки
+                
+                // Скрываем опции ПК
+                replacements["{{Option_Itog1}}"] = "";
+                replacements["{{Option_Itog2}}"] = "";
+                for (int i = 1; i <= 6; i++)
                 {
-                    replacements[$"{{{{{defaultStudyOption.OptionKey}}}}}"] = defaultStudyOption.Text;
+                    replacements[$"{{{{Option_Time{i}}}}}"] = "";
+                }
+
+                // Вариант учебной нагрузки - берем из выбранного в комбобоксе
+                if (StudyOptionComboBox.SelectedItem is StudyOption selectedStudyOption)
+                {
+                    // Заменяем выбранную опцию на текст, остальные на пустую строку
+                    replacements[$"{{{{{selectedStudyOption.OptionKey}}}}}"] = selectedStudyOption.Text;
+                    
+                    // Все остальные опции заменяем на пустую строку
                     for (int i = 1; i <= 5; i++)
                     {
                         string optionKey = $"Option_study{i}";
-                        if (optionKey != defaultStudyOption.OptionKey)
+                        if (optionKey != selectedStudyOption.OptionKey)
                         {
                             replacements[$"{{{{{optionKey}}}}}"] = "";
+                        }
+                    }
+                }
+                else
+                {
+                    // По умолчанию - первая опция
+                    var defaultStudyOption = GetStudyOptions().FirstOrDefault();
+                    if (defaultStudyOption != null)
+                    {
+                        replacements[$"{{{{{defaultStudyOption.OptionKey}}}}}"] = defaultStudyOption.Text;
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            string optionKey = $"Option_study{i}";
+                            if (optionKey != defaultStudyOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
                         }
                     }
                 }
@@ -965,6 +1164,150 @@ namespace Contract2512.Views
                     Name = "Опция № 5: 10 часов/нед, 2 недели",
                     OptionKey = "Option_study5",
                     Text = "Недельная учебная нагрузка по настоящему договору составляет 10 академических часов в неделю; общая продолжительность освоения — 2 недели."
+                }
+            };
+        }
+
+        private List<ItogDocumentOption> GetItogDocumentOptions()
+        {
+            // Опции для итогового документа (1.4) для типа договора ПК
+            return new List<ItogDocumentOption>
+            {
+                new ItogDocumentOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: Удостоверение вручается по окончании",
+                    OptionKey = "Option_Itog1",
+                    Text = "удостоверение о повышении квалификации вручается по окончании;"
+                },
+                new ItogDocumentOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: Удостоверение выдаётся одновременно с дипломом",
+                    OptionKey = "Option_Itog2",
+                    Text = "удостоверение выдаётся одновременно с дипломом СПО/ВО (ч. 16 ст. 76 ФЗ-273). До этого момента удостоверение хранится у Исполнителя."
+                }
+            };
+        }
+
+        private List<TimeOption> GetTimeOptions()
+        {
+            // Опции для учебной нагрузки (1.5) для типа договора ПК
+            return new List<TimeOption>
+            {
+                new TimeOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: 3 часа/нед, 21 неделя",
+                    OptionKey = "Option_Time1",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 3 академических часа в неделю, включая 2 академических часа взаимодействия с преподавателем и 1 академический час самостоятельной работы; общая продолжительность освоения — 21 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: 6 часов/нед, 11 недель",
+                    OptionKey = "Option_Time2",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 6 академических часов в неделю, включая 4 академических часа взаимодействия с преподавателем и 2 академических часа самостоятельной работы; общая продолжительность освоения — 11 недель."
+                },
+                new TimeOption
+                {
+                    Id = 3,
+                    Name = "Опция № 3: 12 часов/нед, 6 недель",
+                    OptionKey = "Option_Time3",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 12 академических часов в неделю, включая 8 академических часов взаимодействия с преподавателем и 4 академических часа самостоятельной работы; общая продолжительность освоения — 6 недель."
+                },
+                new TimeOption
+                {
+                    Id = 4,
+                    Name = "Опция № 4: 15 часов/нед, 5 недель",
+                    OptionKey = "Option_Time4",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 15 академических часов в неделю, включая 10 академических часов взаимодействия с преподавателем и 5 академических часов самостоятельной работы; общая продолжительность освоения — 5 недель."
+                },
+                new TimeOption
+                {
+                    Id = 5,
+                    Name = "Опция № 5: 30 часов/нед, 3 недели",
+                    OptionKey = "Option_Time5",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 30 академических часов в неделю, включая 20 академических часов взаимодействия с преподавателем и 10 академических часов самостоятельной работы; общая продолжительность освоения — 3 недели."
+                },
+                new TimeOption
+                {
+                    Id = 6,
+                    Name = "Опция № 6: 32 часа/нед, 3 недели",
+                    OptionKey = "Option_Time6",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 32 академических часа в неделю, включая 20 академических часов взаимодействия с преподавателем и 12 академических часов самостоятельной работы; общая продолжительность освоения — 3 недели."
+                }
+            };
+        }
+
+        private List<ItogDocumentOption> GetPPItogDocumentOptions()
+        {
+            // Опции для итогового документа (1.4) для типа договора ПП
+            return new List<ItogDocumentOption>
+            {
+                new ItogDocumentOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: Диплом вручается по окончании",
+                    OptionKey = "Option_Itog1",
+                    Text = "диплом о профпереподготовке вручается по окончании;"
+                },
+                new ItogDocumentOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: Диплом выдаётся одновременно с дипломом",
+                    OptionKey = "Option_Itog2",
+                    Text = "диплом выдаётся одновременно с дипломом СПО/ВО (ч. 16 ст. 76 ФЗ-273). До этого момента диплом хранится у Исполнителя."
+                }
+            };
+        }
+
+        private List<TimeOption> GetPPTimeOptions()
+        {
+            // Опции для учебной нагрузки (1.5) для типа договора ПП
+            return new List<TimeOption>
+            {
+                new TimeOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: 3 часа/нед, 81 неделя",
+                    OptionKey = "Option_Time1",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 3 академических часа в неделю, включая 2 академических часа взаимодействия с преподавателем и 1 академический час самостоятельной работы; общая продолжительность освоения — 81 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: 6 часов/нед, 41 неделя",
+                    OptionKey = "Option_Time2",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 6 академических часов в неделю, включая 4 академических часа взаимодействия с преподавателем и 2 академических часа самостоятельной работы; общая продолжительность освоения — 41 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 3,
+                    Name = "Опция № 3: 12 часов/нед, 21 неделя",
+                    OptionKey = "Option_Time3",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 12 академических часов в неделю, включая 8 академических часов взаимодействия с преподавателем и 4 академических часа самостоятельной работы; общая продолжительность освоения — 21 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 4,
+                    Name = "Опция № 4: 15 часов/нед, 17 недель",
+                    OptionKey = "Option_Time4",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 15 академических часов в неделю, включая 10 академических часов взаимодействия с преподавателем и 5 академических часов самостоятельной работы; общая продолжительность освоения — 17 недель."
+                },
+                new TimeOption
+                {
+                    Id = 5,
+                    Name = "Опция № 5: 30 часов/нед, 9 недель",
+                    OptionKey = "Option_Time5",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 30 академических часов в неделю, включая 20 академических часов взаимодействия с преподавателем и 10 академических часов самостоятельной работы; общая продолжительность освоения — 9 недель."
+                },
+                new TimeOption
+                {
+                    Id = 6,
+                    Name = "Опция № 6: 32 часа/нед, 8 недель",
+                    OptionKey = "Option_Time6",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 32 академических часа в неделю, включая 20 академических часов взаимодействия с преподавателем и 12 академических часов самостоятельной работы; общая продолжительность освоения — 8 недель."
                 }
             };
         }
