@@ -5,6 +5,8 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using Microsoft.EntityFrameworkCore;
+using DocumentFormat.OpenXml.Packaging;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Contract2512.Models;
 using Contract2512.Services;
 using Wpf.Ui.Controls;
@@ -519,8 +521,11 @@ namespace Contract2512.Views
 
                     // Создаем Word документ
                     CreateContractDocument(savedContract, db);
+                    
+                    // Создаем личную карточку слушателя
+                    CreateListenerCard(savedContract, db);
 
-                    MessageBox.Show("Договор успешно создан!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    MessageBox.Show("Договор и личная карточка слушателя успешно созданы!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     DialogResult = true;
                     Close();
                 }
@@ -1867,6 +1872,218 @@ namespace Contract2512.Views
             if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             {
                 DragMove();
+            }
+        }
+
+        private void CreateListenerCard(Contract contract, AppDbContext db)
+        {
+            string templatePath = @"C:\Dogovora\Личная карточка.docx";
+            
+            if (!File.Exists(templatePath))
+            {
+                MessageBox.Show("Шаблон личной карточки не найден по пути: " + templatePath, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Загружаем данные слушателя
+            var listener = db.Persons
+                .Include(p => p.Gender)
+                .FirstOrDefault(p => p.Id == contract.ListenerId);
+            if (listener == null)
+            {
+                MessageBox.Show("Слушатель не найден!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var program = db.LearningPrograms.Find(contract.ProgramId);
+            if (program == null)
+            {
+                MessageBox.Show("Программа не найдена!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var programView = db.ProgramViews.Find(program.ProgramViewId);
+            
+            // Загружаем контакты слушателя
+            Models.Contacts listenerContacts = null;
+            if (listener.ContactsId.HasValue)
+            {
+                listenerContacts = db.Contacts.Find(listener.ContactsId.Value);
+            }
+
+            // Загружаем паспорт слушателя
+            var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
+
+            // Загружаем образование слушателя
+            var education = db.Educations.FirstOrDefault(e => e.PersonId == listener.Id);
+            var baseEducation = education?.BaseEducationId.HasValue == true ? db.BaseEducations.Find(education.BaseEducationId.Value) : null;
+            var educationLevel = education?.EducationLevelId.HasValue == true ? db.EducationLevels.Find(education.EducationLevelId.Value) : null;
+
+            // Формируем словарь замен (используем точные плейсхолдеры из шаблона)
+            var replacements = new Dictionary<string, string>();
+
+            // Основная информация
+            replacements["{{number_dogovor}}"] = contract.ContractNumber ?? "";
+            replacements["{{Program_name}}"] = program.Name ?? "";
+            replacements["{{Type_program}}"] = programView?.Name ?? "";
+            replacements["{{time_program}}"] = program.Hours.ToString(); // Только число, без слова "часов"
+            
+            // ФИО и личные данные
+            replacements["{{FIO_Slushtel}}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
+            
+            // Дата и место рождения (объединяем в одну строку)
+            string birthdayPlace = listener.PlaceOfBirth ?? "";
+            string birthdayText = listener.DateOfBirth.ToString("dd.MM.yyyy");
+            if (!string.IsNullOrEmpty(birthdayPlace))
+            {
+                birthdayText += ", " + birthdayPlace;
+            }
+            replacements["{{Brithday_Slushtel}}"] = birthdayText;
+            
+            // Город рождения (отдельно, с пробелом в плейсхолдере!)
+            replacements["{{Gorod_ Slushtel}}"] = listener.PlaceOfBirth ?? "";
+            
+            replacements["{{Graschadnsto_Slushtel}}"] = listener.Citizenship ?? "";
+            
+            // Пол (с пробелом в плейсхолдере!)
+            string genderName = "";
+            if (listener.Gender != null)
+            {
+                genderName = listener.Gender.Name ?? "";
+            }
+            else if (listener.GenderId > 0)
+            {
+                var gender = db.Genders.Find(listener.GenderId);
+                genderName = gender?.Name ?? "";
+            }
+            replacements["{{Gender_ Slushtel}}"] = genderName;
+
+            // Паспортные данные
+            if (listenerPassport != null)
+            {
+                replacements["{{Seria}}"] = listenerPassport.Series ?? "";
+                replacements["{{Number}}"] = listenerPassport.Number ?? "";
+                replacements["{{Kem_Vidan}}"] = listenerPassport.IssuedBy ?? "";
+                replacements["{{Kogda_Vidan}}"] = listenerPassport.IssuanceDate.ToString("dd.MM.yyyy");
+            }
+            else
+            {
+                replacements["{{Seria}}"] = "";
+                replacements["{{Number}}"] = "";
+                replacements["{{Kem_Vidan}}"] = "";
+                replacements["{{Kogda_Vidan}}"] = "";
+            }
+
+            // Адрес
+            if (listenerContacts != null)
+            {
+                replacements["{{Index_Slushtel}}"] = listenerContacts.PostalCode ?? "";
+                replacements["{{Oblast_Slushtel}}"] = listenerContacts.Region ?? "";
+                replacements["{{Gorod_Slushtel}}"] = listenerContacts.City ?? ""; // Город из контактов (для адреса)
+                replacements["{{Street_Slushtel}}"] = listenerContacts.ResidenceAddress ?? "";
+                replacements["{{Email_Slushtel}}"] = listenerContacts.Email ?? "";
+            }
+            else
+            {
+                replacements["{{Index_Slushtel}}"] = "";
+                replacements["{{Oblast_Slushtel}}"] = "";
+                replacements["{{Gorod_Slushtel}}"] = "";
+                replacements["{{Street_Slushtel}}"] = "";
+                replacements["{{Email_Slushtel}}"] = "";
+            }
+
+            // СНИЛС
+            replacements["{{Snils_Slushtel}}"] = listener.Snils ?? "";
+            
+            // Телефон (в шаблоне используется {{Snils_Slushtel}} для телефона, но это ошибка - исправляем)
+            string listenerPhone = listenerContacts?.ContactPhone ?? "";
+            // Заменяем второй {{Snils_Slushtel}} на телефон после основной замены
+            
+            // Образование (базовое образование + уровень)
+            string educationText = "";
+            if (baseEducation != null)
+            {
+                educationText = baseEducation.Name ?? "";
+                if (educationLevel != null && !string.IsNullOrEmpty(educationLevel.Name))
+                {
+                    educationText += ", " + educationLevel.Name;
+                }
+            }
+            replacements["{{Obrasovanie_Slushtel}}"] = educationText;
+
+            // Данные об образовании (диплом)
+            if (education != null)
+            {
+                replacements["{{Seria_Diplom}}"] = education.Series ?? "";
+                replacements["{{Nomer_Diplom}}"] = education.Number ?? "";
+                replacements["{{Date_Diplom}}"] = education.IssueDate?.ToString("dd.MM.yyyy") ?? "";
+                replacements["{{Sity_Diplom}}"] = education.City ?? "";
+                replacements["{{Naimenovanie_Diplom}}"] = education.IssuedBy ?? "";
+                replacements["{{Spesialnost}}"] = education.Specialty ?? "";
+            }
+            else
+            {
+                replacements["{{Seria_Diplom}}"] = "";
+                replacements["{{Nomer_Diplom}}"] = "";
+                replacements["{{Date_Diplom}}"] = "";
+                replacements["{{Sity_Diplom}}"] = "";
+                replacements["{{Naimenovanie_Diplom}}"] = "";
+                replacements["{{Spesialnost}}"] = "";
+            }
+
+            // Место работы
+            replacements["{{Mesto_Raboti}}"] = listener.Workplace ?? "";
+
+            // Создаем документ
+            string outputFolder = @"C:\Dogovora";
+            if (!Directory.Exists(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+            }
+
+            string outputFileName = $"Личная карточка_{contract.ContractNumber}_{listener.LastName}.docx";
+            string outputPath = Path.Combine(outputFolder, outputFileName);
+
+            try
+            {
+                var wordService = new WordDocumentService();
+                wordService.ReplacePlaceholders(templatePath, outputPath, replacements);
+                
+                // Исправляем опечатку в шаблоне: заменяем "Телефон: [СНИЛС]" на "Телефон: [телефон]"
+                // Открываем документ и заменяем текст
+                using (var wordDoc = WordprocessingDocument.Open(outputPath, true))
+                {
+                    var mainPart = wordDoc.MainDocumentPart;
+                    if (mainPart != null && mainPart.Document != null)
+                    {
+                        string snilsValue = listener.Snils ?? "";
+                        if (!string.IsNullOrEmpty(snilsValue) && !string.IsNullOrEmpty(listenerPhone))
+                        {
+                            // Заменяем "Телефон: [СНИЛС]" на "Телефон: [телефон]"
+                            ReplaceTextInDocument(mainPart.Document, "Телефон: " + snilsValue, "Телефон: " + listenerPhone);
+                        }
+                        mainPart.Document.Save();
+                    }
+                }
+                
+                MessageBox.Show($"Личная карточка слушателя создана:\n{outputPath}", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при создании личной карточки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ReplaceTextInDocument(Document document, string oldText, string newText)
+        {
+            if (document == null) return;
+
+            foreach (var text in document.Descendants<Text>())
+            {
+                if (text.Text.Contains(oldText))
+                {
+                    text.Text = text.Text.Replace(oldText, newText);
+                }
             }
         }
 

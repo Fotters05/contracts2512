@@ -202,12 +202,16 @@ namespace Contract2512.Services
             string fullText = string.Join("", runs.SelectMany(r => r.Elements<Text>()).Select(t => t.Text));
             if (string.IsNullOrEmpty(fullText)) return;
 
-            // Проверяем наличие плейсхолдеров
+            // Проверяем наличие плейсхолдеров (проверяем наличие {{ и }})
+            if (!fullText.Contains("{{") || !fullText.Contains("}}"))
+            {
+                return;
+            }
+
             bool hasPlaceholder = false;
             foreach (var replacement in replacements)
             {
-                if (fullText.Contains(replacement.Key) || 
-                    (replacement.Key.EndsWith("}}") && fullText.Contains(replacement.Key.TrimEnd('}'))))
+                if (fullText.Contains(replacement.Key))
                 {
                     hasPlaceholder = true;
                     break;
@@ -231,8 +235,7 @@ namespace Contract2512.Services
                     (placeholder == "{{option1}}" || placeholder == "{{option2}}" ||
                      placeholder.StartsWith("{{Option_study")))
                 {
-                    if (newFullText.Contains(placeholder) || 
-                        (placeholder.EndsWith("}}") && newFullText.Contains(placeholder.TrimEnd('}'))))
+                    if (newFullText.Contains(placeholder))
                     {
                         shouldRemoveParagraph = true;
                         break; // Не заменяем, просто удалим весь параграф
@@ -240,7 +243,6 @@ namespace Contract2512.Services
                 }
 
                 // Заменяем все вхождения плейсхолдера в тексте
-                // Сначала пробуем полный плейсхолдер
                 if (newFullText.Contains(placeholder))
                 {
                     // Для {{enter}} заменяем на пустую строку
@@ -252,22 +254,6 @@ namespace Contract2512.Services
                     {
                         // Replace заменяет все вхождения по умолчанию
                         newFullText = newFullText.Replace(placeholder, value);
-                    }
-                }
-                // Также обрабатываем вариант с пропущенной закрывающей скобкой (для опечаток)
-                if (placeholder.EndsWith("}}"))
-                {
-                    string placeholderWithoutBrace = placeholder.TrimEnd('}');
-                    if (newFullText.Contains(placeholderWithoutBrace) && !newFullText.Contains(placeholder))
-                    {
-                        if (placeholder == "{{enter}}")
-                        {
-                            newFullText = newFullText.Replace(placeholderWithoutBrace, "");
-                        }
-                        else
-                        {
-                            newFullText = newFullText.Replace(placeholderWithoutBrace, value);
-                        }
                     }
                 }
             }

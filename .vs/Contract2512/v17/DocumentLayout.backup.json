@@ -3,6 +3,10 @@
   "WorkspaceRootPath": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\contractwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\contractwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\models\\person.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:models\\person.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -37,10 +41,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:assemblyinfo.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\contractwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\contractwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\personwindow.xaml||{F11ACC28-31D1-4C80-A34B-F4E09D3D753C}",
@@ -133,14 +133,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\models\\baseeducation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:models\\baseeducation.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\migration_add_education_city.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:migration_add_education_city.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\migration_add_contract_options.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:migration_add_contract_options.sql||{CC5D8DF0-88F4-4BB2-9DBB-B48CEE65C30A}|CodeFrame"
     }
   ],
   "DocumentGroupContainers": [
@@ -150,7 +142,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 268,
-          "SelectedChildIndex": 25,
+          "SelectedChildIndex": 26,
           "Children": [
             {
               "$type": "Bookmark",
@@ -226,19 +218,18 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 6,
-              "Title": "migration_add_education_city.sql ",
+              "DocumentIndex": 7,
+              "Title": "migration_add_education_city.sql",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\migration_add_education_city.sql",
               "RelativeDocumentMoniker": "migration_add_education_city.sql",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\migration_add_education_city.sql",
               "RelativeToolTip": "migration_add_education_city.sql",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-12-08T11:13:54.407Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-08T11:13:54.407Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 3,
               "Title": "App.config",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.config",
               "RelativeDocumentMoniker": "App.config",
@@ -246,8 +237,7 @@
               "RelativeToolTip": "App.config",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAABIAAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000601|",
-              "WhenOpened": "2025-12-04T21:43:33.809Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:43:33.809Z"
             },
             {
               "$type": "Document",
@@ -259,12 +249,11 @@
               "RelativeToolTip": "Views\\SupportWindow.xaml.cs",
               "ViewState": "AgIAAAMAAAAAAAAAAAAqwBIAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-05T14:53:27.597Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-05T14:53:27.597Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 7,
+              "DocumentIndex": 8,
               "Title": "Contract.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Contract.cs",
               "RelativeDocumentMoniker": "Models\\Contract.cs",
@@ -272,8 +261,7 @@
               "RelativeToolTip": "Models\\Contract.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:48:27.728Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:48:27.728Z"
             },
             {
               "$type": "Document",
@@ -284,24 +272,22 @@
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonContractsWindow.xaml",
               "RelativeToolTip": "Views\\PersonContractsWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-05T13:11:47.843Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-05T13:11:47.843Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 4,
               "Title": "App.xaml",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml",
               "RelativeDocumentMoniker": "App.xaml",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml",
               "RelativeToolTip": "App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:40:09.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:40:09.104Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 2,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Services\\AppDbContext.cs",
@@ -309,20 +295,31 @@
               "RelativeToolTip": "Services\\AppDbContext.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAcAAAAdAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:49:06.502Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:49:06.502Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 1,
               "Title": "Person.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Person.cs",
               "RelativeDocumentMoniker": "Models\\Person.cs",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Person.cs",
               "RelativeToolTip": "Models\\Person.cs",
-              "ViewState": "AgIAAEcAAAAAAAAAAAAqwAQAAAAWAAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAA8AAAAXAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:48:56.151Z",
+              "WhenOpened": "2025-12-04T21:48:56.151Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "ContractWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Views\\ContractWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml.cs",
+              "RelativeToolTip": "Views\\ContractWindow.xaml.cs",
+              "ViewState": "AgIAAPsHAAAAAAAAAAApwAQIAAA2AAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-04T21:55:12.295Z",
               "EditorCaption": ""
             },
             {
@@ -331,19 +328,18 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
-              "Title": "migration_add_contract_options.sql ",
+              "DocumentIndex": 6,
+              "Title": "migration_add_contract_options.sql",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\migration_add_contract_options.sql",
               "RelativeDocumentMoniker": "migration_add_contract_options.sql",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\migration_add_contract_options.sql",
               "RelativeToolTip": "migration_add_contract_options.sql",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000826|",
-              "WhenOpened": "2025-12-08T11:13:56.646Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-08T11:13:56.646Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "App.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml.cs",
               "RelativeDocumentMoniker": "App.xaml.cs",
@@ -351,8 +347,7 @@
               "RelativeToolTip": "App.xaml.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:40:06.989Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:40:06.989Z"
             },
             {
               "$type": "Document",
@@ -374,12 +369,11 @@
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonWindow.xaml",
               "RelativeToolTip": "Views\\PersonWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:49:23.012Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:49:23.012Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 8,
+              "DocumentIndex": 9,
               "Title": "AssemblyInfo.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\AssemblyInfo.cs",
               "RelativeDocumentMoniker": "AssemblyInfo.cs",
@@ -387,21 +381,7 @@
               "RelativeToolTip": "AssemblyInfo.cs",
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAoAAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:49:37.491Z",
-              "EditorCaption": ""
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 9,
-              "Title": "ContractWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml.cs",
-              "RelativeDocumentMoniker": "Views\\ContractWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml.cs",
-              "RelativeToolTip": "Views\\ContractWindow.xaml.cs",
-              "ViewState": "AgIAABkGAAAAAAAAAIAxwBkGAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:55:12.295Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:49:37.491Z"
             },
             {
               "$type": "Document",
