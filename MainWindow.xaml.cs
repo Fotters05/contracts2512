@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Data.Entity;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Windows;
 using Contract2512.Models;
@@ -197,19 +197,10 @@ namespace Contract2512
             {
                 using (var db = new AppDbContext())
                 {
-                    var persons = db.Persons.ToList();
-                    // Загружаем связанные данные
-                    foreach (var person in persons)
-                    {
-                        if (person.GenderId > 0)
-                        {
-                            person.Gender = db.Genders.Find(person.GenderId);
-                        }
-                        if (person.ContactsId.HasValue)
-                        {
-                            person.Contacts = db.Contacts.Find(person.ContactsId.Value);
-                        }
-                    }
+                    var persons = db.Persons
+                        .Include(p => p.Gender)
+                        .Include(p => p.Contacts)
+                        .ToList();
                     PersonsDataGrid.ItemsSource = persons;
                 }
             }
@@ -229,25 +220,14 @@ namespace Contract2512
             {
                 using (var db = new AppDbContext())
                 {
-                    var contracts = db.Contracts.ToList();
-                    // Загружаем связанные данные
-                    foreach (var contract in contracts)
-                    {
-                        contract.ContractType = db.ContractTypes.Find(contract.ContractTypeId);
-                        contract.Program = db.LearningPrograms.Find(contract.ProgramId);
-                        contract.Payer = db.Persons.Find(contract.PayerId);
-                        contract.Listener = db.Persons.Find(contract.ListenerId);
-
-                        // Загружаем контакты для заказчика и слушателя
-                        if (contract.Payer != null && contract.Payer.ContactsId.HasValue)
-                        {
-                            contract.Payer.Contacts = db.Contacts.Find(contract.Payer.ContactsId.Value);
-                        }
-                        if (contract.Listener != null && contract.Listener.ContactsId.HasValue)
-                        {
-                            contract.Listener.Contacts = db.Contacts.Find(contract.Listener.ContactsId.Value);
-                        }
-                    }
+                    var contracts = db.Contracts
+                        .Include(c => c.ContractType)
+                        .Include(c => c.Program)
+                        .Include(c => c.Payer)
+                            .ThenInclude(p => p.Contacts)
+                        .Include(c => c.Listener)
+                            .ThenInclude(p => p.Contacts)
+                        .ToList();
                     
                     // Сохраняем все договоры для фильтрации
                     _allContracts = new System.Collections.ObjectModel.ObservableCollection<Contract>(contracts);
@@ -452,30 +432,30 @@ namespace Contract2512
         private void LoadPrograms()
         {
             try
+        {
+            using (var db = new AppDbContext())
             {
-                using (var db = new AppDbContext())
+                var programs = db.LearningPrograms.ToList();
+                var programViewModels = programs.Select(p =>
                 {
-                    var programs = db.LearningPrograms.ToList();
-                    var programViewModels = programs.Select(p =>
-                    {
-                        // Загружаем вид программы
-                        var programView = db.ProgramViews.Find(p.ProgramViewId);
+                    // Загружаем вид программы
+                    var programView = db.ProgramViews.Find(p.ProgramViewId);
 
-                        return new ProgramViewModel
-                        {
-                            Id = p.Id,
+                    return new ProgramViewModel
+                    {
+                        Id = p.Id,
                             Name = p.Name ?? "",
                             Format = p.Format ?? "",
-                            Hours = p.Hours,
-                            LessonsCount = p.LessonsCount,
-                            Price = p.Price,
-                            ImagePath = GetImagePath(p.Image),
-                            ProgramViewName = programView?.Name ?? ""
-                        };
-                    }).ToList();
+                        Hours = p.Hours,
+                        LessonsCount = p.LessonsCount,
+                        Price = p.Price,
+                        ImagePath = GetImagePath(p.Image),
+                        ProgramViewName = programView?.Name ?? ""
+                    };
+                }).ToList();
 
-                    ProgramsItemsControl.ItemsSource = programViewModels;
-                }
+                ProgramsItemsControl.ItemsSource = programViewModels;
+            }
             }
             catch (Exception ex)
             {
@@ -743,7 +723,7 @@ namespace Contract2512
         private void DeleteContractTypeButton_Click(object sender, RoutedEventArgs e)
         {
             if (ContractTypesDataGrid.SelectedItem is ContractType selectedContractType)
-            {
+                {
                 var result = System.Windows.MessageBox.Show(
                     $"Вы уверены, что хотите удалить тип договора \"{selectedContractType.Name}\"?",
                     "Подтверждение удаления",
@@ -770,7 +750,7 @@ namespace Contract2512
 
                             var contractType = db.ContractTypes.Find(selectedContractType.Id);
                             if (contractType != null)
-                            {
+                {
                                 db.ContractTypes.Remove(contractType);
                                 db.SaveChanges();
                                 LoadContractTypes();
@@ -789,7 +769,7 @@ namespace Contract2512
                             "Ошибка",
                             System.Windows.MessageBoxButton.OK,
                             System.Windows.MessageBoxImage.Error);
-                    }
+                }
                 }
             }
             else

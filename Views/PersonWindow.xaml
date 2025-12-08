@@ -730,6 +730,7 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" 
@@ -791,6 +792,16 @@
                                            x:Name="RegistrationDatePicker" 
                                            Margin="0,5"
                                            Style="{StaticResource DarkDatePickerStyle}"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" 
+                                          Text="Адрес регистрации:" 
+                                          VerticalAlignment="Center" 
+                                          Margin="0,10"
+                                          Foreground="{StaticResource TextPrimary}"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" 
+                                        x:Name="RegistrationAddressTextBox" 
+                                        Margin="0,5"
+                                        Style="{StaticResource DarkTextBoxStyle}"/>
                         </Grid>
                     </StackPanel>
                 </GroupBox>
@@ -810,54 +821,88 @@
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
 
                                 <TextBlock Grid.Row="0" Grid.Column="0" 
-                                          Text="Адрес регистрации:" 
+                                          Text="Индекс:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="0" Grid.Column="1" 
-                                        x:Name="RegistrationAddressTextBox" 
+                                        x:Name="PostalCodeTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>
 
                                 <TextBlock Grid.Row="1" Grid.Column="0" 
-                                          Text="Контактный телефон:" 
+                                          Text="Область:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="1" Grid.Column="1" 
-                                        x:Name="ContactPhoneTextBox" 
+                                        x:Name="RegionTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>
 
                                 <TextBlock Grid.Row="2" Grid.Column="0" 
-                                          Text="E-mail:" 
+                                          Text="Город:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="2" Grid.Column="1" 
-                                        x:Name="EmailTextBox" 
+                                        x:Name="CityTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>
 
                                 <TextBlock Grid.Row="3" Grid.Column="0" 
-                                          Text="Домашний телефон:" 
+                                          Text="Адрес проживания:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="3" Grid.Column="1" 
-                                        x:Name="HomePhoneTextBox" 
+                                        x:Name="ResidenceAddressTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>
 
                                 <TextBlock Grid.Row="4" Grid.Column="0" 
-                                          Text="Рабочий телефон:" 
+                                          Text="Контактный телефон:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="4" Grid.Column="1" 
+                                        x:Name="ContactPhoneTextBox" 
+                                        Margin="0,5"
+                                        Style="{StaticResource DarkTextBoxStyle}"/>
+
+                                <TextBlock Grid.Row="5" Grid.Column="0" 
+                                          Text="E-mail:" 
+                                          VerticalAlignment="Center" 
+                                          Margin="0,10"
+                                          Foreground="{StaticResource TextPrimary}"/>
+                                <TextBox Grid.Row="5" Grid.Column="1" 
+                                        x:Name="EmailTextBox" 
+                                        Margin="0,5"
+                                        Style="{StaticResource DarkTextBoxStyle}"/>
+
+                                <TextBlock Grid.Row="6" Grid.Column="0" 
+                                          Text="Домашний телефон:" 
+                                          VerticalAlignment="Center" 
+                                          Margin="0,10"
+                                          Foreground="{StaticResource TextPrimary}"/>
+                                <TextBox Grid.Row="6" Grid.Column="1" 
+                                        x:Name="HomePhoneTextBox" 
+                                        Margin="0,5"
+                                        Style="{StaticResource DarkTextBoxStyle}"/>
+
+                                <TextBlock Grid.Row="7" Grid.Column="0" 
+                                          Text="Рабочий телефон:" 
+                                          VerticalAlignment="Center" 
+                                          Margin="0,10"
+                                          Foreground="{StaticResource TextPrimary}"/>
+                                <TextBox Grid.Row="7" Grid.Column="1" 
                                         x:Name="WorkPhoneTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>
@@ -875,6 +920,7 @@
                                 <ColumnDefinition Width="*"/>
                             </Grid.ColumnDefinitions>
                             <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
@@ -961,21 +1007,31 @@
                                         Style="{StaticResource DarkTextBoxStyle}"/>
 
                                 <TextBlock Grid.Row="7" Grid.Column="0" 
-                                          Text="Место выдачи:" 
+                                          Text="Город:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="7" Grid.Column="1" 
-                                        x:Name="EducationPlaceOfIssueTextBox" 
+                                        x:Name="EducationCityTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>
 
                                 <TextBlock Grid.Row="8" Grid.Column="0" 
-                                          Text="Специальность:" 
+                                          Text="Место выдачи:" 
                                           VerticalAlignment="Center" 
                                           Margin="0,10"
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <TextBox Grid.Row="8" Grid.Column="1" 
+                                        x:Name="EducationPlaceOfIssueTextBox" 
+                                        Margin="0,5"
+                                        Style="{StaticResource DarkTextBoxStyle}"/>
+
+                                <TextBlock Grid.Row="9" Grid.Column="0" 
+                                          Text="Специальность:" 
+                                          VerticalAlignment="Center" 
+                                          Margin="0,10"
+                                          Foreground="{StaticResource TextPrimary}"/>
+                                <TextBox Grid.Row="9" Grid.Column="1" 
                                         x:Name="EducationSpecialtyTextBox" 
                                         Margin="0,5"
                                         Style="{StaticResource DarkTextBoxStyle}"/>

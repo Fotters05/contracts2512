@@ -17,7 +17,7 @@ namespace Contract2512.Models
         public long PersonId { get; set; }
 
         [ForeignKey("PersonId")]
-        public virtual Person Person { get; set; }
+        public virtual Person? Person { get; set; }
 
         [Column("enrollment_date")]
         [Required]
@@ -27,40 +27,40 @@ namespace Contract2512.Models
         public short? BaseEducationId { get; set; }
 
         [ForeignKey("BaseEducationId")]
-        public virtual BaseEducation BaseEducation { get; set; }
+        public virtual BaseEducation? BaseEducation { get; set; }
 
         [Column("education_level_id")]
         public short? EducationLevelId { get; set; }
 
         [ForeignKey("EducationLevelId")]
-        public virtual EducationLevel EducationLevel { get; set; }
+        public virtual EducationLevel? EducationLevel { get; set; }
 
         [Column("series")]
         [MaxLength(50)]
-        public string Series { get; set; }
+        public string? Series { get; set; }
 
         [Column("number")]
-        [Required]
         [MaxLength(100)]
-        public string Number { get; set; }
+        public string? Number { get; set; }
 
         [Column("issue_date")]
-        [Required]
-        public DateTime IssueDate { get; set; }
+        public DateTime? IssueDate { get; set; }
 
         [Column("issued_by")]
-        [Required]
         [MaxLength(500)]
-        public string IssuedBy { get; set; }
+        public string? IssuedBy { get; set; }
 
         [Column("place_of_issue")]
-        [Required]
         [MaxLength(500)]
-        public string PlaceOfIssue { get; set; }
+        public string? PlaceOfIssue { get; set; }
+
+        [Column("city")]
+        [MaxLength(200)]
+        public string? City { get; set; }
 
         [Column("specialty")]
         [MaxLength(300)]
-        public string Specialty { get; set; }
+        public string? Specialty { get; set; }
 
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }

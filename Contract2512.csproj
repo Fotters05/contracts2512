@@ -10,9 +10,12 @@
 
   <ItemGroup>
     <PackageReference Include="DocumentFormat.OpenXml" Version="3.3.0" />
-    <PackageReference Include="EntityFramework" Version="6.4.4" />
-    <PackageReference Include="EntityFramework6.Npgsql" Version="6.4.2" />
-    <PackageReference Include="Npgsql" Version="4.1.3" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
     <PackageReference Include="WPF-UI" Version="4.1.0" />
   </ItemGroup>
@@ -21,6 +24,19 @@
     <None Update="App.config">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Remove="migration_*.sql" />
+    <Content Remove="migration_*.sql" />
   </ItemGroup>
+
+  <ItemGroup>
+    <None Include="migration_*.sql">
+      <CopyToOutputDirectory>Never</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <PropertyGroup>
+    <!-- Исключаем SQL файлы из анализа SQL Server -->
+    <EnableDefaultItems>true</EnableDefaultItems>
+  </PropertyGroup>
 
 </Project>

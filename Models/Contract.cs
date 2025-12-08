@@ -26,14 +26,14 @@ namespace Contract2512.Models
         public int ContractTypeId { get; set; }
 
         [ForeignKey("ContractTypeId")]
-        public virtual ContractType ContractType { get; set; }
+        public virtual ContractType? ContractType { get; set; }
 
         [Column("program_id")]
         [Required]
         public long ProgramId { get; set; }
 
         [ForeignKey("ProgramId")]
-        public virtual LearningProgram Program { get; set; }
+        public virtual LearningProgram? Program { get; set; }
 
         [Column("start_date")]
         public DateTime? StartDate { get; set; }
@@ -50,17 +50,36 @@ namespace Contract2512.Models
         public long PayerId { get; set; }
 
         [ForeignKey("PayerId")]
-        public virtual Person Payer { get; set; }
+        public virtual Person? Payer { get; set; }
 
         [Column("listener_id")]
         [Required]
         public long ListenerId { get; set; }
 
         [ForeignKey("ListenerId")]
-        public virtual Person Listener { get; set; }
+        public virtual Person? Listener { get; set; }
 
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }
+
+        [Column("itog_document_option_key")]
+        [MaxLength(50)]
+        public string? ItogDocumentOptionKey { get; set; }
+
+        [Column("time_option_key")]
+        [MaxLength(50)]
+        public string? TimeOptionKey { get; set; }
+
+        [Column("study_option_key")]
+        [MaxLength(50)]
+        public string? StudyOptionKey { get; set; }
+
+        [Column("signer_id")]
+        public int? SignerId { get; set; }
+
+        [Column("payment_option_key")]
+        [MaxLength(50)]
+        public string? PaymentOptionKey { get; set; }
     }
 }
 

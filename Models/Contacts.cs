@@ -12,30 +12,37 @@ namespace Contract2512.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        [Column("registration_address")]
-        [MaxLength(1000)]
-        public string RegistrationAddress { get; set; }
+        [Column("postal_code")]
+        [MaxLength(20)]
+        public string? PostalCode { get; set; }
+
+        [Column("region")]
+        [MaxLength(200)]
+        public string? Region { get; set; }
+
+        [Column("city")]
+        [MaxLength(200)]
+        public string? City { get; set; }
 
         [Column("residence_address")]
         [MaxLength(1000)]
-        public string ResidenceAddress { get; set; }
+        public string? ResidenceAddress { get; set; }
 
         [Column("home_phone")]
         [MaxLength(50)]
-        public string HomePhone { get; set; }
+        public string? HomePhone { get; set; }
 
         [Column("contact_phone")]
-        [Required]
         [MaxLength(50)]
-        public string ContactPhone { get; set; }
+        public string? ContactPhone { get; set; }
 
         [Column("work_phone")]
         [MaxLength(50)]
-        public string WorkPhone { get; set; }
+        public string? WorkPhone { get; set; }
 
         [Column("email")]
         [MaxLength(254)]
-        public string Email { get; set; }
+        public string? Email { get; set; }
 
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }

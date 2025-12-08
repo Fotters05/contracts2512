@@ -27,7 +27,7 @@ namespace Contract2512.Models
         public int ProgramViewId { get; set; }
 
         [ForeignKey("ProgramViewId")]
-        public virtual ProgramView ProgramView { get; set; }
+        public virtual ProgramView? ProgramView { get; set; }
 
         [Column("hours")]
         [Required]
@@ -43,7 +43,7 @@ namespace Contract2512.Models
 
         [Column("image")]
         [MaxLength(255)]
-        public string Image { get; set; }
+        public string? Image { get; set; }
 
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }

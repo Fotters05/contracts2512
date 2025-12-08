@@ -59,6 +59,7 @@ namespace Contract2512.Views
                         IssuedByTextBox.Text = passport.IssuedBy;
                         DivisionCodeTextBox.Text = passport.DivisionCode;
                         RegistrationDatePicker.SelectedDate = passport.RegistrationDate;
+                        RegistrationAddressTextBox.Text = passport.RegistrationAddress ?? "";
                     }
 
                     // Загружаем контакты
@@ -67,7 +68,10 @@ namespace Contract2512.Views
                         var contacts = db.Contacts.Find(_person.ContactsId.Value);
                         if (contacts != null)
                         {
-                            RegistrationAddressTextBox.Text = contacts.RegistrationAddress ?? "";
+                            PostalCodeTextBox.Text = contacts.PostalCode ?? "";
+                            RegionTextBox.Text = contacts.Region ?? "";
+                            CityTextBox.Text = contacts.City ?? "";
+                            ResidenceAddressTextBox.Text = contacts.ResidenceAddress ?? "";
                             ContactPhoneTextBox.Text = contacts.ContactPhone;
                             EmailTextBox.Text = contacts.Email ?? "";
                             HomePhoneTextBox.Text = contacts.HomePhone ?? "";
@@ -93,6 +97,7 @@ namespace Contract2512.Views
                         EducationIssueDatePicker.SelectedDate = education.IssueDate;
                         EducationIssuedByTextBox.Text = education.IssuedBy;
                         EducationPlaceOfIssueTextBox.Text = education.PlaceOfIssue;
+                        EducationCityTextBox.Text = education.City ?? "";
                         EducationSpecialtyTextBox.Text = education.Specialty ?? "";
                     }
                 }
@@ -173,7 +178,10 @@ namespace Contract2512.Views
                 db.Contacts.Add(contacts);
             }
 
-            contacts.RegistrationAddress = string.IsNullOrWhiteSpace(RegistrationAddressTextBox.Text) ? null : RegistrationAddressTextBox.Text;
+            contacts.PostalCode = string.IsNullOrWhiteSpace(PostalCodeTextBox.Text) ? null : PostalCodeTextBox.Text;
+            contacts.Region = string.IsNullOrWhiteSpace(RegionTextBox.Text) ? null : RegionTextBox.Text;
+            contacts.City = string.IsNullOrWhiteSpace(CityTextBox.Text) ? null : CityTextBox.Text;
+            contacts.ResidenceAddress = string.IsNullOrWhiteSpace(ResidenceAddressTextBox.Text) ? null : ResidenceAddressTextBox.Text;
             contacts.ContactPhone = ContactPhoneTextBox.Text;
             contacts.Email = string.IsNullOrWhiteSpace(EmailTextBox.Text) ? null : EmailTextBox.Text;
             contacts.HomePhone = string.IsNullOrWhiteSpace(HomePhoneTextBox.Text) ? null : HomePhoneTextBox.Text;
@@ -208,7 +216,13 @@ namespace Contract2512.Views
                 passport.IssuedBy = IssuedByTextBox.Text;
                 passport.DivisionCode = DivisionCodeTextBox.Text;
                 passport.RegistrationDate = RegistrationDatePicker.SelectedDate.Value;
+                passport.RegistrationAddress = string.IsNullOrWhiteSpace(RegistrationAddressTextBox.Text) ? null : RegistrationAddressTextBox.Text;
                 passport.CreatedAt = passport.CreatedAt ?? DateTime.Now;
+            }
+            else
+            {
+                // Сохраняем адрес регистрации даже если не все поля паспорта заполнены
+                passport.RegistrationAddress = string.IsNullOrWhiteSpace(RegistrationAddressTextBox.Text) ? null : RegistrationAddressTextBox.Text;
             }
 
             // Обновляем или создаем образование
@@ -238,6 +252,7 @@ namespace Contract2512.Views
                 education.IssueDate = EducationIssueDatePicker.SelectedDate.Value;
                 education.IssuedBy = EducationIssuedByTextBox.Text;
                 education.PlaceOfIssue = EducationPlaceOfIssueTextBox.Text;
+                education.City = string.IsNullOrWhiteSpace(EducationCityTextBox.Text) ? null : EducationCityTextBox.Text;
                 education.Specialty = string.IsNullOrWhiteSpace(EducationSpecialtyTextBox.Text) ? null : EducationSpecialtyTextBox.Text;
                 education.CreatedAt = education.CreatedAt ?? DateTime.Now;
             }

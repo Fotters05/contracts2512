@@ -28,7 +28,7 @@ namespace Contract2512.Models
 
         [Column("patronymic")]
         [MaxLength(200)]
-        public string Patronymic { get; set; }
+        public string? Patronymic { get; set; }
 
         [Column("date_of_birth")]
         [Required]
@@ -39,11 +39,11 @@ namespace Contract2512.Models
         public short GenderId { get; set; }
 
         [ForeignKey("GenderId")]
-        public virtual Gender Gender { get; set; }
+        public virtual Gender? Gender { get; set; }
 
         [Column("place_of_birth")]
         [MaxLength(500)]
-        public string PlaceOfBirth { get; set; }
+        public string? PlaceOfBirth { get; set; }
 
         [Column("citizenship")]
         [Required]
@@ -57,21 +57,21 @@ namespace Contract2512.Models
 
         [Column("inn")]
         [MaxLength(12)]
-        public string Inn { get; set; }
+        public string? Inn { get; set; }
 
         [Column("workplace")]
         [MaxLength(500)]
-        public string Workplace { get; set; }
+        public string? Workplace { get; set; }
 
         [Column("position")]
         [MaxLength(200)]
-        public string Position { get; set; }
+        public string? Position { get; set; }
 
         [Column("contacts_id")]
         public long? ContactsId { get; set; }
 
         [ForeignKey("ContactsId")]
-        public virtual Contacts Contacts { get; set; }
+        public virtual Contacts? Contacts { get; set; }
 
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }
@@ -79,7 +79,7 @@ namespace Contract2512.Models
         [Column("updated_at")]
         public DateTime? UpdatedAt { get; set; }
 
-        public virtual System.Collections.Generic.ICollection<Education> Educations { get; set; }
+        public virtual System.Collections.Generic.ICollection<Education>? Educations { get; set; }
 
         [NotMapped]
         public string FullName => $"{LastName} {FirstName} {Patronymic}".Trim();

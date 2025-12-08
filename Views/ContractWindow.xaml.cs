@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Windows;
+using Microsoft.EntityFrameworkCore;
 using Contract2512.Models;
 using Contract2512.Services;
 using Wpf.Ui.Controls;
@@ -42,14 +43,14 @@ namespace Contract2512.Views
         {
             using (var db = new AppDbContext())
             {
-                // Загружаем типы договоров
-                ContractTypeComboBox.ItemsSource = db.ContractTypes.ToList();
+                // Загружаем типы договоров без отслеживания
+                ContractTypeComboBox.ItemsSource = db.ContractTypes.AsNoTracking().ToList();
 
-                // Загружаем программы обучения
-                ProgramComboBox.ItemsSource = db.LearningPrograms.ToList();
+                // Загружаем программы обучения без отслеживания
+                ProgramComboBox.ItemsSource = db.LearningPrograms.AsNoTracking().ToList();
 
-                // Загружаем физических лиц
-                var persons = db.Persons.ToList();
+                // Загружаем физических лиц без отслеживания
+                var persons = db.Persons.AsNoTracking().ToList();
                 PayerComboBox.ItemsSource = persons;
                 ListenerComboBox.ItemsSource = persons;
             }
@@ -322,8 +323,11 @@ namespace Contract2512.Views
                 return;
             }
 
+            // Получаем тип договора один раз
+            var contractType = (ContractType)ContractTypeComboBox.SelectedItem;
+
             // Автоматически генерируем номер договора, если он не заполнен
-            if (string.IsNullOrWhiteSpace(ContractNumberTextBox.Text) && ContractTypeComboBox.SelectedItem is ContractType contractType)
+            if (string.IsNullOrWhiteSpace(ContractNumberTextBox.Text))
             {
                 GenerateContractNumber(contractType);
             }
@@ -369,6 +373,97 @@ namespace Contract2512.Views
                         return;
                     }
 
+                    // Сохраняем выбранные опции
+                    string itogDocumentOptionKey = null;
+                    string timeOptionKey = null;
+                    string studyOptionKey = null;
+                    int? signerId = null;
+                    string paymentOptionKey = null;
+
+                    // Определяем тип договора для установки значений по умолчанию
+                    bool isPK = contractType != null && contractType.Name != null && 
+                               (contractType.Name.Contains("ПК") || 
+                                contractType.Name.Contains("повышение квалификации") ||
+                                contractType.Name.Contains("повышения квалификации"));
+                    bool isPP = contractType != null && contractType.Name != null && 
+                               (contractType.Name.Contains("ПП") || 
+                                contractType.Name.Contains("профпереподготовк") ||
+                                contractType.Name.Contains("профессиональной переподготовки") ||
+                                contractType.Name.Contains("профессиональная переподготовка"));
+
+                    if (ItogDocumentComboBox.SelectedItem is ItogDocumentOption selectedItogOption)
+                    {
+                        itogDocumentOptionKey = selectedItogOption.OptionKey;
+                    }
+                    else if (isPK || isPP)
+                    {
+                        // Если опция не выбрана, используем первую по умолчанию
+                        if (isPK)
+                        {
+                            var defaultOption = GetItogDocumentOptions().FirstOrDefault();
+                            itogDocumentOptionKey = defaultOption?.OptionKey;
+                        }
+                        else if (isPP)
+                        {
+                            var defaultOption = GetPPItogDocumentOptions().FirstOrDefault();
+                            itogDocumentOptionKey = defaultOption?.OptionKey;
+                        }
+                    }
+
+                    if (TimeOptionComboBox.SelectedItem is TimeOption selectedTimeOption)
+                    {
+                        timeOptionKey = selectedTimeOption.OptionKey;
+                    }
+                    else if (isPK || isPP)
+                    {
+                        // Если опция не выбрана, используем первую по умолчанию
+                        if (isPK)
+                        {
+                            var defaultOption = GetTimeOptions().FirstOrDefault();
+                            timeOptionKey = defaultOption?.OptionKey;
+                        }
+                        else if (isPP)
+                        {
+                            var defaultOption = GetPPTimeOptions().FirstOrDefault();
+                            timeOptionKey = defaultOption?.OptionKey;
+                        }
+                    }
+
+                    if (StudyOptionComboBox.SelectedItem is StudyOption selectedStudyOption)
+                    {
+                        studyOptionKey = selectedStudyOption.OptionKey;
+                    }
+                    else if (!isPK && !isPP)
+                    {
+                        // Для других типов договоров используем первую опцию по умолчанию
+                        var defaultOption = GetStudyOptions().FirstOrDefault();
+                        studyOptionKey = defaultOption?.OptionKey;
+                    }
+
+                    if (SignerComboBox.SelectedItem is Signer selectedSigner)
+                    {
+                        signerId = selectedSigner.Id;
+                    }
+                    else
+                    {
+                        // По умолчанию - первый подписант
+                        var signers = GetSigners();
+                        if (signers.Any())
+                        {
+                            signerId = signers.First().Id;
+                        }
+                    }
+
+                    if (PaymentOptionComboBox.SelectedItem is PaymentOption selectedPaymentOption)
+                    {
+                        paymentOptionKey = selectedPaymentOption.OptionKey;
+                    }
+                    else
+                    {
+                        // По умолчанию - полная оплата
+                        paymentOptionKey = "option1";
+                    }
+
                     // Создаем договор в БД
                     var contract = new Contract
                     {
@@ -380,14 +475,50 @@ namespace Contract2512.Views
                         EndDate = EndDatePicker.SelectedDate,
                         PayerId = ((Person)PayerComboBox.SelectedItem).Id,
                         ListenerId = ((Person)ListenerComboBox.SelectedItem).Id,
-                        CreatedAt = DateTime.Now
+                        CreatedAt = DateTime.Now,
+                        ItogDocumentOptionKey = itogDocumentOptionKey,
+                        TimeOptionKey = timeOptionKey,
+                        StudyOptionKey = studyOptionKey,
+                        SignerId = signerId,
+                        PaymentOptionKey = paymentOptionKey
                     };
 
+                    // Добавляем договор в контекст
                     db.Contracts.Add(contract);
-                    db.SaveChanges();
+                    
+                    // Сохраняем изменения
+                    try
+                    {
+                        db.SaveChanges();
+                    }
+                    catch (Microsoft.EntityFrameworkCore.DbUpdateException dbEx)
+                    {
+                        // Логируем детали ошибки для отладки
+                        string errorDetails = dbEx.Message;
+                        if (dbEx.InnerException != null)
+                        {
+                            errorDetails += "\n\nВнутреннее исключение: " + dbEx.InnerException.Message;
+                        }
+                        throw new Exception(errorDetails, dbEx);
+                    }
+
+                    // Перезагружаем договор из БД, чтобы получить актуальные данные
+                    // Используем AsNoTracking() чтобы избежать конфликтов отслеживания
+                    var savedContract = db.Contracts
+                        .AsNoTracking()
+                        .Include(c => c.ContractType)
+                        .Include(c => c.Program)
+                        .Include(c => c.Payer)
+                        .Include(c => c.Listener)
+                        .FirstOrDefault(c => c.Id == contract.Id);
+
+                    if (savedContract == null)
+                    {
+                        throw new InvalidOperationException("Не удалось загрузить сохраненный договор");
+                    }
 
                     // Создаем Word документ
-                    CreateContractDocument(contract, db);
+                    CreateContractDocument(savedContract, db);
 
                     MessageBox.Show("Договор успешно создан!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     DialogResult = true;
@@ -396,7 +527,21 @@ namespace Contract2512.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при создании договора: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                string errorMessage = $"Ошибка при создании договора: {ex.Message}";
+                
+                // Если есть внутреннее исключение, добавляем его детали
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $"\n\nДетали: {ex.InnerException.Message}";
+                    
+                    // Если это исключение от EF Core, добавляем больше деталей
+                    if (ex.InnerException.InnerException != null)
+                    {
+                        errorMessage += $"\n\nПодробности: {ex.InnerException.InnerException.Message}";
+                    }
+                }
+                
+                MessageBox.Show(errorMessage, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -454,7 +599,7 @@ namespace Contract2512.Views
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
 
             // Формируем словарь замен
-            var replacements = BuildReplacementsDictionary(contract, payer, listener, program, payerContacts, listenerContacts, payerPassport, listenerPassport);
+            var replacements = BuildReplacementsDictionary(contract, contractType, payer, listener, program, payerContacts, listenerContacts, payerPassport, listenerPassport);
 
             // Создаем путь для сохранения договора
             string outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Договоры");
@@ -473,7 +618,7 @@ namespace Contract2512.Views
             return outputPath;
         }
 
-        private static Dictionary<string, string> BuildReplacementsDictionary(Contract contract, Person payer, Person listener, LearningProgram program, 
+        private static Dictionary<string, string> BuildReplacementsDictionary(Contract contract, ContractType contractType, Person payer, Person listener, LearningProgram program, 
             Models.Contacts payerContacts, Models.Contacts listenerContacts, Passport payerPassport, Passport listenerPassport)
         {
             var replacements = new Dictionary<string, string>();
@@ -505,7 +650,8 @@ namespace Contract2512.Views
             {
                 replacements["{{Seria Number, Kem_Vidan}}"] = "";
             }
-            replacements["{{Adress_Registracii}}"] = payerContacts?.RegistrationAddress ?? "";
+            replacements["{{Adress_Registracii}}"] = payerPassport?.RegistrationAddress ?? "";
+            replacements["{{Snils}}"] = payer.Snils ?? "";
 
             // Данные слушателя
             string listenerPhone = listenerContacts?.ContactPhone ?? "";
@@ -541,33 +687,217 @@ namespace Contract2512.Views
             replacements["{{yr}}"] = currentDate.Year.ToString();
             replacements["{{number_dogovor}}"] = contract.ContractNumber;
 
-            // Подписант - по умолчанию первый
-            var signers = GetSignersStatic();
-            if (signers.Any())
+            // Проверяем тип договора для ПК/ПП
+            bool isPK = contractType != null && contractType.Name != null && 
+                       (contractType.Name.Contains("ПК") || 
+                        contractType.Name.Contains("повышение квалификации") ||
+                        contractType.Name.Contains("повышения квалификации"));
+            bool isPP = contractType != null && contractType.Name != null && 
+                       (contractType.Name.Contains("ПП") || 
+                        contractType.Name.Contains("профпереподготовк") ||
+                        contractType.Name.Contains("профессиональной переподготовки") ||
+                        contractType.Name.Contains("профессиональная переподготовка"));
+
+            // Подписант - берем из сохраненного в БД
+            if (contract.SignerId.HasValue)
             {
-                replacements["{{choice_signer}}"] = signers.First().Text;
+                var signers = GetSignersStatic();
+                var selectedSigner = signers.FirstOrDefault(s => s.Id == contract.SignerId.Value);
+                if (selectedSigner != null)
+                {
+                    replacements["{{choice_signer}}"] = selectedSigner.Text;
+                }
+                else
+                {
+                    replacements["{{choice_signer}}"] = "";
+                }
             }
             else
             {
-                replacements["{{choice_signer}}"] = "";
+                // По умолчанию - первый
+                var signers = GetSignersStatic();
+                if (signers.Any())
+                {
+                    replacements["{{choice_signer}}"] = signers.First().Text;
+                }
+                else
+                {
+                    replacements["{{choice_signer}}"] = "";
+                }
             }
 
-            // Вариант оплаты - по умолчанию полная оплата
-            replacements["{{option1}}"] = "Оплата осуществляется в следующем порядке: 100% предоплата до начала обучения.";
-            replacements["{{option2}}"] = "";
-
-            // Вариант учебной нагрузки - по умолчанию первая опция
-            var studyOptions = GetStudyOptionsStatic();
-            var defaultStudyOption = studyOptions.FirstOrDefault();
-            if (defaultStudyOption != null)
+            // Вариант оплаты - берем из сохраненного в БД
+            if (!string.IsNullOrEmpty(contract.PaymentOptionKey))
             {
-                replacements[$"{{{{{defaultStudyOption.OptionKey}}}}}"] = defaultStudyOption.Text;
+                if (contract.PaymentOptionKey == "option1")
+                {
+                    replacements["{{option1}}"] = "Оплата осуществляется в следующем порядке: 100% предоплата до начала обучения.";
+                    replacements["{{option2}}"] = "";
+                }
+                else if (contract.PaymentOptionKey == "option2")
+                {
+                    replacements["{{option1}}"] = "";
+                    replacements["{{option2}}"] = "Оплата осуществляется в следующем порядке:";
+                }
+            }
+            else
+            {
+                // По умолчанию - полная оплата
+                replacements["{{option1}}"] = "Оплата осуществляется в следующем порядке: 100% предоплата до начала обучения.";
+                replacements["{{option2}}"] = "";
+            }
+
+            if (isPK || isPP)
+            {
+                // Для типа договора ПК или ПП используем опции 1.4 и 1.5
+                
+                // Опция итогового документа (1.4) - берем из сохраненного в БД
+                if (!string.IsNullOrEmpty(contract.ItogDocumentOptionKey))
+                {
+                    List<ItogDocumentOption> itogOptions = isPK ? GetItogDocumentOptionsStatic() : GetPPItogDocumentOptionsStatic();
+                    var selectedItogOption = itogOptions.FirstOrDefault(o => o.OptionKey == contract.ItogDocumentOptionKey);
+                    if (selectedItogOption != null)
+                    {
+                        replacements[$"{{{{{selectedItogOption.OptionKey}}}}}"] = selectedItogOption.Text;
+                        for (int i = 1; i <= 2; i++)
+                        {
+                            string optionKey = $"Option_Itog{i}";
+                            if (optionKey != selectedItogOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        replacements["{{Option_Itog1}}"] = "";
+                        replacements["{{Option_Itog2}}"] = "";
+                    }
+                }
+                else
+                {
+                    // По умолчанию - первая опция
+                    if (isPK)
+                    {
+                        replacements["{{Option_Itog1}}"] = GetItogDocumentOptionsStatic().FirstOrDefault()?.Text ?? "";
+                    }
+                    else if (isPP)
+                    {
+                        replacements["{{Option_Itog1}}"] = GetPPItogDocumentOptionsStatic().FirstOrDefault()?.Text ?? "";
+                    }
+                    replacements["{{Option_Itog2}}"] = "";
+                }
+
+                // Опция учебной нагрузки (1.5) - берем из сохраненного в БД
+                if (!string.IsNullOrEmpty(contract.TimeOptionKey))
+                {
+                    List<TimeOption> timeOptions = isPK ? GetTimeOptionsStatic() : GetPPTimeOptionsStatic();
+                    var selectedTimeOption = timeOptions.FirstOrDefault(o => o.OptionKey == contract.TimeOptionKey);
+                    if (selectedTimeOption != null)
+                    {
+                        replacements[$"{{{{{selectedTimeOption.OptionKey}}}}}"] = selectedTimeOption.Text;
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            string optionKey = $"Option_Time{i}";
+                            if (optionKey != selectedTimeOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            replacements[$"{{{{Option_Time{i}}}}}"] = "";
+                        }
+                    }
+                }
+                else
+                {
+                    // По умолчанию - первая опция
+                    TimeOption defaultTimeOption = null;
+                    if (isPK)
+                    {
+                        defaultTimeOption = GetTimeOptionsStatic().FirstOrDefault();
+                    }
+                    else if (isPP)
+                    {
+                        defaultTimeOption = GetPPTimeOptionsStatic().FirstOrDefault();
+                    }
+                    
+                    if (defaultTimeOption != null)
+                    {
+                        replacements[$"{{{{{defaultTimeOption.OptionKey}}}}}"] = defaultTimeOption.Text;
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            string optionKey = $"Option_Time{i}";
+                            if (optionKey != defaultTimeOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                }
+
+                // Скрываем старые опции учебной нагрузки
                 for (int i = 1; i <= 5; i++)
                 {
-                    string optionKey = $"Option_study{i}";
-                    if (optionKey != defaultStudyOption.OptionKey)
+                    replacements[$"{{{{Option_study{i}}}}}"] = "";
+                }
+            }
+            else
+            {
+                // Для других типов договоров используем старые опции учебной нагрузки
+                
+                // Скрываем опции ПК
+                replacements["{{Option_Itog1}}"] = "";
+                replacements["{{Option_Itog2}}"] = "";
+                for (int i = 1; i <= 6; i++)
+                {
+                    replacements[$"{{{{Option_Time{i}}}}}"] = "";
+                }
+
+                // Вариант учебной нагрузки - берем из сохраненного в БД
+                if (!string.IsNullOrEmpty(contract.StudyOptionKey))
+                {
+                    var studyOptions = GetStudyOptionsStatic();
+                    var selectedStudyOption = studyOptions.FirstOrDefault(o => o.OptionKey == contract.StudyOptionKey);
+                    if (selectedStudyOption != null)
                     {
-                        replacements[$"{{{{{optionKey}}}}}"] = "";
+                        replacements[$"{{{{{selectedStudyOption.OptionKey}}}}}"] = selectedStudyOption.Text;
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            string optionKey = $"Option_study{i}";
+                            if (optionKey != selectedStudyOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            replacements[$"{{{{Option_study{i}}}}}"] = "";
+                        }
+                    }
+                }
+                else
+                {
+                    // По умолчанию - первая опция
+                    var defaultStudyOption = GetStudyOptionsStatic().FirstOrDefault();
+                    if (defaultStudyOption != null)
+                    {
+                        replacements[$"{{{{{defaultStudyOption.OptionKey}}}}}"] = defaultStudyOption.Text;
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            string optionKey = $"Option_study{i}";
+                            if (optionKey != defaultStudyOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
                     }
                 }
             }
@@ -688,6 +1018,150 @@ namespace Contract2512.Views
             };
         }
 
+        private static List<ItogDocumentOption> GetItogDocumentOptionsStatic()
+        {
+            // Опции для итогового документа (1.4) для типа договора ПК
+            return new List<ItogDocumentOption>
+            {
+                new ItogDocumentOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: Удостоверение вручается по окончании",
+                    OptionKey = "Option_Itog1",
+                    Text = "удостоверение о повышении квалификации вручается по окончании;"
+                },
+                new ItogDocumentOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: Удостоверение выдаётся одновременно с дипломом",
+                    OptionKey = "Option_Itog2",
+                    Text = "удостоверение выдаётся одновременно с дипломом СПО/ВО (ч. 16 ст. 76 ФЗ-273). До этого момента удостоверение хранится у Исполнителя."
+                }
+            };
+        }
+
+        private static List<TimeOption> GetTimeOptionsStatic()
+        {
+            // Опции для учебной нагрузки (1.5) для типа договора ПК
+            return new List<TimeOption>
+            {
+                new TimeOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: 3 часа/нед, 21 неделя",
+                    OptionKey = "Option_Time1",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 3 академических часа в неделю, включая 2 академических часа взаимодействия с преподавателем и 1 академический час самостоятельной работы; общая продолжительность освоения — 21 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: 6 часов/нед, 11 недель",
+                    OptionKey = "Option_Time2",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 6 академических часов в неделю, включая 4 академических часа взаимодействия с преподавателем и 2 академических часа самостоятельной работы; общая продолжительность освоения — 11 недель."
+                },
+                new TimeOption
+                {
+                    Id = 3,
+                    Name = "Опция № 3: 12 часов/нед, 6 недель",
+                    OptionKey = "Option_Time3",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 12 академических часов в неделю, включая 8 академических часов взаимодействия с преподавателем и 4 академических часа самостоятельной работы; общая продолжительность освоения — 6 недель."
+                },
+                new TimeOption
+                {
+                    Id = 4,
+                    Name = "Опция № 4: 15 часов/нед, 5 недель",
+                    OptionKey = "Option_Time4",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 15 академических часов в неделю, включая 10 академических часов взаимодействия с преподавателем и 5 академических часов самостоятельной работы; общая продолжительность освоения — 5 недель."
+                },
+                new TimeOption
+                {
+                    Id = 5,
+                    Name = "Опция № 5: 30 часов/нед, 3 недели",
+                    OptionKey = "Option_Time5",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 30 академических часов в неделю, включая 20 академических часов взаимодействия с преподавателем и 10 академических часов самостоятельной работы; общая продолжительность освоения — 3 недели."
+                },
+                new TimeOption
+                {
+                    Id = 6,
+                    Name = "Опция № 6: 32 часа/нед, 3 недели",
+                    OptionKey = "Option_Time6",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 32 академических часа в неделю, включая 20 академических часов взаимодействия с преподавателем и 12 академических часов самостоятельной работы; общая продолжительность освоения — 3 недели."
+                }
+            };
+        }
+
+        private static List<ItogDocumentOption> GetPPItogDocumentOptionsStatic()
+        {
+            // Опции для итогового документа (1.4) для типа договора ПП
+            return new List<ItogDocumentOption>
+            {
+                new ItogDocumentOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: Диплом вручается по окончании",
+                    OptionKey = "Option_Itog1",
+                    Text = "диплом о профпереподготовке вручается по окончании;"
+                },
+                new ItogDocumentOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: Диплом выдаётся одновременно с дипломом",
+                    OptionKey = "Option_Itog2",
+                    Text = "диплом выдаётся одновременно с дипломом СПО/ВО (ч. 16 ст. 76 ФЗ-273). До этого момента диплом хранится у Исполнителя."
+                }
+            };
+        }
+
+        private static List<TimeOption> GetPPTimeOptionsStatic()
+        {
+            // Опции для учебной нагрузки (1.5) для типа договора ПП
+            return new List<TimeOption>
+            {
+                new TimeOption
+                {
+                    Id = 1,
+                    Name = "Опция № 1: 3 часа/нед, 81 неделя",
+                    OptionKey = "Option_Time1",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 3 академических часа в неделю, включая 2 академических часа взаимодействия с преподавателем и 1 академический час самостоятельной работы; общая продолжительность освоения — 81 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 2,
+                    Name = "Опция № 2: 6 часов/нед, 41 неделя",
+                    OptionKey = "Option_Time2",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 6 академических часов в неделю, включая 4 академических часа взаимодействия с преподавателем и 2 академических часа самостоятельной работы; общая продолжительность освоения — 41 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 3,
+                    Name = "Опция № 3: 12 часов/нед, 21 неделя",
+                    OptionKey = "Option_Time3",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 12 академических часов в неделю, включая 8 академических часов взаимодействия с преподавателем и 4 академических часа самостоятельной работы; общая продолжительность освоения — 21 неделя."
+                },
+                new TimeOption
+                {
+                    Id = 4,
+                    Name = "Опция № 4: 15 часов/нед, 17 недель",
+                    OptionKey = "Option_Time4",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 15 академических часов в неделю, включая 10 академических часов взаимодействия с преподавателем и 5 академических часов самостоятельной работы; общая продолжительность освоения — 17 недель."
+                },
+                new TimeOption
+                {
+                    Id = 5,
+                    Name = "Опция № 5: 30 часов/нед, 9 недель",
+                    OptionKey = "Option_Time5",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 30 академических часов в неделю, включая 20 академических часов взаимодействия с преподавателем и 10 академических часов самостоятельной работы; общая продолжительность освоения — 9 недель."
+                },
+                new TimeOption
+                {
+                    Id = 6,
+                    Name = "Опция № 6: 32 часа/нед, 8 недель",
+                    OptionKey = "Option_Time6",
+                    Text = "Недельная учебная нагрузка по настоящему договору составляет 32 академических часа в неделю, включая 20 академических часов взаимодействия с преподавателем и 12 академических часов самостоятельной работы; общая продолжительность освоения — 8 недель."
+                }
+            };
+        }
+
         private void CreateContractDocument(Contract contract, AppDbContext db)
         {
             var contractType = db.ContractTypes.Find(contract.ContractTypeId);
@@ -786,7 +1260,7 @@ namespace Contract2512.Views
             {
                 replacements["{{Seria Number, Kem_Vidan}}"] = "";
             }
-            replacements["{{Adress_Registracii}}"] = payerContacts?.RegistrationAddress ?? "";
+            replacements["{{Adress_Registracii}}"] = payerPassport?.RegistrationAddress ?? "";
             replacements["{{Snils}}"] = payer.Snils ?? "";
 
             // Данные слушателя - берем телефон и email из таблицы contacts (такая же логика как для телефона)
@@ -821,41 +1295,49 @@ namespace Contract2512.Views
             replacements["{{Date Start}}"] = contract.StartDate?.ToString("dd.MM.yyyy") ?? "";
             replacements["{{Date End}}"] = contract.EndDate?.ToString("dd.MM.yyyy") ?? "";
             
-            // Дата договора (если нужен плейсхолдер для даты договора)
-            // Используем текущую дату (сегодняшнюю)
-            DateTime currentDate = DateTime.Today;
+            // Дата договора - используем дату из договора
+            DateTime contractDate = contract.ContractDate;
             
-            replacements["{{ContractDate}}"] = currentDate.ToString("dd.MM.yyyy");
-            replacements["{{Contract_Date}}"] = currentDate.ToString("dd.MM.yyyy");
+            replacements["{{ContractDate}}"] = contractDate.ToString("dd.MM.yyyy");
+            replacements["{{Contract_Date}}"] = contractDate.ToString("dd.MM.yyyy");
             
-            // Плейсхолдеры для даты: {{nm}} - день, {{mounts}} - месяц, {{yr}} - год (текущая дата)
-            replacements["{{nm}}"] = currentDate.Day.ToString("D2");
-            replacements["{{mounts}}"] = GetMonthName(currentDate.Month);
-            replacements["{{yr}}"] = currentDate.Year.ToString();
+            // Плейсхолдеры для даты: {{nm}} - день, {{mounts}} - месяц, {{yr}} - год
+            replacements["{{nm}}"] = contractDate.Day.ToString("D2");
+            replacements["{{mounts}}"] = GetMonthName(contractDate.Month);
+            replacements["{{yr}}"] = contractDate.Year.ToString();
             
             // Также добавляем номер договора
             replacements["{{number_dogovor}}"] = contract.ContractNumber;
 
-            // Подписант - берем из выбранного в комбобоксе
-            if (SignerComboBox.SelectedItem is Signer selectedSigner)
+            // Подписант - берем из сохраненного в БД
+            if (contract.SignerId.HasValue)
             {
-                replacements["{{choice_signer}}"] = selectedSigner.Text;
+                var signers = GetSignersStatic();
+                var selectedSigner = signers.FirstOrDefault(s => s.Id == contract.SignerId.Value);
+                if (selectedSigner != null)
+                {
+                    replacements["{{choice_signer}}"] = selectedSigner.Text;
+                }
+                else
+                {
+                    replacements["{{choice_signer}}"] = "";
+                }
             }
             else
             {
                 replacements["{{choice_signer}}"] = "";
             }
 
-            // Вариант оплаты - берем из выбранного в комбобоксе
-            if (PaymentOptionComboBox.SelectedItem is PaymentOption selectedPaymentOption)
+            // Вариант оплаты - берем из сохраненного в БД
+            if (!string.IsNullOrEmpty(contract.PaymentOptionKey))
             {
-                if (selectedPaymentOption.OptionKey == "option1")
+                if (contract.PaymentOptionKey == "option1")
                 {
                     // Полная оплата - оставляем только option1, option2 удаляем
                     replacements["{{option1}}"] = "Оплата осуществляется в следующем порядке: 100% предоплата до начала обучения.";
                     replacements["{{option2}}"] = ""; // Удаляем option2
                 }
-                else if (selectedPaymentOption.OptionKey == "option2")
+                else if (contract.PaymentOptionKey == "option2")
                 {
                     // Оплата частями - оставляем только option2, option1 удаляем
                     replacements["{{option1}}"] = ""; // Удаляем option1
@@ -886,18 +1368,29 @@ namespace Contract2512.Views
             {
                 // Для типа договора ПК или ПП используем опции 1.4 и 1.5
                 
-                // Опция итогового документа (1.4)
-                if (ItogDocumentComboBox.SelectedItem is ItogDocumentOption selectedItogOption)
+                // Опция итогового документа (1.4) - берем из сохраненного в БД
+                if (!string.IsNullOrEmpty(contract.ItogDocumentOptionKey))
                 {
-                    replacements[$"{{{{{selectedItogOption.OptionKey}}}}}"] = selectedItogOption.Text;
-                    // Остальные опции итогового документа - пустые
-                    for (int i = 1; i <= 2; i++)
+                    List<ItogDocumentOption> itogOptions = isPK ? GetItogDocumentOptions() : GetPPItogDocumentOptions();
+                    var selectedItogOption = itogOptions.FirstOrDefault(o => o.OptionKey == contract.ItogDocumentOptionKey);
+                    if (selectedItogOption != null)
                     {
-                        string optionKey = $"Option_Itog{i}";
-                        if (optionKey != selectedItogOption.OptionKey)
+                        replacements[$"{{{{{selectedItogOption.OptionKey}}}}}"] = selectedItogOption.Text;
+                        // Остальные опции итогового документа - пустые
+                        for (int i = 1; i <= 2; i++)
                         {
-                            replacements[$"{{{{{optionKey}}}}}"] = "";
+                            string optionKey = $"Option_Itog{i}";
+                            if (optionKey != selectedItogOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
                         }
+                    }
+                    else
+                    {
+                        // Если опция не найдена, очищаем все
+                        replacements["{{Option_Itog1}}"] = "";
+                        replacements["{{Option_Itog2}}"] = "";
                     }
                 }
                 else
@@ -914,17 +1407,30 @@ namespace Contract2512.Views
                     replacements["{{Option_Itog2}}"] = "";
                 }
 
-                // Опция учебной нагрузки (1.5)
-                if (TimeOptionComboBox.SelectedItem is TimeOption selectedTimeOption)
+                // Опция учебной нагрузки (1.5) - берем из сохраненного в БД
+                if (!string.IsNullOrEmpty(contract.TimeOptionKey))
                 {
-                    replacements[$"{{{{{selectedTimeOption.OptionKey}}}}}"] = selectedTimeOption.Text;
-                    // Все остальные опции времени заменяем на пустую строку
-                    for (int i = 1; i <= 6; i++)
+                    List<TimeOption> timeOptions = isPK ? GetTimeOptions() : GetPPTimeOptions();
+                    var selectedTimeOption = timeOptions.FirstOrDefault(o => o.OptionKey == contract.TimeOptionKey);
+                    if (selectedTimeOption != null)
                     {
-                        string optionKey = $"Option_Time{i}";
-                        if (optionKey != selectedTimeOption.OptionKey)
+                        replacements[$"{{{{{selectedTimeOption.OptionKey}}}}}"] = selectedTimeOption.Text;
+                        // Все остальные опции времени заменяем на пустую строку
+                        for (int i = 1; i <= 6; i++)
                         {
-                            replacements[$"{{{{{optionKey}}}}}"] = "";
+                            string optionKey = $"Option_Time{i}";
+                            if (optionKey != selectedTimeOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Если опция не найдена, очищаем все
+                        for (int i = 1; i <= 6; i++)
+                        {
+                            replacements[$"{{{{Option_Time{i}}}}}"] = "";
                         }
                     }
                 }
@@ -973,19 +1479,32 @@ namespace Contract2512.Views
                     replacements[$"{{{{Option_Time{i}}}}}"] = "";
                 }
 
-                // Вариант учебной нагрузки - берем из выбранного в комбобоксе
-                if (StudyOptionComboBox.SelectedItem is StudyOption selectedStudyOption)
+                // Вариант учебной нагрузки - берем из сохраненного в БД
+                if (!string.IsNullOrEmpty(contract.StudyOptionKey))
                 {
-                    // Заменяем выбранную опцию на текст, остальные на пустую строку
-                    replacements[$"{{{{{selectedStudyOption.OptionKey}}}}}"] = selectedStudyOption.Text;
-                    
-                    // Все остальные опции заменяем на пустую строку
-                    for (int i = 1; i <= 5; i++)
+                    var studyOptions = GetStudyOptions();
+                    var selectedStudyOption = studyOptions.FirstOrDefault(o => o.OptionKey == contract.StudyOptionKey);
+                    if (selectedStudyOption != null)
                     {
-                        string optionKey = $"Option_study{i}";
-                        if (optionKey != selectedStudyOption.OptionKey)
+                        // Заменяем выбранную опцию на текст, остальные на пустую строку
+                        replacements[$"{{{{{selectedStudyOption.OptionKey}}}}}"] = selectedStudyOption.Text;
+                        
+                        // Все остальные опции заменяем на пустую строку
+                        for (int i = 1; i <= 5; i++)
                         {
-                            replacements[$"{{{{{optionKey}}}}}"] = "";
+                            string optionKey = $"Option_study{i}";
+                            if (optionKey != selectedStudyOption.OptionKey)
+                            {
+                                replacements[$"{{{{{optionKey}}}}}"] = "";
+                            }
+                        }
+                    }
+                    else
+                    {
+                        // Если опция не найдена, очищаем все
+                        for (int i = 1; i <= 5; i++)
+                        {
+                            replacements[$"{{{{Option_study{i}}}}}"] = "";
                         }
                     }
                 }

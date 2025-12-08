@@ -380,11 +380,11 @@
                 Padding="20" Margin="0,-32,0,0">
 
             <Grid>
-                <Grid.RowDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                    <RowDefinition Height="Auto"/>
-                </Grid.RowDefinitions>
+        </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0"
                            Text="Система управления договорами"
@@ -450,10 +450,10 @@
         <Grid Grid.Column="1" x:Name="ContentRoot" Margin="20">
             <!-- Физические лица -->
             <Grid x:Name="PersonsPanel" Visibility="Visible">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
                 <!-- Панель кнопок -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
@@ -476,7 +476,7 @@
                            x:Name="CreateContractForPersonButton"
                            Style="{StaticResource DarkGrayButton}"
                            Click="CreateContractForPersonButton_Click"/>
-                </StackPanel>
+                    </StackPanel>
 
                 <!-- DataGrid -->
                 <Border Grid.Row="1" 
@@ -511,14 +511,14 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
-            </Grid>
+                </Grid>
 
             <!-- Договоры -->
             <Grid x:Name="ContractsPanel" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
                 <!-- Панель кнопок и поиска -->
                 <Grid Grid.Row="0" Margin="0,0,0,16">
@@ -582,14 +582,14 @@
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>
-            </Grid>
+                </Grid>
 
             <!-- Программы -->
             <Grid x:Name="ProgramsPanel" Visibility="Collapsed">
-                <Grid.RowDefinitions>
-                    <RowDefinition Height="Auto"/>
-                    <RowDefinition Height="*"/>
-                </Grid.RowDefinitions>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto"/>
+                        <RowDefinition Height="*"/>
+                    </Grid.RowDefinitions>
 
                 <!-- Панель кнопок -->
                 <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
@@ -607,20 +607,20 @@
                            x:Name="DeleteProgramButton"
                            Style="{StaticResource DarkGrayButton}"
                            Click="DeleteProgramButton_Click"/>
-                </StackPanel>
+                    </StackPanel>
 
                 <!-- Карточки программ -->
                 <ScrollViewer Grid.Row="1" 
                              VerticalScrollBarVisibility="Auto" 
                              HorizontalScrollBarVisibility="Disabled">
-                    <ItemsControl x:Name="ProgramsItemsControl">
-                        <ItemsControl.ItemsPanel>
-                            <ItemsPanelTemplate>
-                                <WrapPanel Orientation="Horizontal"/>
-                            </ItemsPanelTemplate>
-                        </ItemsControl.ItemsPanel>
-                        <ItemsControl.ItemTemplate>
-                            <DataTemplate>
+                        <ItemsControl x:Name="ProgramsItemsControl">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <WrapPanel Orientation="Horizontal"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
                                 <Border Width="280" 
                                        Margin="0,0,16,16"
                                        Cursor="Hand"
@@ -632,13 +632,13 @@
                                        BorderThickness="1"
                                        Opacity="0.8"
                                        Effect="{StaticResource CardShadow}">
-                                    <Grid>
-                                        <Grid.RowDefinitions>
+                                        <Grid>
+                                            <Grid.RowDefinitions>
                                             <RowDefinition Height="200"/>
-                                            <RowDefinition Height="Auto"/>
-                                        </Grid.RowDefinitions>
+                                                <RowDefinition Height="Auto"/>
+                                            </Grid.RowDefinitions>
 
-                                        <!-- CheckBox в правом верхнем углу -->
+                                            <!-- CheckBox в правом верхнем углу -->
                                         <Border Grid.Row="0" 
                                                HorizontalAlignment="Right" 
                                                VerticalAlignment="Top" 
@@ -653,54 +653,54 @@
                                                                 Opacity="0.2" 
                                                                 BlurRadius="4"/>
                                             </Border.Effect>
-                                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" 
-                                                     Click="ProgramCheckBox_Click"
+                                                <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}" 
+                                                         Click="ProgramCheckBox_Click"
                                                      Tag="{Binding}"
                                                      Margin="4"/>
-                                        </Border>
+                                            </Border>
 
-                                        <!-- Изображение -->
+                                            <!-- Изображение -->
                                         <Border Grid.Row="0" 
                                                Background="#0F172A" 
                                                CornerRadius="12,12,0,0"
                                                Margin="0,0,0,12">
-                                            <Grid>
+                                                <Grid>
                                                 <Image Source="{Binding ImagePath}" 
                                                       Height="180" 
                                                       Stretch="Uniform"
                                                       Margin="8">
-                                                    <Image.Style>
-                                                        <Style TargetType="Image">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding ImagePath}" Value="{x:Null}">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </Image.Style>
-                                                </Image>
+                                                        <Image.Style>
+                                                            <Style TargetType="Image">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding ImagePath}" Value="{x:Null}">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </Image.Style>
+                                                    </Image>
                                                 <TextBlock Text="Нет изображения" 
                                                           HorizontalAlignment="Center" 
                                                           VerticalAlignment="Center" 
                                                           Foreground="{StaticResource TextSecondary}"
                                                           FontSize="14">
-                                                    <TextBlock.Style>
-                                                        <Style TargetType="TextBlock">
-                                                            <Style.Triggers>
-                                                                <DataTrigger Binding="{Binding ImagePath}" Value="{x:Null}">
-                                                                    <Setter Property="Visibility" Value="Visible"/>
-                                                                </DataTrigger>
-                                                                <DataTrigger Binding="{Binding ImagePath}">
-                                                                    <Setter Property="Visibility" Value="Collapsed"/>
-                                                                </DataTrigger>
-                                                            </Style.Triggers>
-                                                        </Style>
-                                                    </TextBlock.Style>
-                                                </TextBlock>
-                                            </Grid>
-                                        </Border>
+                                                        <TextBlock.Style>
+                                                            <Style TargetType="TextBlock">
+                                                                <Style.Triggers>
+                                                                    <DataTrigger Binding="{Binding ImagePath}" Value="{x:Null}">
+                                                                        <Setter Property="Visibility" Value="Visible"/>
+                                                                    </DataTrigger>
+                                                                    <DataTrigger Binding="{Binding ImagePath}">
+                                                                        <Setter Property="Visibility" Value="Collapsed"/>
+                                                                    </DataTrigger>
+                                                                </Style.Triggers>
+                                                            </Style>
+                                                        </TextBlock.Style>
+                                                    </TextBlock>
+                                                </Grid>
+                                            </Border>
 
-                                        <!-- Контент -->
+                                            <!-- Контент -->
                                         <StackPanel Grid.Row="1" Margin="12,0,12,12">
                                             <TextBlock Text="{Binding Name}" 
                                                       FontWeight="SemiBold" 
@@ -710,8 +710,8 @@
                                                       Margin="0,0,0,6"/>
                                             <TextBlock FontSize="13" Margin="0,0,0,6" Foreground="{StaticResource TextSecondary}">
                                                 <Run Text="Вид программы: " FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}"/>
-                                                <Run Text="{Binding ProgramViewName}"/>
-                                            </TextBlock>
+                                                    <Run Text="{Binding ProgramViewName}"/>
+                                                </TextBlock>
                                             <TextBlock Text="{Binding Format}" 
                                                       FontSize="13" 
                                                       Foreground="{StaticResource TextSecondary}"
@@ -727,18 +727,18 @@
                                                 </TextBlock>
                                             </StackPanel>
                                             <TextBlock FontSize="15" FontWeight="SemiBold" Foreground="{StaticResource TextPrimary}">
-                                                <Run Text="Цена: "/>
-                                                <Run Text="{Binding Price, StringFormat=\{0:N2\}}"/>
+                                                    <Run Text="Цена: "/>
+                                                    <Run Text="{Binding Price, StringFormat=\{0:N2\}}"/>
                                                 <Run Text=" ₽"/>
-                                            </TextBlock>
-                                        </StackPanel>
-                                    </Grid>
-                                </Border>
-                            </DataTemplate>
-                        </ItemsControl.ItemTemplate>
-                    </ItemsControl>
-                </ScrollViewer>
-            </Grid>
+                                                </TextBlock>
+                                            </StackPanel>
+                                        </Grid>
+                                    </Border>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
 
             <!-- Типы договоров -->
             <Grid x:Name="ContractTypesPanel" Visibility="Collapsed">

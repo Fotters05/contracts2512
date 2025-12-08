@@ -17,7 +17,7 @@ namespace Contract2512.Models
         public long PersonId { get; set; }
 
         [ForeignKey("PersonId")]
-        public virtual Person Person { get; set; }
+        public virtual Person? Person { get; set; }
 
         [Column("series")]
         [Required]
@@ -49,6 +49,10 @@ namespace Contract2512.Models
 
         [Column("passport_valid_from")]
         public DateTime? PassportValidFrom { get; set; }
+
+        [Column("registration_address")]
+        [MaxLength(1000)]
+        public string? RegistrationAddress { get; set; }
 
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }

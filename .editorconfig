@@ -1,0 +1,7 @@
+root = true
+
+# Исключаем SQL файлы из анализа SQL Server
+[*.sql]
+# Отключаем анализ SQL для PostgreSQL скриптов
+sql_analyzer = none
+
