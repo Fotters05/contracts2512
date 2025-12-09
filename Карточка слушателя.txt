@@ -27,7 +27,7 @@
 Город: {{Gorod_Slushtel}}
 Улица, дом, корпус, кв: {{Street_Slushtel}}
 6.	СНИЛС: {{Snils_Slushtel}}
-7.	Телефон: {{Snils_Slushtel}}
+7.	Телефон: {{Phone_Slushtel}}
 E-mail: {{Email_Slushtel}}
 8.	Образование: {{Obrasovanie_Slushtel}}
 9.	Документ об образовании: диплом ☒

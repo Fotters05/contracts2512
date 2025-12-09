@@ -240,6 +240,69 @@ namespace Contract2512.Services
             };
             System.Diagnostics.Process.Start(processStartInfo);
         }
+
+        /// <summary>
+        /// Конвертирует Word документ в PDF используя Microsoft Word
+        /// </summary>
+        /// <param name="wordFilePath">Путь к Word документу</param>
+        /// <param name="pdfFilePath">Путь для сохранения PDF (если null, будет создан рядом с Word файлом)</param>
+        /// <returns>Путь к созданному PDF файлу</returns>
+        public string ConvertToPdf(string wordFilePath, string pdfFilePath = null)
+        {
+            if (!File.Exists(wordFilePath))
+            {
+                throw new FileNotFoundException($"Файл не найден: {wordFilePath}");
+            }
+
+            // Если путь к PDF не указан, создаем его на основе пути к Word файлу
+            if (string.IsNullOrEmpty(pdfFilePath))
+            {
+                pdfFilePath = Path.ChangeExtension(wordFilePath, ".pdf");
+            }
+
+            // Используем Word Interop для конвертации
+            Microsoft.Office.Interop.Word.Application wordApp = null;
+            Microsoft.Office.Interop.Word.Document doc = null;
+
+            try
+            {
+                wordApp = new Microsoft.Office.Interop.Word.Application();
+                wordApp.Visible = false;
+                wordApp.DisplayAlerts = Microsoft.Office.Interop.Word.WdAlertLevel.wdAlertsNone;
+
+                // Открываем документ
+                doc = wordApp.Documents.Open(wordFilePath);
+
+                // Сохраняем как PDF
+                doc.SaveAs2(pdfFilePath, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
+
+                return pdfFilePath;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Ошибка при конвертации в PDF: {ex.Message}", ex);
+            }
+            finally
+            {
+                // Закрываем документ
+                if (doc != null)
+                {
+                    doc.Close(false);
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(doc);
+                }
+
+                // Закрываем Word
+                if (wordApp != null)
+                {
+                    wordApp.Quit(false);
+                    System.Runtime.InteropServices.Marshal.ReleaseComObject(wordApp);
+                }
+
+                // Принудительная сборка мусора для освобождения COM объектов
+                GC.Collect();
+                GC.WaitForPendingFinalizers();
+            }
+        }
     }
 }
 

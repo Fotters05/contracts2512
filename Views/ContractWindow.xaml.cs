@@ -620,6 +620,19 @@ namespace Contract2512.Views
             var wordService = new WordDocumentService();
             wordService.ReplacePlaceholders(contractType.FilePath, outputPath, replacements);
 
+            // Создаем PDF версию договора
+            try
+            {
+                string pdfFileName = Path.ChangeExtension(outputFileName, ".pdf");
+                string pdfPath = Path.Combine(outputDirectory, pdfFileName);
+                wordService.ConvertToPdf(outputPath, pdfPath);
+            }
+            catch (Exception)
+            {
+                // Если не удалось создать PDF, просто игнорируем ошибку
+                // (не показываем сообщение, так как это метод для просмотра)
+            }
+
             return outputPath;
         }
 
@@ -920,6 +933,29 @@ namespace Contract2512.Views
             {
                 replacements["{{Date last price}}"] = "";
             }
+
+            // Часы программы
+            replacements["{{Program_Time}}"] = program.Hours.ToString();
+
+            // Формат программы (форма обучения)
+            string formatProgram = "";
+            if (!string.IsNullOrEmpty(program.Format))
+            {
+                if (program.Format.Contains("Индивидуально с преподавателем"))
+                {
+                    formatProgram = "заочная форма, с применением дистанционных образовательных технологий";
+                }
+                else if (program.Format.Contains("С преподавателем в группе"))
+                {
+                    formatProgram = "очная форма";
+                }
+                else
+                {
+                    // Если формат не распознан, используем исходное значение
+                    formatProgram = program.Format;
+                }
+            }
+            replacements["{{Format_Program}}"] = formatProgram;
 
             return replacements;
         }
@@ -1546,6 +1582,29 @@ namespace Contract2512.Views
                 replacements["{{Date last price}}"] = "";
             }
 
+            // Часы программы
+            replacements["{{Program_Time}}"] = program.Hours.ToString();
+
+            // Формат программы (форма обучения)
+            string formatProgram = "";
+            if (!string.IsNullOrEmpty(program.Format))
+            {
+                if (program.Format.Contains("Индивидуально с преподавателем"))
+                {
+                    formatProgram = "заочная форма, с применением дистанционных образовательных технологий";
+                }
+                else if (program.Format.Contains("С преподавателем в группе"))
+                {
+                    formatProgram = "очная форма";
+                }
+                else
+                {
+                    // Если формат не распознан, используем исходное значение
+                    formatProgram = program.Format;
+                }
+            }
+            replacements["{{Format_Program}}"] = formatProgram;
+
             // Создаем путь для сохранения договора
             string outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Договоры");
             if (!Directory.Exists(outputDirectory))
@@ -1559,6 +1618,20 @@ namespace Contract2512.Views
             // Заменяем плейсхолдеры
             var wordService = new WordDocumentService();
             wordService.ReplacePlaceholders(contractType.FilePath, outputPath, replacements);
+
+            // Создаем PDF версию договора
+            try
+            {
+                string pdfFileName = Path.ChangeExtension(outputFileName, ".pdf");
+                string pdfPath = Path.Combine(outputDirectory, pdfFileName);
+                wordService.ConvertToPdf(outputPath, pdfPath);
+            }
+            catch (Exception ex)
+            {
+                // Если не удалось создать PDF, показываем предупреждение, но не прерываем процесс
+                MessageBox.Show($"Договор создан, но не удалось создать PDF версию:\n{ex.Message}\n\nУбедитесь, что Microsoft Word установлен на компьютере.", 
+                    "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+            }
 
             // Открываем созданный документ
             wordService.OpenDocument(outputPath);
@@ -1974,11 +2047,10 @@ namespace Contract2512.Views
                 replacements["{{Email_Slushtel}}"] = "";
             }
 
-            // СНИЛС
+            // СНИЛС и Телефон
             replacements["{{Snils_Slushtel}}"] = listener.Snils ?? "";
-            
-            // Телефон (в шаблоне используется {{Snils_Slushtel}} для телефона, но это ошибка - исправляем после замены)
-            string listenerPhone = listenerContacts?.ContactPhone ?? "";
+            replacements["{{Phone_Slushtel}}"] = listenerContacts?.ContactPhone ?? "";
+            replacements["{{Telefon_Slushtel}}"] = listenerContacts?.ContactPhone ?? "";
             
             // Образование
             replacements["{{Obrasovanie_Slushtel}}"] = baseEducation?.Name ?? "";
@@ -2007,7 +2079,7 @@ namespace Contract2512.Views
             replacements["{{Mesto_Raboti}}"] = listener.Workplace ?? "";
 
             // Создаем документ
-            string outputFolder = @"C:\Dogovora";
+            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Личные карточки");
             if (!Directory.Exists(outputFolder))
             {
                 Directory.CreateDirectory(outputFolder);
@@ -2021,32 +2093,7 @@ namespace Contract2512.Views
                 var wordService = new WordDocumentService();
                 wordService.ReplacePlaceholders(templatePath, outputPath, replacements);
                 
-                // Исправляем опечатку в шаблоне: заменяем "Телефон: [СНИЛС]" на "Телефон: [телефон]"
-                if (!string.IsNullOrEmpty(listenerPhone))
-                {
-                    using (var wordDoc = WordprocessingDocument.Open(outputPath, true))
-                    {
-                        var mainPart = wordDoc.MainDocumentPart;
-                        if (mainPart != null && mainPart.Document != null)
-                        {
-                            string snilsValue = listener.Snils ?? "";
-                            if (!string.IsNullOrEmpty(snilsValue))
-                            {
-                                // Ищем текст "Телефон: " + СНИЛС и заменяем только СНИЛС на телефон
-                                foreach (var text in mainPart.Document.Descendants<Text>())
-                                {
-                                    if (text.Text.Contains("Телефон: " + snilsValue))
-                                    {
-                                        text.Text = text.Text.Replace("Телефон: " + snilsValue, "Телефон: " + listenerPhone);
-                                    }
-                                }
-                            }
-                            mainPart.Document.Save();
-                        }
-                    }
-                }
-                
-                MessageBox.Show($"Личная карточка слушателя создана:\n{outputPath}", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                // Не показываем отдельное сообщение, так как оно будет показано после создания договора
             }
             catch (Exception ex)
             {
