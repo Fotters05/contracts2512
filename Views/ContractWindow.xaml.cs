@@ -1885,7 +1885,7 @@ namespace Contract2512.Views
                 return;
             }
 
-            // Загружаем данные слушателя
+            // Загружаем данные слушателя с включением Gender
             var listener = db.Persons
                 .Include(p => p.Gender)
                 .FirstOrDefault(p => p.Id == contract.ListenerId);
@@ -1893,6 +1893,12 @@ namespace Contract2512.Views
             {
                 MessageBox.Show("Слушатель не найден!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                 return;
+            }
+            
+            // Если Gender не загружен через Include, загружаем отдельно
+            if (listener.Gender == null && listener.GenderId > 0)
+            {
+                listener.Gender = db.Genders.Find(listener.GenderId);
             }
 
             var program = db.LearningPrograms.Find(contract.ProgramId);
@@ -1917,7 +1923,6 @@ namespace Contract2512.Views
             // Загружаем образование слушателя
             var education = db.Educations.FirstOrDefault(e => e.PersonId == listener.Id);
             var baseEducation = education?.BaseEducationId.HasValue == true ? db.BaseEducations.Find(education.BaseEducationId.Value) : null;
-            var educationLevel = education?.EducationLevelId.HasValue == true ? db.EducationLevels.Find(education.EducationLevelId.Value) : null;
 
             // Формируем словарь замен (используем точные плейсхолдеры из шаблона)
             var replacements = new Dictionary<string, string>();
@@ -1926,37 +1931,14 @@ namespace Contract2512.Views
             replacements["{{number_dogovor}}"] = contract.ContractNumber ?? "";
             replacements["{{Program_name}}"] = program.Name ?? "";
             replacements["{{Type_program}}"] = programView?.Name ?? "";
-            replacements["{{time_program}}"] = program.Hours.ToString(); // Только число, без слова "часов"
+            replacements["{{time_program}}"] = $"{program.Hours} часов";
             
-            // ФИО и личные данные
+            // ФИО и личные данные (обратите внимание на пробелы в плейсхолдерах!)
             replacements["{{FIO_Slushtel}}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
-            
-            // Дата и место рождения (объединяем в одну строку)
-            string birthdayPlace = listener.PlaceOfBirth ?? "";
-            string birthdayText = listener.DateOfBirth.ToString("dd.MM.yyyy");
-            if (!string.IsNullOrEmpty(birthdayPlace))
-            {
-                birthdayText += ", " + birthdayPlace;
-            }
-            replacements["{{Brithday_Slushtel}}"] = birthdayText;
-            
-            // Город рождения (отдельно, с пробелом в плейсхолдере!)
-            replacements["{{Gorod_ Slushtel}}"] = listener.PlaceOfBirth ?? "";
-            
+            replacements["{{Brithday_Slushtel}}"] = listener.DateOfBirth.ToString("dd.MM.yyyy");
+            replacements["{{Gorod_ Slushtel}}"] = listener.PlaceOfBirth ?? ""; // С пробелом!
             replacements["{{Graschadnsto_Slushtel}}"] = listener.Citizenship ?? "";
-            
-            // Пол (с пробелом в плейсхолдере!)
-            string genderName = "";
-            if (listener.Gender != null)
-            {
-                genderName = listener.Gender.Name ?? "";
-            }
-            else if (listener.GenderId > 0)
-            {
-                var gender = db.Genders.Find(listener.GenderId);
-                genderName = gender?.Name ?? "";
-            }
-            replacements["{{Gender_ Slushtel}}"] = genderName;
+            replacements["{{Gender_ Slushtel}}"] = listener.Gender?.Name ?? ""; // С пробелом!
 
             // Паспортные данные
             if (listenerPassport != null)
@@ -1979,7 +1961,7 @@ namespace Contract2512.Views
             {
                 replacements["{{Index_Slushtel}}"] = listenerContacts.PostalCode ?? "";
                 replacements["{{Oblast_Slushtel}}"] = listenerContacts.Region ?? "";
-                replacements["{{Gorod_Slushtel}}"] = listenerContacts.City ?? ""; // Город из контактов (для адреса)
+                replacements["{{Gorod_Slushtel}}"] = listenerContacts.City ?? "";
                 replacements["{{Street_Slushtel}}"] = listenerContacts.ResidenceAddress ?? "";
                 replacements["{{Email_Slushtel}}"] = listenerContacts.Email ?? "";
             }
@@ -1995,21 +1977,11 @@ namespace Contract2512.Views
             // СНИЛС
             replacements["{{Snils_Slushtel}}"] = listener.Snils ?? "";
             
-            // Телефон (в шаблоне используется {{Snils_Slushtel}} для телефона, но это ошибка - исправляем)
+            // Телефон (в шаблоне используется {{Snils_Slushtel}} для телефона, но это ошибка - исправляем после замены)
             string listenerPhone = listenerContacts?.ContactPhone ?? "";
-            // Заменяем второй {{Snils_Slushtel}} на телефон после основной замены
             
-            // Образование (базовое образование + уровень)
-            string educationText = "";
-            if (baseEducation != null)
-            {
-                educationText = baseEducation.Name ?? "";
-                if (educationLevel != null && !string.IsNullOrEmpty(educationLevel.Name))
-                {
-                    educationText += ", " + educationLevel.Name;
-                }
-            }
-            replacements["{{Obrasovanie_Slushtel}}"] = educationText;
+            // Образование
+            replacements["{{Obrasovanie_Slushtel}}"] = baseEducation?.Name ?? "";
 
             // Данные об образовании (диплом)
             if (education != null)
@@ -2050,19 +2022,27 @@ namespace Contract2512.Views
                 wordService.ReplacePlaceholders(templatePath, outputPath, replacements);
                 
                 // Исправляем опечатку в шаблоне: заменяем "Телефон: [СНИЛС]" на "Телефон: [телефон]"
-                // Открываем документ и заменяем текст
-                using (var wordDoc = WordprocessingDocument.Open(outputPath, true))
+                if (!string.IsNullOrEmpty(listenerPhone))
                 {
-                    var mainPart = wordDoc.MainDocumentPart;
-                    if (mainPart != null && mainPart.Document != null)
+                    using (var wordDoc = WordprocessingDocument.Open(outputPath, true))
                     {
-                        string snilsValue = listener.Snils ?? "";
-                        if (!string.IsNullOrEmpty(snilsValue) && !string.IsNullOrEmpty(listenerPhone))
+                        var mainPart = wordDoc.MainDocumentPart;
+                        if (mainPart != null && mainPart.Document != null)
                         {
-                            // Заменяем "Телефон: [СНИЛС]" на "Телефон: [телефон]"
-                            ReplaceTextInDocument(mainPart.Document, "Телефон: " + snilsValue, "Телефон: " + listenerPhone);
+                            string snilsValue = listener.Snils ?? "";
+                            if (!string.IsNullOrEmpty(snilsValue))
+                            {
+                                // Ищем текст "Телефон: " + СНИЛС и заменяем только СНИЛС на телефон
+                                foreach (var text in mainPart.Document.Descendants<Text>())
+                                {
+                                    if (text.Text.Contains("Телефон: " + snilsValue))
+                                    {
+                                        text.Text = text.Text.Replace("Телефон: " + snilsValue, "Телефон: " + listenerPhone);
+                                    }
+                                }
+                            }
+                            mainPart.Document.Save();
                         }
-                        mainPart.Document.Save();
                     }
                 }
                 
@@ -2071,19 +2051,6 @@ namespace Contract2512.Views
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при создании личной карточки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
-            }
-        }
-
-        private void ReplaceTextInDocument(Document document, string oldText, string newText)
-        {
-            if (document == null) return;
-
-            foreach (var text in document.Descendants<Text>())
-            {
-                if (text.Text.Contains(oldText))
-                {
-                    text.Text = text.Text.Replace(oldText, newText);
-                }
             }
         }
 

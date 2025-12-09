@@ -61,26 +61,6 @@ namespace Contract2512.Services
         {
             if (element == null) return;
 
-            // Получаем все текстовые элементы
-            var allTextElements = element.Descendants<Text>().ToList();
-            
-            // Собираем весь текст документа
-            string fullDocumentText = string.Join("", allTextElements.Select(t => t.Text));
-
-            // Проверяем наличие плейсхолдеров
-            bool hasAnyPlaceholder = false;
-            foreach (var key in replacements.Keys)
-            {
-                // Также проверяем вариант с пропущенной закрывающей скобкой (для обработки опечаток)
-                if (fullDocumentText.Contains(key) || fullDocumentText.Contains(key.TrimEnd('}')))
-                {
-                    hasAnyPlaceholder = true;
-                    break;
-                }
-            }
-
-            if (!hasAnyPlaceholder) return;
-
             // Сначала удаляем параграфы с плейсхолдерами, которые заменяются на пустую строку
             // Это нужно сделать до замены, чтобы удалить весь блок
             var paragraphs = element.Descendants<Paragraph>().ToList();
@@ -94,52 +74,16 @@ namespace Contract2512.Services
                 // Проверяем, содержит ли параграф плейсхолдер, который заменяется на пустую строку
                 foreach (var replacement in replacements)
                 {
-                    if (string.IsNullOrWhiteSpace(replacement.Value) && 
-                        (paragraphText.Contains(replacement.Key) || 
-                         (replacement.Key.EndsWith("}}") && paragraphText.Contains(replacement.Key.TrimEnd('}')))))
+                    if (string.IsNullOrWhiteSpace(replacement.Value) && paragraphText.Contains(replacement.Key))
                     {
-                        // Если это option1, option2 или Option_study1-5, удаляем весь параграф и следующие до следующего заголовка
+                        // Если это option1, option2 или Option_Time/Option_study, удаляем весь параграф
                         if (replacement.Key == "{{option1}}" || replacement.Key == "{{option2}}" ||
-                            replacement.Key.StartsWith("{{Option_study"))
+                            replacement.Key.StartsWith("{{Option_Time") || replacement.Key.StartsWith("{{Option_study") ||
+                            replacement.Key.StartsWith("{{Option_Itog"))
                         {
                             paragraphsToRemove.Add(paragraph);
-                            // Удаляем следующие параграфы до следующего заголовка или до следующего option
-                            var currentIndex = paragraphs.IndexOf(paragraph);
-                            for (int i = currentIndex + 1; i < paragraphs.Count; i++)
-                            {
-                                var nextParagraph = paragraphs[i];
-                                var nextRuns = nextParagraph.Elements<Run>().ToList();
-                                string nextText = string.Join("", nextRuns.SelectMany(r => r.Elements<Text>()).Select(t => t.Text));
-                                
-                                // Останавливаемся, если встретили другой option
-                                if (nextText.Contains("{{option1}}") || nextText.Contains("{{option2}}"))
-                                {
-                                    break;
-                                }
-                                
-                                // Если это последний параграф блока (содержит "Просрочка" или похожий маркер конца), удаляем его тоже
-                                if (nextText.Contains("Просрочка") || nextText.Contains("расторгнуть договор"))
-                                {
-                                    paragraphsToRemove.Add(nextParagraph);
-                                    break;
-                                }
-                                
-                                // Останавливаемся, если встретили заголовок следующего раздела (начинается с цифры и точки, например "3.2." или "4.")
-                                if (System.Text.RegularExpressions.Regex.IsMatch(nextText.Trim(), @"^\d+[\.\)]"))
-                                {
-                                    break;
-                                }
-                                
-                                // Добавляем параграф в список на удаление
-                                paragraphsToRemove.Add(nextParagraph);
-                            }
+                            break;
                         }
-                        else
-                        {
-                            // Для других плейсхолдеров просто помечаем параграф на удаление
-                            paragraphsToRemove.Add(paragraph);
-                        }
-                        break;
                     }
                 }
             }
@@ -188,166 +132,93 @@ namespace Contract2512.Services
         }
 
         /// <summary>
-        /// Заменяет плейсхолдеры в параграфе с сохранением структуры и форматирования
+        /// Заменяет плейсхолдеры в параграфе с сохранением форматирования
         /// </summary>
         private void ReplaceInParagraph(Paragraph paragraph, Dictionary<string, string> replacements)
         {
             if (paragraph == null) return;
 
-            // Получаем все Run элементы в параграфе
-            var runs = paragraph.Elements<Run>().ToList();
-            if (runs.Count == 0) return;
+            // Получаем все Text элементы в параграфе
+            var textElements = paragraph.Descendants<Text>().ToList();
+            if (textElements.Count == 0) return;
 
-            // Собираем весь текст параграфа
-            string fullText = string.Join("", runs.SelectMany(r => r.Elements<Text>()).Select(t => t.Text));
+            // Собираем полный текст для поиска плейсхолдеров
+            string fullText = string.Join("", textElements.Select(t => t.Text));
             if (string.IsNullOrEmpty(fullText)) return;
 
-            // Проверяем наличие плейсхолдеров (проверяем наличие {{ и }})
-            if (!fullText.Contains("{{") || !fullText.Contains("}}"))
-            {
-                return;
-            }
-
-            bool hasPlaceholder = false;
+            // Проверяем каждый плейсхолдер
             foreach (var replacement in replacements)
             {
-                if (fullText.Contains(replacement.Key))
+                if (!fullText.Contains(replacement.Key)) continue;
+
+                // Находим позицию плейсхолдера в полном тексте
+                int placeholderIndex = fullText.IndexOf(replacement.Key);
+                while (placeholderIndex >= 0)
                 {
-                    hasPlaceholder = true;
-                    break;
-                }
-            }
+                    int placeholderLength = replacement.Key.Length;
+                    string replacementValue = replacement.Value ?? "";
 
-            if (!hasPlaceholder) return;
+                    // Находим Text элементы, которые содержат этот плейсхолдер
+                    int currentPosition = 0;
+                    int startTextIndex = -1;
+                    int startOffset = 0;
+                    int endTextIndex = -1;
+                    int endOffset = 0;
 
-            // Заменяем плейсхолдеры в полном тексте
-            string newFullText = fullText;
-            bool shouldRemoveParagraph = false;
-            
-            foreach (var replacement in replacements)
-            {
-                string placeholder = replacement.Key;
-                string value = replacement.Value ?? "";
-
-                // Если плейсхолдер заменяется на пустую строку и это option1, option2 или Option_study1-5,
-                // помечаем параграф на удаление
-                if (string.IsNullOrWhiteSpace(value) && 
-                    (placeholder == "{{option1}}" || placeholder == "{{option2}}" ||
-                     placeholder.StartsWith("{{Option_study")))
-                {
-                    if (newFullText.Contains(placeholder))
+                    for (int i = 0; i < textElements.Count; i++)
                     {
-                        shouldRemoveParagraph = true;
-                        break; // Не заменяем, просто удалим весь параграф
+                        int textLength = textElements[i].Text.Length;
+                        
+                        // Начало плейсхолдера
+                        if (startTextIndex == -1 && currentPosition + textLength > placeholderIndex)
+                        {
+                            startTextIndex = i;
+                            startOffset = placeholderIndex - currentPosition;
+                        }
+
+                        // Конец плейсхолдера
+                        if (currentPosition + textLength >= placeholderIndex + placeholderLength)
+                        {
+                            endTextIndex = i;
+                            endOffset = placeholderIndex + placeholderLength - currentPosition;
+                            break;
+                        }
+
+                        currentPosition += textLength;
                     }
-                }
 
-                // Заменяем все вхождения плейсхолдера в тексте
-                if (newFullText.Contains(placeholder))
-                {
-                    // Для {{enter}} заменяем на пустую строку
-                    if (placeholder == "{{enter}}")
+                    if (startTextIndex == -1 || endTextIndex == -1) break;
+
+                    // Заменяем плейсхолдер
+                    if (startTextIndex == endTextIndex)
                     {
-                        newFullText = newFullText.Replace(placeholder, "");
+                        // Плейсхолдер находится в одном Text элементе
+                        string text = textElements[startTextIndex].Text;
+                        textElements[startTextIndex].Text = text.Substring(0, startOffset) + replacementValue + text.Substring(endOffset);
+                        textElements[startTextIndex].Space = SpaceProcessingModeValues.Preserve;
                     }
                     else
                     {
-                        // Replace заменяет все вхождения по умолчанию
-                        newFullText = newFullText.Replace(placeholder, value);
-                    }
-                }
-            }
-            
-            // Если нужно удалить параграф (содержит option1/option2, который заменяется на пустую строку)
-            if (shouldRemoveParagraph)
-            {
-                paragraph.Remove();
-                return;
-            }
+                        // Плейсхолдер разбит на несколько Text элементов
+                        // Заменяем в первом элементе
+                        string firstText = textElements[startTextIndex].Text;
+                        textElements[startTextIndex].Text = firstText.Substring(0, startOffset) + replacementValue;
+                        textElements[startTextIndex].Space = SpaceProcessingModeValues.Preserve;
 
-            // Если текст изменился, обновляем параграф
-            if (newFullText != fullText)
-            {
-                // Сохраняем ВСЕ свойства параграфа (выравнивание, табуляции, отступы и т.д.)
-                var paragraphProperties = paragraph.Elements<ParagraphProperties>().FirstOrDefault();
-                
-                // Сохраняем все дочерние элементы параграфа, кроме Run (это могут быть табуляции, свойства и т.д.)
-                var nonRunElements = paragraph.Elements().Where(e => !(e is Run)).ToList();
-                var savedNonRunElements = new List<OpenXmlElement>();
-                foreach (var element in nonRunElements)
-                {
-                    savedNonRunElements.Add(element.CloneNode(true));
-                }
-
-                // Сохраняем свойства первого Run для форматирования текста
-                var firstRun = runs.FirstOrDefault();
-                RunProperties runProperties = null;
-                if (firstRun != null)
-                {
-                    runProperties = firstRun.Elements<RunProperties>().FirstOrDefault();
-                }
-
-                // Сохраняем все Break элементы из исходных Run (для сохранения переносов строк)
-                var savedBreaks = new List<Break>();
-                foreach (var run in runs)
-                {
-                    var breaks = run.Elements<Break>().ToList();
-                    foreach (var br in breaks)
-                    {
-                        savedBreaks.Add(br.CloneNode(true) as Break);
-                    }
-                }
-
-                // Удаляем все старые Run элементы, но сохраняем структуру параграфа
-                foreach (var run in runs.ToList())
-                {
-                    run.Remove();
-                }
-
-                // Удаляем все не-Run элементы, чтобы потом восстановить их
-                foreach (var element in nonRunElements)
-                {
-                    element.Remove();
-                }
-
-                // Восстанавливаем свойства параграфа ПЕРВЫМИ (до добавления Run)
-                if (paragraphProperties != null)
-                {
-                    paragraph.InsertAt(paragraphProperties.CloneNode(true), 0);
-                }
-                
-                // Восстанавливаем остальные не-Run элементы
-                foreach (var element in savedNonRunElements)
-                {
-                    if (!(element is ParagraphProperties))
-                    {
-                        paragraph.AppendChild(element);
-                    }
-                }
-
-                // Создаем новый Run с сохраненными свойствами и обновленным текстом
-                var newRun = new Run();
-                if (runProperties != null)
-                {
-                    newRun.Append(runProperties.CloneNode(true));
-                }
-                newRun.Append(new Text(newFullText));
-
-                // Добавляем новый Run в параграф
-                paragraph.AppendChild(newRun);
-                
-                // Если текст не содержал переносов строк, но были сохраненные Break, добавляем их обратно
-                if (savedBreaks.Count > 0)
-                {
-                    // Если в исходном тексте были Break, добавляем их в конец последнего Run
-                    var lastRun = paragraph.Elements<Run>().LastOrDefault();
-                    if (lastRun != null)
-                    {
-                        foreach (var br in savedBreaks)
+                        // Очищаем промежуточные элементы
+                        for (int i = startTextIndex + 1; i < endTextIndex; i++)
                         {
-                            lastRun.Append(br);
+                            textElements[i].Text = "";
                         }
+
+                        // Обрезаем последний элемент
+                        string lastText = textElements[endTextIndex].Text;
+                        textElements[endTextIndex].Text = lastText.Substring(endOffset);
                     }
+
+                    // Обновляем fullText для следующей итерации
+                    fullText = string.Join("", textElements.Select(t => t.Text));
+                    placeholderIndex = fullText.IndexOf(replacement.Key);
                 }
             }
         }
