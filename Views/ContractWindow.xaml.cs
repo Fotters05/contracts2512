@@ -74,6 +74,17 @@ namespace Contract2512.Views
             ListenerComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
                 new System.Windows.Controls.TextChangedEventHandler(ListenerComboBox_TextChanged));
 
+            // Добавляем обработчики для открытия ComboBox при клике на поле
+            ContractTypeComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            ProgramComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            PayerComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            ListenerComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            SignerComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            PaymentOptionComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            StudyOptionComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            ItogDocumentComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            TimeOptionComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+
             // Загружаем подписантов из статического списка (хранятся в коде, не в БД)
             var signers = GetSigners();
             SignerComboBox.ItemsSource = signers;
@@ -2195,6 +2206,20 @@ namespace Contract2512.Views
 
             ListenerComboBox.ItemsSource = filtered;
             ListenerComboBox.IsDropDownOpen = true;
+        }
+
+        // Обработчик для открытия ComboBox при клике на любую часть поля
+        private void ComboBox_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is System.Windows.Controls.ComboBox comboBox)
+            {
+                // Если ComboBox закрыт, открываем его
+                if (!comboBox.IsDropDownOpen)
+                {
+                    comboBox.IsDropDownOpen = true;
+                    e.Handled = true;
+                }
+            }
         }
 
     }

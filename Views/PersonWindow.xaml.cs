@@ -35,6 +35,11 @@ namespace Contract2512.Views
                 BaseEducationComboBox.ItemsSource = db.BaseEducations.ToList();
                 EducationLevelComboBox.ItemsSource = db.EducationLevels.ToList();
 
+                // Добавляем обработчики для открытия ComboBox при клике на поле
+                GenderComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+                BaseEducationComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+                EducationLevelComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+
                 if (_isEditMode && _person != null)
                 {
                     // Заполняем поля данными существующего лица
@@ -294,6 +299,20 @@ namespace Contract2512.Views
             if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             {
                 DragMove();
+            }
+        }
+
+        // Обработчик для открытия ComboBox при клике на любую часть поля
+        private void ComboBox_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is System.Windows.Controls.ComboBox comboBox)
+            {
+                // Если ComboBox закрыт, открываем его
+                if (!comboBox.IsDropDownOpen)
+                {
+                    comboBox.IsDropDownOpen = true;
+                    e.Handled = true;
+                }
             }
         }
 

@@ -35,6 +35,9 @@ namespace Contract2512.Views
             {
                 ProgramViewComboBox.ItemsSource = db.ProgramViews.ToList();
             }
+
+            // Добавляем обработчик для открытия ComboBox при клике на поле
+            ProgramViewComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
         }
 
         private void LoadProgramData()
@@ -257,6 +260,20 @@ namespace Contract2512.Views
             if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             {
                 DragMove();
+            }
+        }
+
+        // Обработчик для открытия ComboBox при клике на любую часть поля
+        private void ComboBox_PreviewMouseLeftButtonDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (sender is System.Windows.Controls.ComboBox comboBox)
+            {
+                // Если ComboBox закрыт, открываем его
+                if (!comboBox.IsDropDownOpen)
+                {
+                    comboBox.IsDropDownOpen = true;
+                    e.Handled = true;
+                }
             }
         }
 
