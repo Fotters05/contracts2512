@@ -23,6 +23,11 @@ namespace Contract2512.Views
         private ContractType _selectedContractType;
         private LearningProgram _selectedProgram;
 
+        // Полные списки для фильтрации
+        private List<ContractType> _allContractTypes;
+        private List<LearningProgram> _allPrograms;
+        private List<Person> _allPersons;
+
         public ContractWindow(Person payer = null, Person listener = null)
         {
             InitializeComponent();
@@ -45,17 +50,29 @@ namespace Contract2512.Views
         {
             using (var db = new AppDbContext())
             {
-                // Загружаем типы договоров без отслеживания
-                ContractTypeComboBox.ItemsSource = db.ContractTypes.AsNoTracking().ToList();
+                // Загружаем типы договоров без отслеживания и сохраняем полный список
+                _allContractTypes = db.ContractTypes.AsNoTracking().ToList();
+                ContractTypeComboBox.ItemsSource = _allContractTypes;
 
-                // Загружаем программы обучения без отслеживания
-                ProgramComboBox.ItemsSource = db.LearningPrograms.AsNoTracking().ToList();
+                // Загружаем программы обучения без отслеживания и сохраняем полный список
+                _allPrograms = db.LearningPrograms.AsNoTracking().ToList();
+                ProgramComboBox.ItemsSource = _allPrograms;
 
-                // Загружаем физических лиц без отслеживания
-                var persons = db.Persons.AsNoTracking().ToList();
-                PayerComboBox.ItemsSource = persons;
-                ListenerComboBox.ItemsSource = persons;
+                // Загружаем физических лиц без отслеживания и сохраняем полный список
+                _allPersons = db.Persons.AsNoTracking().ToList();
+                PayerComboBox.ItemsSource = _allPersons;
+                ListenerComboBox.ItemsSource = _allPersons;
             }
+
+            // Добавляем обработчики для фильтрации при вводе текста
+            ContractTypeComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                new System.Windows.Controls.TextChangedEventHandler(ContractTypeComboBox_TextChanged));
+            ProgramComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                new System.Windows.Controls.TextChangedEventHandler(ProgramComboBox_TextChanged));
+            PayerComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                new System.Windows.Controls.TextChangedEventHandler(PayerComboBox_TextChanged));
+            ListenerComboBox.AddHandler(System.Windows.Controls.Primitives.TextBoxBase.TextChangedEvent,
+                new System.Windows.Controls.TextChangedEventHandler(ListenerComboBox_TextChanged));
 
             // Загружаем подписантов из статического списка (хранятся в коде, не в БД)
             var signers = GetSigners();
@@ -2099,6 +2116,85 @@ namespace Contract2512.Views
             {
                 MessageBox.Show($"Ошибка при создании личной карточки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        // Методы фильтрации для ComboBox с поиском
+        private void ContractTypeComboBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (_allContractTypes == null) return;
+            
+            var searchText = ContractTypeComboBox.Text?.ToLower() ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ContractTypeComboBox.ItemsSource = _allContractTypes;
+                return;
+            }
+
+            var filtered = _allContractTypes.Where(ct => 
+                ct.Name != null && ct.Name.ToLower().Contains(searchText)
+            ).ToList();
+
+            ContractTypeComboBox.ItemsSource = filtered;
+            ContractTypeComboBox.IsDropDownOpen = true;
+        }
+
+        private void ProgramComboBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (_allPrograms == null) return;
+            
+            var searchText = ProgramComboBox.Text?.ToLower() ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ProgramComboBox.ItemsSource = _allPrograms;
+                return;
+            }
+
+            var filtered = _allPrograms.Where(p => 
+                p.Name != null && p.Name.ToLower().Contains(searchText)
+            ).ToList();
+
+            ProgramComboBox.ItemsSource = filtered;
+            ProgramComboBox.IsDropDownOpen = true;
+        }
+
+        private void PayerComboBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (_allPersons == null) return;
+            
+            var searchText = PayerComboBox.Text?.ToLower() ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                PayerComboBox.ItemsSource = _allPersons;
+                return;
+            }
+
+            var filtered = _allPersons.Where(p => 
+                (p.FullName != null && p.FullName.ToLower().Contains(searchText)) ||
+                (p.Snils != null && p.Snils.ToLower().Contains(searchText))
+            ).ToList();
+
+            PayerComboBox.ItemsSource = filtered;
+            PayerComboBox.IsDropDownOpen = true;
+        }
+
+        private void ListenerComboBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            if (_allPersons == null) return;
+            
+            var searchText = ListenerComboBox.Text?.ToLower() ?? "";
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ListenerComboBox.ItemsSource = _allPersons;
+                return;
+            }
+
+            var filtered = _allPersons.Where(p => 
+                (p.FullName != null && p.FullName.ToLower().Contains(searchText)) ||
+                (p.Snils != null && p.Snils.ToLower().Contains(searchText))
+            ).ToList();
+
+            ListenerComboBox.ItemsSource = filtered;
+            ListenerComboBox.IsDropDownOpen = true;
         }
 
     }

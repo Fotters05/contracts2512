@@ -587,6 +587,10 @@
                                  DisplayMemberPath="Name" 
                                  Margin="0,5" 
                                  SelectionChanged="ContractTypeComboBox_SelectionChanged"
+                                 IsEditable="True"
+                                 IsTextSearchEnabled="True"
+                                 TextSearch.TextPath="Name"
+                                 StaysOpenOnEdit="True"
                                  Style="{StaticResource DarkComboBoxStyle}"/>
 
                         <TextBlock Grid.Row="1" Grid.Column="0" 
@@ -619,6 +623,10 @@
                                  x:Name="ProgramComboBox" 
                                  DisplayMemberPath="Name" 
                                  Margin="0,5"
+                                 IsEditable="True"
+                                 IsTextSearchEnabled="True"
+                                 TextSearch.TextPath="Name"
+                                 StaysOpenOnEdit="True"
                                  Style="{StaticResource DarkComboBoxStyle}"/>
 
                         <TextBlock Grid.Row="4" Grid.Column="0" 
@@ -650,6 +658,10 @@
                                  x:Name="PayerComboBox" 
                                  DisplayMemberPath="FullName" 
                                  Margin="0,5"
+                                 IsEditable="True"
+                                 IsTextSearchEnabled="True"
+                                 TextSearch.TextPath="FullName"
+                                 StaysOpenOnEdit="True"
                                  Style="{StaticResource DarkComboBoxStyle}"/>
 
                         <TextBlock Grid.Row="7" Grid.Column="0" 
@@ -661,6 +673,10 @@
                                  x:Name="ListenerComboBox" 
                                  DisplayMemberPath="FullName" 
                                  Margin="0,5"
+                                 IsEditable="True"
+                                 IsTextSearchEnabled="True"
+                                 TextSearch.TextPath="FullName"
+                                 StaysOpenOnEdit="True"
                                  Style="{StaticResource DarkComboBoxStyle}"/>
 
                         <TextBlock Grid.Row="8" Grid.Column="0" 
