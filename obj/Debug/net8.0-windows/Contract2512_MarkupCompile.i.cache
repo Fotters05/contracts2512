@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP
 C:\Users\Fotters\source\repos\Contract2512\App.xaml
-7-1216223205
+8-120862998
 
-301880362693
+3178516589
 217789228719
-MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;
+MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;
 
 True
 

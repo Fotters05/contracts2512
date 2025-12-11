@@ -781,6 +781,42 @@ namespace Contract2512
                     System.Windows.MessageBoxImage.Warning);
             }
         }
+
+        private void ViewPersonContractsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (PersonsDataGrid.SelectedItem is Person selectedPerson)
+            {
+                var window = new PersonContractsWindow(selectedPerson);
+                window.Owner = this;
+                window.ShowDialog();
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите физическое лицо для просмотра договоров!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void ViewPersonCardsButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (PersonsDataGrid.SelectedItem is Person selectedPerson)
+            {
+                var window = new PersonCardsWindow(selectedPerson);
+                window.Owner = this;
+                window.ShowDialog();
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите физическое лицо для просмотра личных карточек!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
     }
 
     // Класс для отображения программ в карточках

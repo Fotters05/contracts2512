@@ -127,3 +127,6 @@ C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\ru\Microsoft
 C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\tr\Microsoft.CodeAnalysis.Workspaces.resources.dll
 C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\zh-Hans\Microsoft.CodeAnalysis.Workspaces.resources.dll
 C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\zh-Hant\Microsoft.CodeAnalysis.Workspaces.resources.dll
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\Microsoft.Office.Interop.Word.dll
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonCardsWindow.baml
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonCardsWindow.g.cs

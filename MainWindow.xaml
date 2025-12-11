@@ -475,7 +475,17 @@
                     <Button Content="Создать договор" 
                            x:Name="CreateContractForPersonButton"
                            Style="{StaticResource DarkGrayButton}"
-                           Click="CreateContractForPersonButton_Click"/>
+                           Click="CreateContractForPersonButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Просмотр договоров" 
+                           x:Name="ViewPersonContractsButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="ViewPersonContractsButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Просмотр личных карточек" 
+                           x:Name="ViewPersonCardsButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="ViewPersonCardsButton_Click"/>
                     </StackPanel>
 
                 <!-- DataGrid -->
@@ -683,15 +693,13 @@
                                                           HorizontalAlignment="Center" 
                                                           VerticalAlignment="Center" 
                                                           Foreground="{StaticResource TextSecondary}"
-                                                          FontSize="14">
+                                                          FontSize="14"
+                                                          Visibility="Collapsed">
                                                         <TextBlock.Style>
                                                             <Style TargetType="TextBlock">
                                                                 <Style.Triggers>
                                                                     <DataTrigger Binding="{Binding ImagePath}" Value="{x:Null}">
                                                                         <Setter Property="Visibility" Value="Visible"/>
-                                                                    </DataTrigger>
-                                                                    <DataTrigger Binding="{Binding ImagePath}">
-                                                                        <Setter Property="Visibility" Value="Collapsed"/>
                                                                     </DataTrigger>
                                                                 </Style.Triggers>
                                                             </Style>
