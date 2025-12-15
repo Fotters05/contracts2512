@@ -718,6 +718,9 @@ namespace Contract2512.Views
             replacements["{{EMAIL}"] = listenerEmail;
             replacements["{{email}}"] = listenerEmail;
             replacements["{{Email}}"] = listenerEmail;
+            replacements["{{Snils_Slushatel}}"] = listener.Snils ?? "";
+            replacements["{{SNILS_Slushatel}}"] = listener.Snils ?? "";
+            replacements["{{snils_slushatel}}"] = listener.Snils ?? "";
 
             // Данные программы
             replacements["{{Program_name}}"] = program.Name;
@@ -1358,6 +1361,11 @@ namespace Contract2512.Views
             // Дополнительные варианты написания плейсхолдеров для email
             replacements["{{email}}"] = listenerEmail;
             replacements["{{Email}}"] = listenerEmail;
+            
+            // СНИЛС слушателя - все варианты написания метки
+            replacements["{{Snils_Slushatel}}"] = listener.Snils ?? "";
+            replacements["{{SNILS_Slushatel}}"] = listener.Snils ?? "";
+            replacements["{{snils_slushatel}}"] = listener.Snils ?? "";
 
             // Данные программы
             replacements["{{Program_name}}"] = program.Name;
@@ -1654,11 +1662,10 @@ namespace Contract2512.Views
                 string pdfPath = Path.Combine(outputDirectory, pdfFileName);
                 wordService.ConvertToPdf(outputPath, pdfPath);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                // Если не удалось создать PDF, показываем предупреждение, но не прерываем процесс
-                MessageBox.Show($"Договор создан, но не удалось создать PDF версию:\n{ex.Message}\n\nУбедитесь, что Microsoft Word установлен на компьютере.", 
-                    "Предупреждение", MessageBoxButton.OK, MessageBoxImage.Warning);
+                // Если не удалось создать PDF (например, Word не установлен), просто пропускаем
+                // Договор в формате Word уже создан, это главное
             }
 
             // Открываем созданный документ
@@ -2121,6 +2128,18 @@ namespace Contract2512.Views
                 var wordService = new WordDocumentService();
                 wordService.ReplacePlaceholders(templatePath, outputPath, replacements);
                 
+                // Создаем PDF версию личной карточки
+                try
+                {
+                    string pdfFileName = Path.ChangeExtension(outputFileName, ".pdf");
+                    string pdfPath = Path.Combine(outputFolder, pdfFileName);
+                    wordService.ConvertToPdf(outputPath, pdfPath);
+                }
+                catch (Exception)
+                {
+                    // Если не удалось создать PDF, просто игнорируем ошибку
+                }
+                
                 // Не показываем отдельное сообщение, так как оно будет показано после создания договора
             }
             catch (Exception ex)
@@ -2140,6 +2159,7 @@ namespace Contract2512.Views
                 ContractTypeComboBox.ItemsSource = _allContractTypes;
                 return;
             }
+            
 
             var filtered = _allContractTypes.Where(ct => 
                 ct.Name != null && ct.Name.ToLower().Contains(searchText)

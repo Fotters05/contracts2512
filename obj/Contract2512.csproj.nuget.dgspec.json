@@ -50,6 +50,10 @@
               "target": "Package",
               "version": "[3.3.0, )"
             },
+            "FreeSpire.Doc": {
+              "target": "Package",
+              "version": "[12.2.0, )"
+            },
             "Microsoft.EntityFrameworkCore": {
               "target": "Package",
               "version": "[8.0.0, )"

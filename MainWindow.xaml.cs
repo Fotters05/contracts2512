@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Windows;
@@ -379,6 +380,66 @@ namespace Contract2512
             if (((Window)window).ShowDialog() == true)
             {
                 LoadContracts();
+            }
+        }
+
+        private void OpenContractButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ContractsDataGrid.SelectedItem is Contract selectedContract)
+            {
+                try
+                {
+                    using (var db = new AppDbContext())
+                    {
+                        var contract = db.Contracts.FirstOrDefault(c => c.Id == selectedContract.Id);
+                        if (contract != null)
+                        {
+                            // Получаем путь к сохраненному договору
+                            string documentsFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Документы", "Договоры");
+                            string fileName = $"Договор_{contract.ContractNumber}_{contract.Listener?.LastName}_{contract.ContractDate:yyyyMMdd}.docx";
+                            string documentPath = Path.Combine(documentsFolder, fileName);
+
+                            if (File.Exists(documentPath))
+                            {
+                                // Открываем сохраненный договор
+                                var wordService = new WordDocumentService();
+                                wordService.OpenDocument(documentPath);
+                            }
+                            else
+                            {
+                                System.Windows.MessageBox.Show(
+                                    "Файл договора не найден! Возможно, он был удален или перемещен.",
+                                    "Ошибка",
+                                    System.Windows.MessageBoxButton.OK,
+                                    System.Windows.MessageBoxImage.Warning);
+                            }
+                        }
+                        else
+                        {
+                            System.Windows.MessageBox.Show(
+                                "Договор не найден!",
+                                "Ошибка",
+                                System.Windows.MessageBoxButton.OK,
+                                System.Windows.MessageBoxImage.Warning);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    System.Windows.MessageBox.Show(
+                        $"Ошибка при открытии договора: {ex.Message}",
+                        "Ошибка",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите договор для открытия!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
             }
         }
 

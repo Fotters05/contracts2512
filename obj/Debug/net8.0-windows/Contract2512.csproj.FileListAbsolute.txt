@@ -130,3 +130,9 @@ C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\zh-Hant\Micr
 C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\Microsoft.Office.Interop.Word.dll
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonCardsWindow.baml
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\PersonCardsWindow.g.cs
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\Spire.Doc.dll
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\HarfBuzzSharp.dll
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\osx\native\libHarfBuzzSharp.dylib
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win-arm64\native\libHarfBuzzSharp.dll
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win-x64\native\libHarfBuzzSharp.dll
+C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win-x86\native\libHarfBuzzSharp.dll

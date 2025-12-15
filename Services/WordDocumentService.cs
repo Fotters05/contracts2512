@@ -242,7 +242,7 @@ namespace Contract2512.Services
         }
 
         /// <summary>
-        /// Конвертирует Word документ в PDF используя Microsoft Word
+        /// Конвертирует Word документ в PDF используя FreeSpire.Doc
         /// </summary>
         /// <param name="wordFilePath">Путь к Word документу</param>
         /// <param name="pdfFilePath">Путь для сохранения PDF (если null, будет создан рядом с Word файлом)</param>
@@ -260,21 +260,23 @@ namespace Contract2512.Services
                 pdfFilePath = Path.ChangeExtension(wordFilePath, ".pdf");
             }
 
-            // Используем Word Interop для конвертации
-            Microsoft.Office.Interop.Word.Application wordApp = null;
-            Microsoft.Office.Interop.Word.Document doc = null;
+            // Создаем временную копию для конвертации в PDF с жирным текстом
+            string tempFilePath = Path.Combine(Path.GetDirectoryName(wordFilePath), 
+                Path.GetFileNameWithoutExtension(wordFilePath) + "_temp.docx");
 
             try
             {
-                wordApp = new Microsoft.Office.Interop.Word.Application();
-                wordApp.Visible = false;
-                wordApp.DisplayAlerts = Microsoft.Office.Interop.Word.WdAlertLevel.wdAlertsNone;
+                // Копируем оригинальный файл во временный
+                File.Copy(wordFilePath, tempFilePath, true);
 
-                // Открываем документ
-                doc = wordApp.Documents.Open(wordFilePath);
+                // Делаем весь текст жирным во временном файле
+                MakeAllTextBold(tempFilePath);
 
-                // Сохраняем как PDF
-                doc.SaveAs2(pdfFilePath, Microsoft.Office.Interop.Word.WdSaveFormat.wdFormatPDF);
+                // Используем FreeSpire.Doc для конвертации временного файла
+                var document = new Spire.Doc.Document();
+                document.LoadFromFile(tempFilePath);
+                
+                document.SaveToFile(pdfFilePath, Spire.Doc.FileFormat.PDF);
 
                 return pdfFilePath;
             }
@@ -284,25 +286,80 @@ namespace Contract2512.Services
             }
             finally
             {
-                // Закрываем документ
-                if (doc != null)
+                // Удаляем временный файл
+                if (File.Exists(tempFilePath))
                 {
-                    doc.Close(false);
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(doc);
+                    try
+                    {
+                        File.Delete(tempFilePath);
+                    }
+                    catch
+                    {
+                        // Игнорируем ошибки удаления временного файла
+                    }
                 }
-
-                // Закрываем Word
-                if (wordApp != null)
-                {
-                    wordApp.Quit(false);
-                    System.Runtime.InteropServices.Marshal.ReleaseComObject(wordApp);
-                }
-
-                // Принудительная сборка мусора для освобождения COM объектов
-                GC.Collect();
-                GC.WaitForPendingFinalizers();
             }
         }
+
+        /// <summary>
+        /// Делает весь текст в Word документе жирным
+        /// </summary>
+        private void MakeAllTextBold(string wordFilePath)
+        {
+            using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(wordFilePath, true))
+            {
+                MainDocumentPart mainPart = wordDoc.MainDocumentPart;
+                if (mainPart == null) return;
+
+                // Обрабатываем основной документ
+                SetAllTextBold(mainPart.Document);
+
+                // Обрабатываем заголовки
+                foreach (HeaderPart headerPart in mainPart.HeaderParts)
+                {
+                    SetAllTextBold(headerPart.Header);
+                }
+
+                // Обрабатываем футеры
+                foreach (FooterPart footerPart in mainPart.FooterParts)
+                {
+                    SetAllTextBold(footerPart.Footer);
+                }
+
+                mainPart.Document.Save();
+            }
+        }
+
+        /// <summary>
+        /// Устанавливает жирное начертание для всех Run элементов в документе
+        /// </summary>
+        private void SetAllTextBold(OpenXmlElement element)
+        {
+            if (element == null) return;
+
+            // Находим все Run элементы (они содержат текст и его форматирование)
+            var runs = element.Descendants<Run>().ToList();
+            
+            foreach (var run in runs)
+            {
+                // Получаем или создаем RunProperties
+                RunProperties runProps = run.RunProperties;
+                if (runProps == null)
+                {
+                    runProps = new RunProperties();
+                    run.PrependChild(runProps);
+                }
+
+                // Проверяем, есть ли уже Bold
+                var existingBold = runProps.Elements<Bold>().FirstOrDefault();
+                if (existingBold == null)
+                {
+                    // Добавляем жирное начертание
+                    runProps.AppendChild(new Bold());
+                }
+            }
+        }
+
     }
 }
 

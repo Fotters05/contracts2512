@@ -118,5 +118,52 @@ namespace Contract2512.Views
                 DragMove();
             }
         }
+
+        private void ViewContractButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ContractsDataGrid.SelectedItem is ContractWithRole selectedItem)
+            {
+                try
+                {
+                    using (var db = new AppDbContext())
+                    {
+                        var contract = db.Contracts.FirstOrDefault(c => c.Id == selectedItem.Contract.Id);
+                        if (contract != null)
+                        {
+                            // Формируем договор с замененными плейсхолдерами
+                            string documentPath = ContractWindow.GenerateContractDocumentForView(contract, db);
+
+                            // Открываем сформированный договор
+                            var wordService = new WordDocumentService();
+                            wordService.OpenDocument(documentPath);
+                        }
+                        else
+                        {
+                            MessageBox.Show(
+                                "Договор не найден!",
+                                "Ошибка",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Warning);
+                        }
+                    }
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(
+                        $"Ошибка при просмотре договора: {ex.Message}",
+                        "Ошибка",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Error);
+                }
+            }
+            else
+            {
+                MessageBox.Show(
+                    "Выберите договор для просмотра!",
+                    "Внимание",
+                    MessageBoxButton.OK,
+                    MessageBoxImage.Warning);
+            }
+        }
     }
 }
