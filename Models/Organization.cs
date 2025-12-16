@@ -8,11 +8,9 @@ namespace Contract2512.Models
     public class Organization
     {
         [Key]
-        [Column("person_id")]
-        public long PersonId { get; set; }
-
-        [ForeignKey("PersonId")]
-        public virtual Person? Person { get; set; }
+        [Column("id")]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public long Id { get; set; }
 
         [Column("organization_name")]
         [Required]

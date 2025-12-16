@@ -24,8 +24,6 @@ namespace Contract2512.Views
             _isEditMode = organization != null;
             _organization = organization;
 
-            LoadPersons();
-
             if (_isEditMode)
             {
                 Title = "Редактирование организации";
@@ -37,26 +35,8 @@ namespace Contract2512.Views
             }
         }
 
-        private void LoadPersons()
-        {
-            using (var db = new AppDbContext())
-            {
-                var persons = db.Persons.AsNoTracking().ToList();
-                PersonComboBox.ItemsSource = persons;
-            }
-        }
-
         private void LoadOrganizationData()
         {
-            using (var db = new AppDbContext())
-            {
-                var person = db.Persons.Find(_organization.PersonId);
-                if (person != null)
-                {
-                    PersonComboBox.SelectedItem = PersonComboBox.Items.Cast<Person>().FirstOrDefault(p => p.Id == person.Id);
-                }
-            }
-
             OrganizationNameTextBox.Text = _organization.OrganizationName;
             DirectorFioTextBox.Text = _organization.DirectorFio;
             OgrnTextBox.Text = _organization.Ogrn;
@@ -70,12 +50,6 @@ namespace Contract2512.Views
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             // Валидация
-            if (PersonComboBox.SelectedItem == null)
-            {
-                MessageBox.Show("Выберите персону!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
-                return;
-            }
-
             if (string.IsNullOrWhiteSpace(OrganizationNameTextBox.Text))
             {
                 MessageBox.Show("Введите название организации!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -119,7 +93,7 @@ namespace Contract2512.Views
                     if (_isEditMode)
                     {
                         // Редактирование существующей организации
-                        var orgToUpdate = db.Organizations.Find(_organization.PersonId);
+                        var orgToUpdate = db.Organizations.Find(_organization.Id);
                         if (orgToUpdate != null)
                         {
                             orgToUpdate.OrganizationName = OrganizationNameTextBox.Text.Trim();
@@ -139,11 +113,8 @@ namespace Contract2512.Views
                     else
                     {
                         // Создание новой организации
-                        var selectedPerson = (Person)PersonComboBox.SelectedItem;
-
                         var organization = new Organization
                         {
-                            PersonId = selectedPerson.Id,
                             OrganizationName = OrganizationNameTextBox.Text.Trim(),
                             DirectorFio = DirectorFioTextBox.Text.Trim(),
                             Ogrn = OgrnTextBox.Text.Trim(),

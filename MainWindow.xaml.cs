@@ -915,7 +915,6 @@ namespace Contract2512
                 using (var db = new AppDbContext())
                 {
                     var organizations = db.Organizations
-                        .Include(o => o.Person)
                         .AsNoTracking()
                         .ToList();
                     
@@ -979,7 +978,7 @@ namespace Contract2512
                     {
                         using (var db = new AppDbContext())
                         {
-                            var orgToDelete = db.Organizations.Find(selectedOrg.PersonId);
+                            var orgToDelete = db.Organizations.Find(selectedOrg.Id);
                             if (orgToDelete != null)
                             {
                                 db.Organizations.Remove(orgToDelete);

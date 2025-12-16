@@ -292,7 +292,7 @@
               "RelativeDocumentMoniker": "Views\\PersonWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonWindow.xaml.cs",
               "RelativeToolTip": "Views\\PersonWindow.xaml.cs",
-              "ViewState": "AgIAAGcAAAAAAAAAAAAgwHQAAAA5AAAAAAAAAA==",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAHQAAAA5AAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2025-12-04T21:55:54.299Z",
               "EditorCaption": ""
@@ -307,8 +307,7 @@
               "RelativeToolTip": "Views\\ContractWindow.xaml.cs",
               "ViewState": "AgIAAB0JAAAAAAAAAAAqwDEJAAARAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:55:12.295Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:55:12.295Z"
             },
             {
               "$type": "Document",
@@ -319,8 +318,7 @@
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml",
               "RelativeToolTip": "Views\\ProgramWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:49:25.672Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:49:25.672Z"
             },
             {
               "$type": "Document",
@@ -331,8 +329,7 @@
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonWindow.xaml",
               "RelativeToolTip": "Views\\PersonWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:49:23.012Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:49:23.012Z"
             },
             {
               "$type": "Document",
@@ -471,8 +468,7 @@
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml",
               "RelativeToolTip": "App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:40:09.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:40:09.104Z"
             },
             {
               "$type": "Document",

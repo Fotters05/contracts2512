@@ -60,8 +60,26 @@ namespace Contract2512.Views
 
                 // Загружаем физических лиц без отслеживания и сохраняем полный список
                 _allPersons = db.Persons.AsNoTracking().ToList();
-                PayerComboBox.ItemsSource = _allPersons;
-                ListenerComboBox.ItemsSource = _allPersons;
+                
+                // Для слушателей всегда показываем только физических лиц
+                var listenerViewModels = _allPersons.Select(p => new PersonViewModel
+                {
+                    Person = p,
+                    DisplayName = p.FullName
+                }).ToList();
+                ListenerComboBox.ItemsSource = listenerViewModels;
+                ListenerComboBox.DisplayMemberPath = "DisplayName";
+                System.Windows.Controls.TextSearch.SetTextPath(ListenerComboBox, "DisplayName");
+                
+                // Для заказчиков изначально показываем физических лиц (обновится при выборе типа договора)
+                var payerViewModels = _allPersons.Select(p => new PersonViewModel
+                {
+                    Person = p,
+                    DisplayName = p.FullName
+                }).ToList();
+                PayerComboBox.ItemsSource = payerViewModels;
+                PayerComboBox.DisplayMemberPath = "DisplayName";
+                System.Windows.Controls.TextSearch.SetTextPath(PayerComboBox, "DisplayName");
             }
 
             // Добавляем обработчики для фильтрации при вводе текста
@@ -84,6 +102,10 @@ namespace Contract2512.Views
             StudyOptionComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
             ItogDocumentComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
             TimeOptionComboBox.PreviewMouseLeftButtonDown += ComboBox_PreviewMouseLeftButtonDown;
+            
+            // Добавляем обработчики SelectionChanged для отладки
+            PayerComboBox.SelectionChanged += PayerComboBox_SelectionChanged;
+            ListenerComboBox.SelectionChanged += ListenerComboBox_SelectionChanged;
 
             // Загружаем подписантов из статического списка (хранятся в коде, не в БД)
             var signers = GetSigners();
@@ -132,7 +154,76 @@ namespace Contract2512.Views
                 
                 // Показываем/скрываем поля в зависимости от типа договора
                 UpdateFieldsVisibility(contractType);
+                
+                // Обновляем список заказчиков в зависимости от типа договора
+                UpdatePayersList(contractType);
             }
+        }
+
+        private void UpdatePayersList(ContractType contractType)
+        {
+            using (var db = new AppDbContext())
+            {
+                // Проверяем, является ли договор для юридических лиц
+                bool isLegalEntityContract = contractType.Name != null && 
+                    (contractType.Name.Contains("юридических лиц") || 
+                     contractType.Name.Contains("юридическим лицом") ||
+                     contractType.Name.Contains("юр лиц") ||
+                     contractType.Name.Contains("юр.лиц"));
+
+                if (isLegalEntityContract)
+                {
+                    // Загружаем организации
+                    var organizations = db.Organizations
+                        .AsNoTracking()
+                        .ToList();
+                    
+                    // Создаем список OrganizationViewModel для отображения названия организации
+                    var organizationViewModels = organizations.Select(org => new OrganizationViewModel
+                    {
+                        Organization = org,
+                        DisplayName = org.OrganizationName
+                    }).ToList();
+                    
+                    PayerComboBox.ItemsSource = organizationViewModels;
+                    PayerComboBox.DisplayMemberPath = "DisplayName";
+                    System.Windows.Controls.TextSearch.SetTextPath(PayerComboBox, "DisplayName");
+                }
+                else
+                {
+                    // Загружаем всех физических лиц
+                    var individualPersons = db.Persons
+                        .AsNoTracking()
+                        .ToList();
+                    
+                    // Создаем список PersonViewModel для отображения ФИО
+                    var personViewModels = individualPersons.Select(p => new PersonViewModel
+                    {
+                        Person = p,
+                        DisplayName = p.FullName
+                    }).ToList();
+                    
+                    PayerComboBox.ItemsSource = personViewModels;
+                    PayerComboBox.DisplayMemberPath = "DisplayName";
+                    System.Windows.Controls.TextSearch.SetTextPath(PayerComboBox, "DisplayName");
+                }
+                
+                // Сбрасываем выбор заказчика
+                PayerComboBox.SelectedItem = null;
+            }
+        }
+        
+        // Вспомогательные классы для отображения в ComboBox
+        private class PersonViewModel
+        {
+            public Person Person { get; set; }
+            public string DisplayName { get; set; }
+        }
+        
+        private class OrganizationViewModel
+        {
+            public Organization Organization { get; set; }
+            public string DisplayName { get; set; }
         }
 
         private void UpdateFieldsVisibility(ContractType contractType)
@@ -380,13 +471,46 @@ namespace Contract2512.Views
                 return;
             }
 
-            if (PayerComboBox.SelectedItem == null)
+            // Проверяем заказчика
+            bool payerValid = false;
+            
+            if (PayerComboBox.SelectedItem != null)
+            {
+                if (PayerComboBox.SelectedItem is PersonViewModel payerVm && payerVm.Person != null)
+                {
+                    payerValid = true;
+                }
+                else if (PayerComboBox.SelectedItem is OrganizationViewModel orgVm && orgVm.Organization != null)
+                {
+                    payerValid = true;
+                }
+                else if (PayerComboBox.SelectedItem is Person)
+                {
+                    payerValid = true;
+                }
+            }
+            
+            if (!payerValid)
             {
                 MessageBox.Show("Выберите заказчика!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
-            if (ListenerComboBox.SelectedItem == null)
+            // Проверяем слушателя
+            bool listenerValid = false;
+            if (ListenerComboBox.SelectedItem != null)
+            {
+                if (ListenerComboBox.SelectedItem is PersonViewModel listenerVm && listenerVm.Person != null)
+                {
+                    listenerValid = true;
+                }
+                else if (ListenerComboBox.SelectedItem is Person)
+                {
+                    listenerValid = true;
+                }
+            }
+            
+            if (!listenerValid)
             {
                 MessageBox.Show("Выберите слушателя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
@@ -503,8 +627,10 @@ namespace Contract2512.Views
                         ProgramId = ((LearningProgram)ProgramComboBox.SelectedItem).Id,
                         StartDate = StartDatePicker.SelectedDate,
                         EndDate = EndDatePicker.SelectedDate,
-                        PayerId = ((Person)PayerComboBox.SelectedItem).Id,
-                        ListenerId = ((Person)ListenerComboBox.SelectedItem).Id,
+                        PayerId = PayerComboBox.SelectedItem is PersonViewModel payerVm ? payerVm.Person.Id : 
+                                  PayerComboBox.SelectedItem is OrganizationViewModel orgVm ? orgVm.Organization.Id : 
+                                  ((Person)PayerComboBox.SelectedItem).Id,
+                        ListenerId = ListenerComboBox.SelectedItem is PersonViewModel listenerVm ? listenerVm.Person.Id : ((Person)ListenerComboBox.SelectedItem).Id,
                         CreatedAt = DateTime.Now,
                         ItogDocumentOptionKey = itogDocumentOptionKey,
                         TimeOptionKey = timeOptionKey,
@@ -632,7 +758,7 @@ namespace Contract2512.Views
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
 
             // Загружаем данные организации (если заказчик - юридическое лицо)
-            var payerOrganization = db.Organizations.FirstOrDefault(o => o.PersonId == payer.Id);
+            var payerOrganization = db.Organizations.FirstOrDefault(o => o.Id == contract.PayerId);
 
             // Загружаем образование слушателя для плейсхолдера {{DIplom_Sculatel}}
             var listenerEducation = db.Educations
@@ -1350,7 +1476,7 @@ namespace Contract2512.Views
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
 
             // Загружаем данные организации (если заказчик - юридическое лицо)
-            var payerOrganization = db.Organizations.FirstOrDefault(o => o.PersonId == payer.Id);
+            var payerOrganization = db.Organizations.FirstOrDefault(o => o.Id == contract.PayerId);
 
             // Загружаем образование слушателя для плейсхолдера {{DIplom_Sculatel}}
             var listenerEducation = db.Educations
@@ -2352,6 +2478,30 @@ namespace Contract2512.Views
                     comboBox.IsDropDownOpen = true;
                     e.Handled = true;
                 }
+            }
+        }
+
+        // Обработчик изменения выбора заказчика
+        private void PayerComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            // Этот обработчик нужен для того, чтобы убедиться, что выбор правильно обрабатывается
+            // Когда пользователь выбирает элемент из выпадающего списка
+            if (PayerComboBox.SelectedItem != null)
+            {
+                // Закрываем выпадающий список после выбора
+                PayerComboBox.IsDropDownOpen = false;
+            }
+        }
+
+        // Обработчик изменения выбора слушателя
+        private void ListenerComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            // Этот обработчик нужен для того, чтобы убедиться, что выбор правильно обрабатывается
+            // Когда пользователь выбирает элемент из выпадающего списка
+            if (ListenerComboBox.SelectedItem != null)
+            {
+                // Закрываем выпадающий список после выбора
+                ListenerComboBox.IsDropDownOpen = false;
             }
         }
 
