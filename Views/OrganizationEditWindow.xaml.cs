@@ -159,5 +159,38 @@ namespace Contract2512.Views
             DialogResult = false;
             Close();
         }
+
+        private void MinimizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            WindowState = WindowState.Minimized;
+        }
+
+        private void MaximizeButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WindowState == WindowState.Maximized)
+            {
+                WindowState = WindowState.Normal;
+                MaximizeRestoreButton.Content = "□";
+            }
+            else
+            {
+                WindowState = WindowState.Maximized;
+                MaximizeRestoreButton.Content = "❐";
+            }
+        }
+
+        private void CloseButton_Click(object sender, RoutedEventArgs e)
+        {
+            DialogResult = false;
+            Close();
+        }
+
+        private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
+        {
+            if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
+            {
+                DragMove();
+            }
+        }
     }
 }

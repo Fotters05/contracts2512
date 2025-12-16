@@ -446,24 +446,22 @@
             <Setter Property="Foreground" Value="White"/>
             <Setter Property="Background">
                 <Setter.Value>
-                    <SolidColorBrush Color="#4B5563" Opacity="0.3"/>
+                    <SolidColorBrush Color="#4B5563" Opacity="0.6"/>
                 </Setter.Value>
             </Setter>
-            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Padding" Value="12,6"/>
             <Setter Property="FontWeight" Value="SemiBold"/>
             <Setter Property="FontSize" Value="14"/>
             <Setter Property="Cursor" Value="Hand"/>
             <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
                         <Border Background="{TemplateBinding Background}"
-                                CornerRadius="8"
-                                SnapsToDevicePixels="True"
-                                Padding="{TemplateBinding Padding}">
+                        CornerRadius="6"
+                        Padding="{TemplateBinding Padding}">
                             <ContentPresenter HorizontalAlignment="Center"
-                                            VerticalAlignment="Center"/>
+                                    VerticalAlignment="Center"/>
                         </Border>
                     </ControlTemplate>
                 </Setter.Value>
@@ -475,6 +473,33 @@
                             <SolidColorBrush Color="#6B7280" Opacity="0.8"/>
                         </Setter.Value>
                     </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для акцентных кнопок (как в других окнах) -->
+        <Style x:Key="AccentButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#8B5CF6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#A78BFA"/>
                 </Trigger>
             </Style.Triggers>
         </Style>
@@ -760,15 +785,11 @@
                        Margin="0,20,0,0">
                 <Button x:Name="CreateContractButton" 
                        Content="Создать договор" 
-                       Width="150" 
-                       Height="40"
                        Style="{StaticResource DarkButtonStyle}"
                        Margin="0,0,10,0" 
                        Click="CreateContractButton_Click"/>
                 <Button x:Name="CancelButton" 
                        Content="Отмена" 
-                       Width="100" 
-                       Height="40"
                        Style="{StaticResource DarkButtonStyle}"
                        Click="CancelButton_Click"/>
         </StackPanel>

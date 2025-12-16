@@ -68,10 +68,110 @@
                 </Setter.Value>
             </Setter>
         </Style>
+        
+        <Style x:Key="DarkButtonStyle" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#4B5563" Opacity="0.3"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                            VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Color="#6B7280" Opacity="0.8"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для кнопок управления окном -->
+        <Style x:Key="WindowControlButton" TargetType="Button">
+            <Setter Property="Width" Value="45"/>
+            <Setter Property="Height" Value="30"/>
+            <Setter Property="Background" Value="Transparent"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background">
+                        <Setter.Value>
+                            <SolidColorBrush Color="White" Opacity="0.1"/>
+                        </Setter.Value>
+                    </Setter>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <Style x:Key="CloseButtonStyle" TargetType="Button" BasedOn="{StaticResource WindowControlButton}">
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#E81123"/>
+                    <Setter Property="Foreground" Value="White"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
     </Window.Resources>
 
     <Grid Background="{StaticResource AppBackground}">
-        <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Custom TitleBar -->
+        <Border Grid.Row="0" Background="#312E81" Height="30" MouseDown="TitleBar_MouseDown">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                <TextBlock Grid.Column="0" 
+                          Text="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=Title}"
+                          Foreground="White"
+                          VerticalAlignment="Center"
+                          Margin="10,0,0,0"
+                          FontSize="12"/>
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button Content="─" Style="{StaticResource WindowControlButton}" Click="MinimizeButton_Click"/>
+                    <Button x:Name="MaximizeRestoreButton" Content="□" Style="{StaticResource WindowControlButton}" Click="MaximizeButton_Click"/>
+                    <Button Content="✕" Style="{StaticResource CloseButtonStyle}" Click="CloseButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+
+        <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto">
             <StackPanel Margin="30">
                 <TextBlock Text="Информация об организации" 
                           FontSize="20" 
@@ -106,12 +206,12 @@
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
                     <Button Content="Сохранить" 
                            x:Name="SaveButton" 
-                           Style="{StaticResource AccentButton}"
+                           Style="{StaticResource DarkButtonStyle}"
                            Click="SaveButton_Click"
                            Margin="0,0,10,0"/>
                     <Button Content="Отмена" 
                            x:Name="CancelButton" 
-                           Style="{StaticResource AccentButton}"
+                           Style="{StaticResource DarkButtonStyle}"
                            Click="CancelButton_Click"/>
                 </StackPanel>
             </StackPanel>
