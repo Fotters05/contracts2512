@@ -839,6 +839,42 @@ namespace Contract2512.Views
                 replacements["{{Organisation_Name}}"] = payerOrganization.OrganizationName ?? "";
                 replacements["{{Organisation_Zakachik}}"] = payerOrganization.OrganizationName ?? "";
                 replacements["{{Name_Direktororganisation}}"] = payerOrganization.DirectorFio ?? "";
+                
+                // Разбираем ФИО директора на фамилию и инициалы
+                string directorFio = payerOrganization.DirectorFio ?? "";
+                string[] directorParts = directorFio.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                if (directorParts.Length >= 1)
+                {
+                    replacements["{{lastname_zakaz_org }}"] = directorParts[0];
+                    replacements["{{lastname_zakaz_org}}"] = directorParts[0];
+                }
+                else
+                {
+                    replacements["{{lastname_zakaz_org }}"] = "";
+                    replacements["{{lastname_zakaz_org}}"] = "";
+                }
+                
+                if (directorParts.Length >= 2)
+                {
+                    replacements["{{Name_zakaz_org.}}"] = GetInitialLetterStatic(directorParts[1]);
+                }
+                else
+                {
+                    replacements["{{Name_zakaz_org.}}"] = "";
+                }
+                
+                if (directorParts.Length >= 3)
+                {
+                    replacements["{{Firstname_zakaz_org. }}"] = GetInitialLetterStatic(directorParts[2]);
+                    replacements["{{Firstname_zakaz_org.}}"] = GetInitialLetterStatic(directorParts[2]);
+                }
+                else
+                {
+                    replacements["{{Firstname_zakaz_org. }}"] = "";
+                    replacements["{{Firstname_zakaz_org.}}"] = "";
+                }
+                
                 replacements["{{INN_Zakachik}}"] = payerOrganization.Inn ?? "";
                 replacements["{{KPP_Zakachik}}"] = payerOrganization.Kpp ?? "";
                 replacements["{{OGRN_Zakachik}}"] = payerOrganization.Ogrn ?? "";
@@ -864,6 +900,11 @@ namespace Contract2512.Views
                 replacements["{{Organisation_Name}}"] = "";
                 replacements["{{Organisation_Zakachik}}"] = "";
                 replacements["{{Name_Direktororganisation}}"] = "";
+                replacements["{{lastname_zakaz_org }}"] = "";
+                replacements["{{lastname_zakaz_org}}"] = "";
+                replacements["{{Name_zakaz_org.}}"] = "";
+                replacements["{{Firstname_zakaz_org. }}"] = "";
+                replacements["{{Firstname_zakaz_org.}}"] = "";
                 replacements["{{INN_Zakachik}}"] = "";
                 replacements["{{KPP_Zakachik}}"] = "";
                 replacements["{{OGRN_Zakachik}}"] = "";
@@ -1530,6 +1571,42 @@ namespace Contract2512.Views
                 replacements["{{Organisation_Name}}"] = payerOrganization.OrganizationName ?? "";
                 replacements["{{Organisation_Zakachik}}"] = payerOrganization.OrganizationName ?? "";
                 replacements["{{Name_Direktororganisation}}"] = payerOrganization.DirectorFio ?? "";
+                
+                // Разбираем ФИО директора на фамилию и инициалы
+                string directorFio = payerOrganization.DirectorFio ?? "";
+                string[] directorParts = directorFio.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries);
+                
+                if (directorParts.Length >= 1)
+                {
+                    replacements["{{lastname_zakaz_org }}"] = directorParts[0];
+                    replacements["{{lastname_zakaz_org}}"] = directorParts[0];
+                }
+                else
+                {
+                    replacements["{{lastname_zakaz_org }}"] = "";
+                    replacements["{{lastname_zakaz_org}}"] = "";
+                }
+                
+                if (directorParts.Length >= 2)
+                {
+                    replacements["{{Name_zakaz_org.}}"] = GetInitialLetter(directorParts[1]);
+                }
+                else
+                {
+                    replacements["{{Name_zakaz_org.}}"] = "";
+                }
+                
+                if (directorParts.Length >= 3)
+                {
+                    replacements["{{Firstname_zakaz_org. }}"] = GetInitialLetter(directorParts[2]);
+                    replacements["{{Firstname_zakaz_org.}}"] = GetInitialLetter(directorParts[2]);
+                }
+                else
+                {
+                    replacements["{{Firstname_zakaz_org. }}"] = "";
+                    replacements["{{Firstname_zakaz_org.}}"] = "";
+                }
+                
                 replacements["{{INN_Zakachik}}"] = payerOrganization.Inn ?? "";
                 replacements["{{KPP_Zakachik}}"] = payerOrganization.Kpp ?? "";
                 replacements["{{OGRN_Zakachik}}"] = payerOrganization.Ogrn ?? "";
@@ -1555,6 +1632,11 @@ namespace Contract2512.Views
                 replacements["{{Organisation_Name}}"] = "";
                 replacements["{{Organisation_Zakachik}}"] = "";
                 replacements["{{Name_Direktororganisation}}"] = "";
+                replacements["{{lastname_zakaz_org }}"] = "";
+                replacements["{{lastname_zakaz_org}}"] = "";
+                replacements["{{Name_zakaz_org.}}"] = "";
+                replacements["{{Firstname_zakaz_org. }}"] = "";
+                replacements["{{Firstname_zakaz_org.}}"] = "";
                 replacements["{{INN_Zakachik}}"] = "";
                 replacements["{{KPP_Zakachik}}"] = "";
                 replacements["{{OGRN_Zakachik}}"] = "";
