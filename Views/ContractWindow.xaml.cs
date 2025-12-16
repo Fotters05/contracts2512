@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
@@ -837,7 +837,8 @@ namespace Contract2512.Views
             if (payerOrganization != null)
             {
                 replacements["{{Organisation_Name}}"] = payerOrganization.OrganizationName ?? "";
-                replacements["{{Organisation_Zakachik}}"] = payerOrganization.OrganizationName ?? "";
+                string shortOrgName = ExtractShortOrganizationName(payerOrganization.OrganizationName);
+                replacements["{{Organisation_Zakachik}}"] = $"ООО \"{shortOrgName}\"";
                 replacements["{{Name_Direktororganisation}}"] = payerOrganization.DirectorFio ?? "";
                 
                 // Разбираем ФИО директора на фамилию и инициалы
@@ -898,7 +899,7 @@ namespace Contract2512.Views
             {
                 // Если заказчик - физическое лицо, заполняем пустыми значениями
                 replacements["{{Organisation_Name}}"] = "";
-                replacements["{{Organisation_Zakachik}}"] = "";
+                replacements["{{Organisation_Zakachik}}"] = "ООО";
                 replacements["{{Name_Direktororganisation}}"] = "";
                 replacements["{{lastname_zakaz_org }}"] = "";
                 replacements["{{lastname_zakaz_org}}"] = "";
@@ -1236,6 +1237,43 @@ namespace Contract2512.Views
             return name.Trim()[0].ToString().ToUpper() + ".";
         }
 
+        private static string ExtractShortOrganizationName(string fullName)
+        {
+            if (string.IsNullOrWhiteSpace(fullName))
+            {
+                return "";
+            }
+
+            string result = fullName.Trim();
+
+            // Удаляем префиксы организационно-правовых форм
+            string[] prefixes = {
+                "Общество с ограниченной ответственностью",
+                "Акционерное общество",
+                "Публичное акционерное общество",
+                "Непубличное акционерное общество",
+                "ООО",
+                "АО",
+                "ПАО",
+                "ЗАО",
+                "ОАО"
+            };
+
+            foreach (var prefix in prefixes)
+            {
+                if (result.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    result = result.Substring(prefix.Length).Trim();
+                    break;
+                }
+            }
+
+            // Удаляем кавычки (и обычные, и ёлочки)
+            result = result.Trim('"', '«', '»', ' ');
+
+            return result;
+        }
+
         private static string GetMonthNameStatic(int month)
         {
             string[] months = { "", "января", "февраля", "марта", "апреля", "мая", "июня",
@@ -1569,7 +1607,8 @@ namespace Contract2512.Views
             if (payerOrganization != null)
             {
                 replacements["{{Organisation_Name}}"] = payerOrganization.OrganizationName ?? "";
-                replacements["{{Organisation_Zakachik}}"] = payerOrganization.OrganizationName ?? "";
+                string shortOrgName = ExtractShortOrganizationName(payerOrganization.OrganizationName);
+                replacements["{{Organisation_Zakachik}}"] = $"ООО \"{shortOrgName}\"";
                 replacements["{{Name_Direktororganisation}}"] = payerOrganization.DirectorFio ?? "";
                 
                 // Разбираем ФИО директора на фамилию и инициалы
@@ -1615,22 +1654,18 @@ namespace Contract2512.Views
                 // Переопределяем телефон и email для организации
                 if (!string.IsNullOrWhiteSpace(payerOrganization.Phone))
                 {
-                    replacements["{{contact_phone_zakazchik}}"] = payerOrganization.Phone;
-                    replacements["{{contact_phone_zakazchik}"] = payerOrganization.Phone;
+                    replacements["{{contact_phone_zakazchik_org}}"] = payerOrganization.Phone;
                 }
                 if (!string.IsNullOrWhiteSpace(payerOrganization.Email))
                 {
-                    replacements["{{EMAIL_zakazchik}}"] = payerOrganization.Email;
-                    replacements["{{EMAIL_zakazchik}"] = payerOrganization.Email;
-                    replacements["{{email_zakazchik}}"] = payerOrganization.Email;
-                    replacements["{{Email_zakazchik}}"] = payerOrganization.Email;
+                    replacements["{{EMAIL_zakazchik_org}}"] = payerOrganization.Email;
                 }
             }
             else
             {
                 // Если заказчик - физическое лицо, заполняем пустыми значениями
                 replacements["{{Organisation_Name}}"] = "";
-                replacements["{{Organisation_Zakachik}}"] = "";
+                replacements["{{Organisation_Zakachik}}"] = "ООО";
                 replacements["{{Name_Direktororganisation}}"] = "";
                 replacements["{{lastname_zakaz_org }}"] = "";
                 replacements["{{lastname_zakaz_org}}"] = "";
@@ -1704,8 +1739,12 @@ namespace Contract2512.Views
             // Также добавляем номер договора
             replacements["{{number_dogovor}}"] = contract.ContractNumber;
             
-            // Номер акта (совпадает с номером договора)
-            replacements["{{number_akt}}"] = contract.ContractNumber;
+            // Номер акта - автоинкремент начиная с 1
+            // Считаем количество договоров, созданных до текущего (включая текущий)
+            int aktNumber = db.Contracts
+                .Where(c => c.CreatedAt <= contract.CreatedAt || (c.CreatedAt == null && c.Id <= contract.Id))
+                .Count();
+            replacements["{{number_akt}}"] = aktNumber.ToString();
 
             // Подписант - берем из сохраненного в БД
             if (contract.SignerId.HasValue)
