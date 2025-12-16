@@ -135,17 +135,17 @@ namespace Contract2512.Views
                         if (person != null)
                         {
                             UpdatePersonData(person, db);
+                            db.SaveChanges();
                         }
                     }
                     else
                     {
                         // Создание нового лица
                         var person = new Person();
-                        UpdatePersonData(person, db);
                         db.Persons.Add(person);
+                        UpdatePersonData(person, db);
+                        db.SaveChanges();
                     }
-
-                    db.SaveChanges();
                     MessageBox.Show("Данные успешно сохранены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     DialogResult = true;
                     Close();
@@ -153,12 +153,30 @@ namespace Contract2512.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"Ошибка при сохранении: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                string errorMessage = $"Ошибка при сохранении: {ex.Message}";
+                
+                if (ex.InnerException != null)
+                {
+                    errorMessage += $"\n\nВнутренняя ошибка: {ex.InnerException.Message}";
+                    
+                    if (ex.InnerException.InnerException != null)
+                    {
+                        errorMessage += $"\n\nДетали: {ex.InnerException.InnerException.Message}";
+                    }
+                }
+                
+                MessageBox.Show(errorMessage, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
         private void UpdatePersonData(Person person, AppDbContext db)
         {
+            // Устанавливаем CreatedAt только для новых записей
+            if (person.Id == 0)
+            {
+                person.CreatedAt = DateTime.Now;
+            }
+
             person.LastName = LastNameTextBox.Text;
             person.FirstName = FirstNameTextBox.Text;
             person.Patronymic = string.IsNullOrWhiteSpace(PatronymicTextBox.Text) ? null : PatronymicTextBox.Text;
@@ -196,11 +214,8 @@ namespace Contract2512.Views
                     db.SaveChanges(); // Сохраняем контакты, чтобы получить ID
             person.ContactsId = contacts.Id;
 
-            // Сохраняем person, чтобы получить ID для паспорта и образования (если это новый)
-            if (person.Id == 0)
-            {
-                db.SaveChanges();
-            }
+            // Сохраняем изменения, чтобы получить ID для person (если это новый)
+            db.SaveChanges();
 
             // Обновляем или создаем паспорт
             var passport = db.Passports.FirstOrDefault(p => p.PersonId == person.Id);

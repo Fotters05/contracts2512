@@ -20,6 +20,7 @@ namespace Contract2512.Services
         public DbSet<ContractType> ContractTypes { get; set; }
         public DbSet<LearningProgram> LearningPrograms { get; set; }
         public DbSet<Contract> Contracts { get; set; }
+        public DbSet<Organization> Organizations { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

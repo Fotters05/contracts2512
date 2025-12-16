@@ -12,10 +12,6 @@ namespace Contract2512.Models
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public long Id { get; set; }
 
-        [Column("person_kind")]
-        [MaxLength(50)]
-        public string PersonKind { get; set; } = "individual";
-
         [Column("last_name")]
         [Required]
         [MaxLength(200)]

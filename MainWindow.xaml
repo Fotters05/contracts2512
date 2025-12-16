@@ -430,6 +430,15 @@
                                    FontSize="16"
                                    Foreground="{StaticResource TextPrimary}"/>
                     </Border>
+
+                    <!-- Организации -->
+                    <Border x:Name="BtnOrganizations"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnOrganizations_Click">
+                        <TextBlock Text="🏢  Организации"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
                 </StackPanel>
 
                 <!-- Тех поддержка -->
@@ -803,6 +812,66 @@
                         <DataGrid.Columns>
                             <DataGridTextColumn Header="Название" Binding="{Binding Name}" Width="*"/>
                             <DataGridTextColumn Header="Путь к файлу" Binding="{Binding FilePath}" Width="2*"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- Организации -->
+            <Grid x:Name="OrganizationsPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Панель кнопок -->
+                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
+                    <Button Content="Добавить организацию" 
+                           x:Name="AddOrganizationButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="AddOrganizationButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Редактировать" 
+                           x:Name="EditOrganizationButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="EditOrganizationButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Удалить" 
+                           x:Name="DeleteOrganizationButton"
+                           Style="{StaticResource DarkGrayButton}"
+                           Click="DeleteOrganizationButton_Click"/>
+                </StackPanel>
+
+                <!-- DataGrid -->
+                <Border Grid.Row="1" 
+                       x:Name="OrganizationsDataGridBorder"
+                       Background="{StaticResource DataGridBackground}"
+                       CornerRadius="12"
+                       BorderBrush="#475569"
+                       BorderThickness="1"
+                       ClipToBounds="True"
+                       SizeChanged="OrganizationsDataGridBorder_SizeChanged"
+                       Effect="{StaticResource CardShadow}">
+                    <DataGrid x:Name="OrganizationsDataGrid" 
+                             Style="{StaticResource DarkDataGridStyle}"
+                             ClipToBounds="True">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DarkDataGridCellStyle}"/>
+                        </DataGrid.CellStyle>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DarkDataGridRowStyle}"/>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Название организации" Binding="{Binding OrganizationName}" Width="*"/>
+                            <DataGridTextColumn Header="Директор" Binding="{Binding DirectorFio}" Width="*"/>
+                            <DataGridTextColumn Header="ОГРН" Binding="{Binding Ogrn}" Width="140"/>
+                            <DataGridTextColumn Header="ИНН" Binding="{Binding Inn}" Width="120"/>
+                            <DataGridTextColumn Header="КПП" Binding="{Binding Kpp}" Width="110"/>
+                            <DataGridTextColumn Header="Телефон" Binding="{Binding Phone}" Width="150"/>
+                            <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
                 </Border>

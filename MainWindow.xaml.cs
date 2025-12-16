@@ -61,6 +61,7 @@ namespace Contract2512
             BtnContracts.Tag = null;
             BtnPrograms.Tag = null;
             BtnContractTypes.Tag = null;
+            BtnOrganizations.Tag = null;
             
             // Устанавливаем выделение выбранной кнопки
             if (selectedButton != null)
@@ -76,6 +77,7 @@ namespace Contract2512
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnContracts_Click(object sender, RoutedEventArgs e)
@@ -85,6 +87,7 @@ namespace Contract2512
             ContractsPanel.Visibility = Visibility.Visible;
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnPrograms_Click(object sender, RoutedEventArgs e)
@@ -94,6 +97,7 @@ namespace Contract2512
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Visible;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnContractTypes_Click(object sender, RoutedEventArgs e)
@@ -103,7 +107,19 @@ namespace Contract2512
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Visible;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
             LoadContractTypes();
+        }
+
+        private void BtnOrganizations_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnOrganizations);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Visible;
+            LoadOrganizations();
         }
 
         private void BtnSupport_Click(object sender, RoutedEventArgs e)
@@ -873,6 +889,124 @@ namespace Contract2512
             {
                 System.Windows.MessageBox.Show(
                     "Выберите физическое лицо для просмотра личных карточек!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void OrganizationsDataGridBorder_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Border border)
+            {
+                var rect = new System.Windows.Rect(0, 0, border.ActualWidth, border.ActualHeight);
+                border.Clip = new System.Windows.Media.RectangleGeometry(rect)
+                {
+                    RadiusX = 12,
+                    RadiusY = 12
+                };
+            }
+        }
+
+        private void LoadOrganizations()
+        {
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var organizations = db.Organizations
+                        .Include(o => o.Person)
+                        .AsNoTracking()
+                        .ToList();
+                    
+                    OrganizationsDataGrid.ItemsSource = organizations;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при загрузке организаций: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void AddOrganizationButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new OrganizationEditWindow();
+            window.Owner = this;
+            if (window.ShowDialog() == true)
+            {
+                LoadOrganizations();
+            }
+        }
+
+        private void EditOrganizationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (OrganizationsDataGrid.SelectedItem is Organization selectedOrg)
+            {
+                var window = new OrganizationEditWindow(selectedOrg);
+                window.Owner = this;
+                if (window.ShowDialog() == true)
+                {
+                    LoadOrganizations();
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите организацию для редактирования!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void DeleteOrganizationButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (OrganizationsDataGrid.SelectedItem is Organization selectedOrg)
+            {
+                var result = System.Windows.MessageBox.Show(
+                    $"Вы уверены, что хотите удалить организацию '{selectedOrg.OrganizationName}'?",
+                    "Подтверждение удаления",
+                    System.Windows.MessageBoxButton.YesNo,
+                    System.Windows.MessageBoxImage.Question);
+
+                if (result == System.Windows.MessageBoxResult.Yes)
+                {
+                    try
+                    {
+                        using (var db = new AppDbContext())
+                        {
+                            var orgToDelete = db.Organizations.Find(selectedOrg.PersonId);
+                            if (orgToDelete != null)
+                            {
+                                db.Organizations.Remove(orgToDelete);
+                                db.SaveChanges();
+                                LoadOrganizations();
+                                System.Windows.MessageBox.Show(
+                                    "Организация успешно удалена!",
+                                    "Успех",
+                                    System.Windows.MessageBoxButton.OK,
+                                    System.Windows.MessageBoxImage.Information);
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show(
+                            $"Ошибка при удалении организации: {ex.Message}",
+                            "Ошибка",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Error);
+                    }
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите организацию для удаления!",
                     "Внимание",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);

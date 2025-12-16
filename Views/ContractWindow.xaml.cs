@@ -631,8 +631,16 @@ namespace Contract2512.Views
             var payerPassport = db.Passports.FirstOrDefault(p => p.PersonId == payer.Id);
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
 
+            // Загружаем данные организации (если заказчик - юридическое лицо)
+            var payerOrganization = db.Organizations.FirstOrDefault(o => o.PersonId == payer.Id);
+
+            // Загружаем образование слушателя для плейсхолдера {{DIplom_Sculatel}}
+            var listenerEducation = db.Educations
+                .Include(e => e.BaseEducation)
+                .FirstOrDefault(e => e.PersonId == listener.Id);
+
             // Формируем словарь замен
-            var replacements = BuildReplacementsDictionary(contract, contractType, payer, listener, program, payerContacts, listenerContacts, payerPassport, listenerPassport);
+            var replacements = BuildReplacementsDictionary(contract, contractType, payer, listener, program, payerContacts, listenerContacts, payerPassport, listenerPassport, payerOrganization, listenerEducation);
 
             // Создаем путь для сохранения договора
             string outputDirectory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Договоры");
@@ -665,7 +673,7 @@ namespace Contract2512.Views
         }
 
         private static Dictionary<string, string> BuildReplacementsDictionary(Contract contract, ContractType contractType, Person payer, Person listener, LearningProgram program, 
-            Models.Contacts payerContacts, Models.Contacts listenerContacts, Passport payerPassport, Passport listenerPassport)
+            Models.Contacts payerContacts, Models.Contacts listenerContacts, Passport payerPassport, Passport listenerPassport, Organization payerOrganization = null, Education listenerEducation = null)
         {
             var replacements = new Dictionary<string, string>();
 
@@ -699,6 +707,43 @@ namespace Contract2512.Views
             replacements["{{Adress_Registracii}}"] = payerPassport?.RegistrationAddress ?? "";
             replacements["{{Snils}}"] = payer.Snils ?? "";
 
+            // Данные организации заказчика (если заказчик - юридическое лицо)
+            if (payerOrganization != null)
+            {
+                replacements["{{Organisation_Name}}"] = payerOrganization.OrganizationName ?? "";
+                replacements["{{Organisation_Zakachik}}"] = payerOrganization.OrganizationName ?? "";
+                replacements["{{Name_Direktororganisation}}"] = payerOrganization.DirectorFio ?? "";
+                replacements["{{INN_Zakachik}}"] = payerOrganization.Inn ?? "";
+                replacements["{{KPP_Zakachik}}"] = payerOrganization.Kpp ?? "";
+                replacements["{{OGRN_Zakachik}}"] = payerOrganization.Ogrn ?? "";
+                replacements["{{Addres_Zakachik}}"] = payerOrganization.LegalAddress ?? "";
+                
+                // Переопределяем телефон и email для организации
+                if (!string.IsNullOrWhiteSpace(payerOrganization.Phone))
+                {
+                    replacements["{{contact_phone_zakazchik}}"] = payerOrganization.Phone;
+                    replacements["{{contact_phone_zakazchik}"] = payerOrganization.Phone;
+                }
+                if (!string.IsNullOrWhiteSpace(payerOrganization.Email))
+                {
+                    replacements["{{EMAIL_zakazchik}}"] = payerOrganization.Email;
+                    replacements["{{EMAIL_zakazchik}"] = payerOrganization.Email;
+                    replacements["{{email_zakazchik}}"] = payerOrganization.Email;
+                    replacements["{{Email_zakazchik}}"] = payerOrganization.Email;
+                }
+            }
+            else
+            {
+                // Если заказчик - физическое лицо, заполняем пустыми значениями
+                replacements["{{Organisation_Name}}"] = "";
+                replacements["{{Organisation_Zakachik}}"] = "";
+                replacements["{{Name_Direktororganisation}}"] = "";
+                replacements["{{INN_Zakachik}}"] = "";
+                replacements["{{KPP_Zakachik}}"] = "";
+                replacements["{{OGRN_Zakachik}}"] = "";
+                replacements["{{Addres_Zakachik}}"] = "";
+            }
+
             // Данные слушателя
             string listenerPhone = listenerContacts?.ContactPhone ?? "";
             string listenerEmail = listenerContacts?.Email ?? "";
@@ -721,6 +766,16 @@ namespace Contract2512.Views
             replacements["{{Snils_Slushatel}}"] = listener.Snils ?? "";
             replacements["{{SNILS_Slushatel}}"] = listener.Snils ?? "";
             replacements["{{snils_slushatel}}"] = listener.Snils ?? "";
+
+            // Диплом слушателя
+            if (listenerEducation != null && listenerEducation.BaseEducation != null)
+            {
+                replacements["{{DIplom_Sculatel}}"] = listenerEducation.BaseEducation.Name ?? "";
+            }
+            else
+            {
+                replacements["{{DIplom_Sculatel}}"] = "";
+            }
 
             // Данные программы
             replacements["{{Program_name}}"] = program.Name;
@@ -1294,6 +1349,14 @@ namespace Contract2512.Views
             var payerPassport = db.Passports.FirstOrDefault(p => p.PersonId == payer.Id);
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
 
+            // Загружаем данные организации (если заказчик - юридическое лицо)
+            var payerOrganization = db.Organizations.FirstOrDefault(o => o.PersonId == payer.Id);
+
+            // Загружаем образование слушателя для плейсхолдера {{DIplom_Sculatel}}
+            var listenerEducation = db.Educations
+                .Include(e => e.BaseEducation)
+                .FirstOrDefault(e => e.PersonId == listener.Id);
+
             // Формируем словарь замен
             var replacements = new Dictionary<string, string>();
 
@@ -1335,6 +1398,43 @@ namespace Contract2512.Views
             replacements["{{Adress_Registracii}}"] = payerPassport?.RegistrationAddress ?? "";
             replacements["{{Snils}}"] = payer.Snils ?? "";
 
+            // Данные организации заказчика (если заказчик - юридическое лицо)
+            if (payerOrganization != null)
+            {
+                replacements["{{Organisation_Name}}"] = payerOrganization.OrganizationName ?? "";
+                replacements["{{Organisation_Zakachik}}"] = payerOrganization.OrganizationName ?? "";
+                replacements["{{Name_Direktororganisation}}"] = payerOrganization.DirectorFio ?? "";
+                replacements["{{INN_Zakachik}}"] = payerOrganization.Inn ?? "";
+                replacements["{{KPP_Zakachik}}"] = payerOrganization.Kpp ?? "";
+                replacements["{{OGRN_Zakachik}}"] = payerOrganization.Ogrn ?? "";
+                replacements["{{Addres_Zakachik}}"] = payerOrganization.LegalAddress ?? "";
+                
+                // Переопределяем телефон и email для организации
+                if (!string.IsNullOrWhiteSpace(payerOrganization.Phone))
+                {
+                    replacements["{{contact_phone_zakazchik}}"] = payerOrganization.Phone;
+                    replacements["{{contact_phone_zakazchik}"] = payerOrganization.Phone;
+                }
+                if (!string.IsNullOrWhiteSpace(payerOrganization.Email))
+                {
+                    replacements["{{EMAIL_zakazchik}}"] = payerOrganization.Email;
+                    replacements["{{EMAIL_zakazchik}"] = payerOrganization.Email;
+                    replacements["{{email_zakazchik}}"] = payerOrganization.Email;
+                    replacements["{{Email_zakazchik}}"] = payerOrganization.Email;
+                }
+            }
+            else
+            {
+                // Если заказчик - физическое лицо, заполняем пустыми значениями
+                replacements["{{Organisation_Name}}"] = "";
+                replacements["{{Organisation_Zakachik}}"] = "";
+                replacements["{{Name_Direktororganisation}}"] = "";
+                replacements["{{INN_Zakachik}}"] = "";
+                replacements["{{KPP_Zakachik}}"] = "";
+                replacements["{{OGRN_Zakachik}}"] = "";
+                replacements["{{Addres_Zakachik}}"] = "";
+            }
+
             // Данные слушателя - берем телефон и email из таблицы contacts (такая же логика как для телефона)
             string listenerPhone = listenerContacts?.ContactPhone ?? "";
             string listenerEmail = listenerContacts?.Email ?? "";
@@ -1367,6 +1467,16 @@ namespace Contract2512.Views
             replacements["{{SNILS_Slushatel}}"] = listener.Snils ?? "";
             replacements["{{snils_slushatel}}"] = listener.Snils ?? "";
 
+            // Диплом слушателя
+            if (listenerEducation != null && listenerEducation.BaseEducation != null)
+            {
+                replacements["{{DIplom_Sculatel}}"] = listenerEducation.BaseEducation.Name ?? "";
+            }
+            else
+            {
+                replacements["{{DIplom_Sculatel}}"] = "";
+            }
+
             // Данные программы
             replacements["{{Program_name}}"] = program.Name;
             replacements["{{Date Start}}"] = contract.StartDate?.ToString("dd.MM.yyyy") ?? "";
@@ -1385,6 +1495,9 @@ namespace Contract2512.Views
             
             // Также добавляем номер договора
             replacements["{{number_dogovor}}"] = contract.ContractNumber;
+            
+            // Номер акта (совпадает с номером договора)
+            replacements["{{number_akt}}"] = contract.ContractNumber;
 
             // Подписант - берем из сохраненного в БД
             if (contract.SignerId.HasValue)
