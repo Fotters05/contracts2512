@@ -546,17 +546,12 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
                     <StackPanel Grid.Column="0" Orientation="Horizontal">
-                        <Button Content="Создать договор" 
+                            <Button Content="Создать договор" 
                                x:Name="CreateContractButton"
                                Style="{StaticResource DarkGrayButton}"
                                Click="CreateContractButton_Click"
                                Margin="0,0,8,0"/>
-                        <Button Content="Открыть" 
-                               x:Name="OpenContractButton"
-                               Style="{StaticResource DarkGrayButton}"
-                               Click="OpenContractButton_Click"
-                               Margin="0,0,8,0"/>
-                        <Button Content="Просмотреть" 
+                            <Button Content="Просмотреть" 
                                x:Name="ViewContractButton"
                                Style="{StaticResource DarkGrayButton}"
                                Click="ViewContractButton_Click"/>

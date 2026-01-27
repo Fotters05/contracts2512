@@ -27,12 +27,10 @@ namespace Contract2512.Models
         public string? Patronymic { get; set; }
 
         [Column("date_of_birth")]
-        [Required]
-        public DateTime DateOfBirth { get; set; }
+        public DateTime? DateOfBirth { get; set; }
 
         [Column("gender_id")]
-        [Required]
-        public short GenderId { get; set; }
+        public short? GenderId { get; set; }
 
         [ForeignKey("GenderId")]
         public virtual Gender? Gender { get; set; }
@@ -42,14 +40,12 @@ namespace Contract2512.Models
         public string? PlaceOfBirth { get; set; }
 
         [Column("citizenship")]
-        [Required]
         [MaxLength(200)]
-        public string Citizenship { get; set; }
+        public string? Citizenship { get; set; }
 
         [Column("snils")]
-        [Required]
         [MaxLength(11)]
-        public string Snils { get; set; }
+        public string? Snils { get; set; }
 
         [Column("inn")]
         [MaxLength(12)]

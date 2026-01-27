@@ -13,6 +13,7 @@ using Wpf.Ui.Controls;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
+using DocumentFormat.OpenXml;
 
 namespace Contract2512.Views
 {
@@ -106,6 +107,7 @@ namespace Contract2512.Views
             // Добавляем обработчики SelectionChanged для отладки
             PayerComboBox.SelectionChanged += PayerComboBox_SelectionChanged;
             ListenerComboBox.SelectionChanged += ListenerComboBox_SelectionChanged;
+            ProgramComboBox.SelectionChanged += ProgramComboBox_SelectionChanged;
 
             // Загружаем подписантов из статического списка (хранятся в коде, не в БД)
             var signers = GetSigners();
@@ -241,6 +243,11 @@ namespace Contract2512.Views
                         contractType.Name.Contains("профессиональной переподготовки") ||
                         contractType.Name.Contains("профессиональная переподготовка"));
 
+            // Проверяем, является ли тип договора "ДОП" (дополнительное образование)
+            bool isContractDOP = contractType.Name != null &&
+                       (contractType.Name.Contains("ДОП") ||
+                        contractType.Name.Contains("дополнительное образование"));
+
             // Показываем/скрываем поля для опций 1.4 и 1.5
             if (isPK || isPP)
             {
@@ -309,6 +316,17 @@ namespace Contract2512.Views
             
             // Загружаем опции для учебной нагрузки (1.5) для ПП
             var timeOptions = GetPPTimeOptions();
+            TimeOptionComboBox.ItemsSource = timeOptions;
+            if (timeOptions.Any())
+            {
+                TimeOptionComboBox.SelectedIndex = 0;
+            }
+        }
+
+        private void LoadDOPOptions()
+        {
+            // Загружаем опции для учебной нагрузки для ДОП
+            var timeOptions = GetDOPTimeOptions();
             TimeOptionComboBox.ItemsSource = timeOptions;
             if (timeOptions.Any())
             {
@@ -447,6 +465,20 @@ namespace Contract2512.Views
             // Получаем тип договора один раз
             var contractType = (ContractType)ContractTypeComboBox.SelectedItem;
 
+            // Определяем тип договора для дальнейшего использования
+            bool isPK = contractType != null && contractType.Name != null && 
+                       (contractType.Name.Contains("ПК") || 
+                        contractType.Name.Contains("повышение квалификации") ||
+                        contractType.Name.Contains("повышения квалификации"));
+            bool isPP = contractType != null && contractType.Name != null && 
+                       (contractType.Name.Contains("ПП") || 
+                        contractType.Name.Contains("профпереподготовк") ||
+                        contractType.Name.Contains("профессиональной переподготовки") ||
+                        contractType.Name.Contains("профессиональная переподготовка"));
+            bool isContractDOP = contractType != null && contractType.Name != null &&
+                       (contractType.Name.Contains("ДОП") ||
+                        contractType.Name.Contains("дополнительное образование"));
+
             // Автоматически генерируем номер договора, если он не заполнен
             if (string.IsNullOrWhiteSpace(ContractNumberTextBox.Text))
             {
@@ -534,17 +566,6 @@ namespace Contract2512.Views
                     int? signerId = null;
                     string paymentOptionKey = null;
 
-                    // Определяем тип договора для установки значений по умолчанию
-                    bool isPK = contractType != null && contractType.Name != null && 
-                               (contractType.Name.Contains("ПК") || 
-                                contractType.Name.Contains("повышение квалификации") ||
-                                contractType.Name.Contains("повышения квалификации"));
-                    bool isPP = contractType != null && contractType.Name != null && 
-                               (contractType.Name.Contains("ПП") || 
-                                contractType.Name.Contains("профпереподготовк") ||
-                                contractType.Name.Contains("профессиональной переподготовки") ||
-                                contractType.Name.Contains("профессиональная переподготовка"));
-
                     if (ItogDocumentComboBox.SelectedItem is ItogDocumentOption selectedItogOption)
                     {
                         itogDocumentOptionKey = selectedItogOption.OptionKey;
@@ -568,7 +589,7 @@ namespace Contract2512.Views
                     {
                         timeOptionKey = selectedTimeOption.OptionKey;
                     }
-                    else if (isPK || isPP)
+                    else if (isPK || isPP || isContractDOP)
                     {
                         // Если опция не выбрана, используем первую по умолчанию
                         if (isPK)
@@ -581,6 +602,11 @@ namespace Contract2512.Views
                             var defaultOption = GetPPTimeOptions().FirstOrDefault();
                             timeOptionKey = defaultOption?.OptionKey;
                         }
+                        else if (isContractDOP)
+                        {
+                            var defaultOption = GetDOPTimeOptions().FirstOrDefault();
+                            timeOptionKey = defaultOption?.OptionKey;
+                        }
                     }
 
                     if (StudyOptionComboBox.SelectedItem is StudyOption selectedStudyOption)
@@ -589,9 +615,31 @@ namespace Contract2512.Views
                     }
                     else if (!isPK && !isPP)
                     {
-                        // Для других типов договоров используем первую опцию по умолчанию
-                        var defaultOption = GetStudyOptions().FirstOrDefault();
-                        studyOptionKey = defaultOption?.OptionKey;
+                        // Для ДОП договоров проверяем формат программы
+                        if (isContractDOP && ProgramComboBox.SelectedItem is LearningProgram selectedProgram)
+                        {
+                            bool isGroupFormat = selectedProgram.Format != null && 
+                                               selectedProgram.Format.Contains("С преподавателем в группе");
+                            
+                            if (isGroupFormat)
+                            {
+                                // Для групповых программ автоматически устанавливаем Вариант 2
+                                studyOptionKey = "Option_study2";
+                                System.Diagnostics.Debug.WriteLine("Групповая программа - автоматически установлен Option_study2");
+                            }
+                            else
+                            {
+                                // Для индивидуальных программ используем первую опцию по умолчанию
+                                var defaultOption = GetStudyOptions().FirstOrDefault();
+                                studyOptionKey = defaultOption?.OptionKey;
+                            }
+                        }
+                        else
+                        {
+                            // Для других типов договоров используем первую опцию по умолчанию
+                            var defaultOption = GetStudyOptions().FirstOrDefault();
+                            studyOptionKey = defaultOption?.OptionKey;
+                        }
                     }
 
                     if (SignerComboBox.SelectedItem is Signer selectedSigner)
@@ -678,6 +726,28 @@ namespace Contract2512.Views
                     
                     // Создаем личную карточку слушателя
                     CreateListenerCard(savedContract, db);
+                    
+                    // Создаем заявление для договоров ПК (двухсторонний и трехсторонний)
+                    var savedContractType = db.ContractTypes.Find(savedContract.ContractTypeId);
+                    bool isContractPK = savedContractType != null && savedContractType.Name != null &&
+                                (savedContractType.Name.Contains("ПК") ||
+                                savedContractType.Name.Contains("повышение квалификации") ||
+                                savedContractType.Name.Contains("повышения квалификации"));
+                    
+                    // Проверяем, является ли договор ДОП (дополнительное образование)
+                    bool isContractDOP_Application = savedContractType != null && savedContractType.Name != null &&
+                                (savedContractType.Name.Contains("ДОП") ||
+                                savedContractType.Name.Contains("дополнительное образование"));
+                    
+                    if (isContractPK)
+                    {
+                        CreateApplicationDocument(savedContract, db);
+                    }
+                    else if (isContractDOP_Application)
+                    {
+                        // Для ДОП договоров также создаем заявление
+                        CreateApplicationDocument(savedContract, db);
+                    }
 
                     MessageBox.Show("Договор и личная карточка слушателя успешно созданы!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
                     DialogResult = true;
@@ -824,7 +894,10 @@ namespace Contract2512.Views
             
             if (payerPassport != null)
             {
-                replacements["{{Seria Number, Kem_Vidan}}"] = $"{payerPassport.Series} {payerPassport.Number}, выдан {payerPassport.IssuedBy}";
+                string series = payerPassport.Series ?? "";
+                string number = payerPassport.Number ?? "";
+                string issuedBy = payerPassport.IssuedBy ?? "";
+                replacements["{{Seria Number, Kem_Vidan}}"] = $"{series} {number}, выдан {issuedBy}".Trim();
             }
             else
             {
@@ -925,7 +998,7 @@ namespace Contract2512.Views
             string listenerInitials = GetInitialsStatic(listener.FirstName, listener.Patronymic);
             replacements["{{lastname Name. Firstname.}}"] = $"{listener.LastName} {listenerInitials}".Trim();
             replacements["{{lastname Name. Firstname. }}"] = $"{listener.LastName} {listenerInitials}".Trim();
-            replacements["{{birthday}}"] = listener.DateOfBirth.ToString("dd.MM.yyyy");
+            replacements["{{birthday}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
             replacements["{{contact_phone}}"] = listenerPhone;
             replacements["{{EMAIL}}"] = listenerEmail;
             replacements["{{EMAIL}"] = listenerEmail;
@@ -1011,7 +1084,7 @@ namespace Contract2512.Views
                 {
                     // Оплата частями - используем плейсхолдеры для Price и Date last price
                     replacements["{{option1}}"] = "";
-                    replacements["{{option2}}"] = "Оплата осуществляется в следующем порядке: а) Аванс 50 % — {{Price}} рублей, предоплата до начала обучения.\n" +
+                    replacements["{{option2}}"] = "а) Аванс 50 % — {{Price}} рублей, предоплата до начала обучения.\n" +
                                                   "б) Оставшиеся 50 % — {{Price}} рублей. Срок: не позднее {{Date last price}} г.\n" +
                                                   "Просрочка второго платежа более 30 календарных дней даёт Исполнителю право приостановить доступ к LMS и/или расторгнуть договор с удержанием фактических расходов.";
                 }
@@ -1067,7 +1140,7 @@ namespace Contract2512.Views
                 // Опция учебной нагрузки (1.5) - берем из сохраненного в БД
                 if (!string.IsNullOrEmpty(contract.TimeOptionKey))
                 {
-                    List<TimeOption> timeOptions = isPK ? GetTimeOptionsStatic() : GetPPTimeOptionsStatic();
+                    List<TimeOption> timeOptions = isPK ? GetTimeOptionsStatic() : isPP ? GetPPTimeOptionsStatic() : GetDOPTimeOptionsStatic();
                     var selectedTimeOption = timeOptions.FirstOrDefault(o => o.OptionKey == contract.TimeOptionKey);
                     if (selectedTimeOption != null)
                     {
@@ -1498,6 +1571,49 @@ namespace Contract2512.Views
             };
         }
 
+        private static List<TimeOption> GetDOPTimeOptionsStatic()
+        {
+            // Опции для учебной нагрузки (1.5) для типа договора ДОП
+            return new List<TimeOption>
+            {
+                new TimeOption
+                {
+                    Id = 1,
+                    Name = "Вариант1: 1 час/нед",
+                    OptionKey = "Option_Time1",
+                    Text = "Вариант 1 — с пониженной недельной учебной нагрузкой (1 акад. час в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 2,
+                    Name = "Вариант2: 2 часа/нед",
+                    OptionKey = "Option_Time2",
+                    Text = "Вариант 2 — с умеренной недельной учебной нагрузкой (2 акад. часа в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 3,
+                    Name = "Вариант3: 4 часа/нед",
+                    OptionKey = "Option_Time3",
+                    Text = "Вариант 3 — со стандартной недельной учебной нагрузкой (4 акад. часа в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 4,
+                    Name = "Вариант4: 8 часов/нед",
+                    OptionKey = "Option_Time4",
+                    Text = "Вариант 4 — с высокой недельной учебной нагрузкой (8 акад. часа в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 5,
+                    Name = "Вариант5: 10 часов/нед",
+                    OptionKey = "Option_Time5",
+                    Text = "Вариант 5 — с повышенной недельной учебной нагрузкой (10 акад. часов в неделю)."
+                }
+            };
+        }
+
         private void CreateContractDocument(Contract contract, AppDbContext db)
         {
             var contractType = db.ContractTypes.Find(contract.ContractTypeId);
@@ -1553,7 +1669,7 @@ namespace Contract2512.Views
                     listenerContacts = db.Contacts.Find(listener.ContactsId.Value);
                 }
             }
-
+    
             // Загружаем паспортные данные
             var payerPassport = db.Passports.FirstOrDefault(p => p.PersonId == payer.Id);
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
@@ -1598,7 +1714,10 @@ namespace Contract2512.Views
             
             if (payerPassport != null)
             {
-                replacements["{{Seria Number, Kem_Vidan}}"] = $"{payerPassport.Series} {payerPassport.Number}, выдан {payerPassport.IssuedBy}";
+                string series = payerPassport.Series ?? "";
+                string number = payerPassport.Number ?? "";
+                string issuedBy = payerPassport.IssuedBy ?? "";
+                replacements["{{Seria Number, Kem_Vidan}}"] = $"{series} {number}, выдан {issuedBy}".Trim();
             }
             else
             {
@@ -1697,7 +1816,7 @@ namespace Contract2512.Views
             string listenerInitials = GetInitials(listener.FirstName, listener.Patronymic);
             replacements["{{lastname Name. Firstname.}}"] = $"{listener.LastName} {listenerInitials}".Trim();
             replacements["{{lastname Name. Firstname. }}"] = $"{listener.LastName} {listenerInitials}".Trim();
-            replacements["{{birthday}}"] = listener.DateOfBirth.ToString("dd.MM.yyyy");
+            replacements["{{birthday}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
             replacements["{{contact_phone}}"] = listenerPhone;
             // Добавляем email слушателя в словарь замен - ТОЧНО ТАК ЖЕ КАК ТЕЛЕФОН
             replacements["{{EMAIL}}"] = listenerEmail;
@@ -1782,7 +1901,7 @@ namespace Contract2512.Views
                 {
                     // Оплата частями - используем плейсхолдеры для Price и Date last price
                     replacements["{{option1}}"] = "";
-                    replacements["{{option2}}"] = "Оплата осуществляется в следующем порядке: а) Аванс 50 % — {{Price}} рублей, предоплата до начала обучения.\n" +
+                    replacements["{{option2}}"] = "а) Аванс 50 % — {{Price}} рублей, предоплата до начала обучения.\n" +
                                                   "б) Оставшиеся 50 % — {{Price}} рублей. Срок: не позднее {{Date last price}} г.\n" +
                                                   "Просрочка второго платежа более 30 календарных дней даёт Исполнителю право приостановить доступ к LMS и/или расторгнуть договор с удержанием фактических расходов.";
                 }
@@ -2310,6 +2429,49 @@ namespace Contract2512.Views
             };
         }
 
+        private List<TimeOption> GetDOPTimeOptions()
+        {
+            // Опции для учебной нагрузки для типа договора ДОП
+            return new List<TimeOption>
+            {
+                new TimeOption
+                {
+                    Id = 1,
+                    Name = "Вариант1: 1 час/нед",
+                    OptionKey = "Option_Time1",
+                    Text = "Вариант 1 — с пониженной недельной учебной нагрузкой (1 акад. час в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 2,
+                    Name = "Вариант2: 2 часа/нед",
+                    OptionKey = "Option_Time2",
+                    Text = "Вариант 2 — с умеренной недельной учебной нагрузкой (2 акад. часа в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 3,
+                    Name = "Вариант3: 4 часа/нед",
+                    OptionKey = "Option_Time3",
+                    Text = "Вариант 3 — со стандартной недельной учебной нагрузкой (4 акад. часа в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 4,
+                    Name = "Вариант4: 8 часов/нед",
+                    OptionKey = "Option_Time4",
+                    Text = "Вариант 4 — с высокой недельной учебной нагрузкой (8 акад. часа в неделю)."
+                },
+                new TimeOption
+                {
+                    Id = 5,
+                    Name = "Вариант5: 10 часов/нед",
+                    OptionKey = "Option_Time5",
+                    Text = "Вариант 5 — с повышенной недельной учебной нагрузкой (10 акад. часов в неделю)."
+                }
+            };
+        }
+
         private void CancelButton_Click(object sender, RoutedEventArgs e)
         {
             DialogResult = false;
@@ -2370,9 +2532,9 @@ namespace Contract2512.Views
             }
             
             // Если Gender не загружен через Include, загружаем отдельно
-            if (listener.Gender == null && listener.GenderId > 0)
+            if (listener.Gender == null && listener.GenderId.HasValue && listener.GenderId.Value > 0)
             {
-                listener.Gender = db.Genders.Find(listener.GenderId);
+                listener.Gender = db.Genders.Find(listener.GenderId.Value);
             }
 
             var program = db.LearningPrograms.Find(contract.ProgramId);
@@ -2409,7 +2571,7 @@ namespace Contract2512.Views
             
             // ФИО и личные данные (обратите внимание на пробелы в плейсхолдерах!)
             replacements["{{FIO_Slushtel}}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
-            replacements["{{Brithday_Slushtel}}"] = listener.DateOfBirth.ToString("dd.MM.yyyy");
+            replacements["{{Brithday_Slushtel}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
             replacements["{{Gorod_ Slushtel}}"] = listener.PlaceOfBirth ?? ""; // С пробелом!
             replacements["{{Graschadnsto_Slushtel}}"] = listener.Citizenship ?? "";
             replacements["{{Gender_ Slushtel}}"] = listener.Gender?.Name ?? ""; // С пробелом!
@@ -2420,7 +2582,7 @@ namespace Contract2512.Views
                 replacements["{{Seria}}"] = listenerPassport.Series ?? "";
                 replacements["{{Number}}"] = listenerPassport.Number ?? "";
                 replacements["{{Kem_Vidan}}"] = listenerPassport.IssuedBy ?? "";
-                replacements["{{Kogda_Vidan}}"] = listenerPassport.IssuanceDate.ToString("dd.MM.yyyy");
+                replacements["{{Kogda_Vidan}}"] = listenerPassport.IssuanceDate?.ToString("dd.MM.yyyy") ?? "";
             }
             else
             {
@@ -2511,6 +2673,412 @@ namespace Contract2512.Views
             catch (Exception ex)
             {
                 MessageBox.Show($"Ошибка при создании личной карточки: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void CreateApplicationDocument(Contract contract, AppDbContext db)
+        {
+            // Определяем тип договора
+            var contractType = db.ContractTypes.Find(contract.ContractTypeId);
+            bool isContractDOP = contractType != null && contractType.Name != null &&
+                        (contractType.Name.Contains("ДОП") ||
+                        contractType.Name.Contains("дополнительное образование"));
+            
+            bool isContractPK = contractType != null && contractType.Name != null &&
+                       (contractType.Name.Contains("ПК") ||
+                        contractType.Name.Contains("повышение квалификации") ||
+                        contractType.Name.Contains("повышения квалификации"));
+            
+            // Загружаем данные слушателя для проверки паспорта
+            var listener = db.Persons.FirstOrDefault(p => p.Id == contract.ListenerId);
+            if (listener == null)
+            {
+                MessageBox.Show("Слушатель не найден!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Проверяем наличие паспорта у слушателя
+            var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
+            bool hasPassport = listenerPassport != null;
+            
+            // Выбираем правильный шаблон в зависимости от типа договора и наличия паспорта
+            string templatePath;
+            if (isContractDOP)
+            {
+                // Для ДОП договоров выбираем шаблон в зависимости от наличия паспорта у слушателя
+                if (hasPassport)
+                {
+                    templatePath = @"C:\Dogovora\Шаблон Заявлений ДО 14-17 лет.docx";
+                    System.Diagnostics.Debug.WriteLine("Используется шаблон для 14-17 лет (с паспортом)");
+                }
+                else
+                {
+                    templatePath = @"C:\Dogovora\Шаблон Заявлений ДО меньше 14.docx";
+                    System.Diagnostics.Debug.WriteLine("Используется шаблон для меньше 14 лет (без паспорта)");
+                }
+            }
+            else if (isContractPK)
+            {
+                templatePath = @"C:\Dogovora\Шаблон заявления(ПК двухсторонний).docx";
+            }
+            else
+            {
+                MessageBox.Show("Неизвестный тип договора для создания заявления", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Используется шаблон: {templatePath}");
+            System.Diagnostics.Debug.WriteLine($"Тип договора: {contractType?.Name}");
+            
+            if (!File.Exists(templatePath))
+            {
+                MessageBox.Show("Шаблон заявления не найден по пути: " + templatePath, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            // Загружаем данные заказчика
+            var payer = db.Persons.FirstOrDefault(p => p.Id == contract.PayerId);
+            if (payer == null)
+            {
+                MessageBox.Show("Заказчик не найден!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            var program = db.LearningPrograms.Find(contract.ProgramId);
+            if (program == null)
+            {
+                MessageBox.Show("Программа не найдена!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                return;
+            }
+
+            // Загружаем контакты слушателя
+            Models.Contacts listenerContacts = null;
+            if (listener.ContactsId.HasValue)
+            {
+                listenerContacts = db.Contacts.Find(listener.ContactsId.Value);
+            }
+
+            // Загружаем контакты заказчика
+            Models.Contacts payerContacts = null;
+            if (payer.ContactsId.HasValue)
+            {
+                payerContacts = db.Contacts.Find(payer.ContactsId.Value);
+            }
+
+            // Паспорт слушателя уже загружен выше для проверки шаблона
+
+            // Загружаем паспорт заказчика
+            var payerPassport = db.Passports.FirstOrDefault(p => p.PersonId == payer.Id);
+
+            // Формируем словарь замен
+            var replacements = new Dictionary<string, string>();
+
+            // Определяем, чьи данные использовать для полей заказчика
+            // Для ПК договоров или если слушатель == заказчик, используем данные слушателя
+            // Для ДОП договоров, если слушатель != заказчик, используем данные заказчика
+            Person payerData;
+            Models.Contacts payerContactsData;
+            Passport payerPassportData;
+            
+            if (!isContractDOP || listener.Id == payer.Id)
+            {
+                // Для ПК договоров или если слушатель == заказчик, используем данные слушателя
+                payerData = listener;
+                payerContactsData = listenerContacts;
+                payerPassportData = listenerPassport;
+            }
+            else
+            {
+                // Для ДОП договоров, если слушатель != заказчик, используем данные заказчика
+                payerData = payer;
+                payerContactsData = payerContacts;
+                payerPassportData = payerPassport;
+            }
+
+            // ФИО заказчика
+            replacements["{{FIO_Zakazchik}}"] = $"{payerData.LastName} {payerData.FirstName} {payerData.Patronymic}".Trim();
+            replacements["{{FIO_Zakazchika}}"] = ConvertToGenitive(payerData.LastName, payerData.FirstName, payerData.Patronymic);
+            replacements["{{Name_zakaz.}}"] = GetInitialLetter(payerData.FirstName);
+            replacements["{{Firstname_zakaz. }}"] = GetInitialLetter(payerData.Patronymic);
+            replacements["{{lastname_zakaz}}"] = payerData.LastName;
+
+            // Контактные данные заказчика
+            replacements["{{contact_phone_zakazchik}}"] = payerContactsData?.ContactPhone ?? "";
+            replacements["{{EMAIL_zakazchik}}"] = payerContactsData?.Email ?? "";
+
+            // ФИО слушателя
+            replacements["{{FIO_Slushatel}}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
+            replacements["{{FIO_Slushatela}}"] = ConvertToGenitive(listener.LastName, listener.FirstName, listener.Patronymic);
+
+            // Дата и место рождения слушателя
+            replacements["{{birthday}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
+            replacements["{{Gorod_Slushtel}}"] = listener.PlaceOfBirth ?? "";
+
+            // Паспортные данные
+            if (payerPassportData != null)
+            {
+                replacements["{{Seria}}"] = payerPassportData.Series ?? "";
+                replacements["{{Number}}"] = payerPassportData.Number ?? "";
+                replacements["{{Kem_Vidan}}"] = payerPassportData.IssuedBy ?? "";
+                replacements["{{Kogda_Vidan}}"] = payerPassportData.IssuanceDate?.ToString("dd.MM.yyyy") ?? "";
+                replacements["{{Address_Reg}}"] = payerPassportData.RegistrationAddress ?? "";
+            }
+            else
+            {
+                replacements["{{Seria}}"] = "";
+                replacements["{{Number}}"] = "";
+                replacements["{{Kem_Vidan}}"] = "";
+                replacements["{{Kogda_Vidan}}"] = "";
+                replacements["{{Address_Reg}}"] = "";
+            }
+
+            // СНИЛС и контакты слушателя
+            replacements["{{Snils_Slushtel}}"] = listener.Snils ?? "";
+            replacements["{{Phone_Slushtel}}"] = listenerContacts?.ContactPhone ?? "";
+            replacements["{{Email_Slushtel}}"] = listenerContacts?.Email ?? "";
+            replacements["{{contact_phone}}"] = listenerContacts?.ContactPhone ?? "";
+
+            // Дополнительные плейсхолдеры для шаблона 14-17 лет
+            if (hasPassport && listenerPassport != null)
+            {
+                // Паспортные данные слушателя (для шаблона 14-17)
+                replacements["{{Seria_slushatel}}"] = listenerPassport.Series ?? "";
+                replacements["{{Number_slushatel}}"] = listenerPassport.Number ?? "";
+                replacements["{{Kem_Vidan_Slushtel}}"] = listenerPassport.IssuedBy ?? "";
+                replacements["{{Kogda_Vidan_Slushatel}}"] = listenerPassport.IssuanceDate?.ToString("dd.MM.yyyy") ?? "";
+                replacements["{{Brithday_Slushtel}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
+                
+                // Адрес слушателя из контактов
+                replacements["{{Street_Slushtel}}"] = listenerContacts?.ResidenceAddress ?? "";
+            }
+            else
+            {
+                // Если паспорта нет, заполняем пустыми значениями
+                replacements["{{Seria_slushatel}}"] = "";
+                replacements["{{Number_slushatel}}"] = "";
+                replacements["{{Kem_Vidan_Slushtel}}"] = "";
+                replacements["{{Kogda_Vidan_Slushatel}}"] = "";
+                replacements["{{Brithday_Slushtel}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
+                replacements["{{Street_Slushtel}}"] = "";
+            }
+
+            // Программа
+            replacements["{{Program_name}}"] = program.Name ?? "";
+            replacements["{{time_program}}"] = program.Hours.ToString();
+            
+            // Варианты обучения для заявлений (новые метки)
+            replacements["{{Check1}}"] = "Вариант1 — с пониженной недельной учебной нагрузкой (1 акад. час в неделю).";
+            replacements["{{Check2}}"] = "Вариант2 — с умеренной недельной учебной нагрузкой (2 акад. часа в неделю).";
+            replacements["{{Check3}}"] = "Вариант3 — со стандартной недельной учебной нагрузкой (4 акад. часа в неделю).";
+            replacements["{{Check4}}"] = "Вариант4 — с высокой недельной учебной нагрузкой (8 акад. часа в неделю).";
+            replacements["{{Check5}}"] = "Вариант5 — с повышенной недельной учебной нагрузкой (10 акад. часов в неделю).";
+
+            // Отладка: проверяем, что данные заполнены
+            System.Diagnostics.Debug.WriteLine($"ФИО: {replacements["{{FIO_Zakazchik}}"]}");
+            System.Diagnostics.Debug.WriteLine($"Программа: {replacements["{{Program_name}}"]}");
+            System.Diagnostics.Debug.WriteLine($"Всего замен: {replacements.Count}");
+
+            // Обработка галочек для вариантов учебной нагрузки
+            // Отладка: выводим выбранный вариант
+            System.Diagnostics.Debug.WriteLine($"TimeOptionKey из договора: {contract.TimeOptionKey}");
+            System.Diagnostics.Debug.WriteLine($"StudyOptionKey из договора: {contract.StudyOptionKey}");
+            System.Diagnostics.Debug.WriteLine($"Тип договора: {(isContractDOP ? "ДОП" : "ПК/ПП")}");
+            
+            // Символы для галочек
+            string checkedBox = "☑"; // Галочка в квадрате
+            string uncheckedBox = "☐"; // Пустой квадрат
+            
+            // Определяем индекс выбранного варианта в зависимости от типа договора
+            int selectedVariant = 1;
+            
+            if (isContractDOP)
+            {
+                // Для ДОП договоров используем StudyOptionKey
+                string selectedStudyOption = contract.StudyOptionKey ?? "Option_study1";
+                System.Diagnostics.Debug.WriteLine($"Выбранный StudyOption: {selectedStudyOption}");
+                
+                if (!string.IsNullOrEmpty(selectedStudyOption) && selectedStudyOption.StartsWith("Option_study"))
+                {
+                    string numberPart = selectedStudyOption.Replace("Option_study", "");
+                    if (int.TryParse(numberPart, out int optionNumber))
+                    {
+                        selectedVariant = optionNumber;
+                    }
+                }
+            }
+            else
+            {
+                // Для ПК/ПП договоров используем TimeOptionKey
+                string selectedTimeOption = contract.TimeOptionKey ?? "Option_Time1";
+                System.Diagnostics.Debug.WriteLine($"Выбранный TimeOption: {selectedTimeOption}");
+                
+                if (!string.IsNullOrEmpty(selectedTimeOption) && selectedTimeOption.StartsWith("Option_Time"))
+                {
+                    string numberPart = selectedTimeOption.Replace("Option_Time", "");
+                    if (int.TryParse(numberPart, out int optionNumber))
+                    {
+                        selectedVariant = optionNumber;
+                    }
+                }
+            }
+            
+            System.Diagnostics.Debug.WriteLine($"Индекс выбранного варианта: {selectedVariant}");
+            
+            // Создаем плейсхолдеры для каждого варианта
+            // В шаблоне нужно будет использовать {{Check1}}, {{Check2}}, и т.д. вместо {{Check}}
+            for (int i = 1; i <= 6; i++)
+            {
+                replacements[$"{{{{Check{i}}}}}"] = (selectedVariant == i) ? checkedBox : uncheckedBox;
+            }
+            
+            // Также добавим общий {{Check}} для обратной совместимости
+            replacements["{{Check}}"] = (selectedVariant == 1) ? checkedBox : uncheckedBox;
+
+            // Создаем документ в папке Заявления в Документах
+            string outputFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Заявления");
+            if (!Directory.Exists(outputFolder))
+            {
+                Directory.CreateDirectory(outputFolder);
+            }
+
+            string outputFileName = $"Заявление_{contract.ContractNumber}_{listener.LastName}.docx";
+            string outputPath = Path.Combine(outputFolder, outputFileName);
+
+            try
+            {
+                // Создаем временный файл для обработки
+                string tempPath = Path.Combine(Path.GetTempPath(), $"temp_application_{Guid.NewGuid()}.docx");
+                
+                // Копируем шаблон во временный файл
+                File.Copy(templatePath, tempPath, true);
+                
+                // Сначала заменяем {{Check}} на галочки во временном файле
+                ReplaceCheckMarksInDocument(tempPath, selectedVariant);
+                
+                // Теперь заменяем остальные плейсхолдеры во временном файле
+                var wordService = new WordDocumentService();
+                wordService.ReplacePlaceholders(tempPath, tempPath, replacements);
+                
+                // Небольшая задержка для завершения всех операций
+                System.Threading.Thread.Sleep(100);
+                
+                // Копируем готовый файл в конечное место
+                File.Copy(tempPath, outputPath, true);
+                
+                // Удаляем временный файл
+                try
+                {
+                    System.Threading.Thread.Sleep(100);
+                    File.Delete(tempPath);
+                }
+                catch
+                {
+                    // Игнорируем ошибки удаления временного файла
+                }
+                
+                // Создаем PDF версию заявления
+                try
+                {
+                    string pdfFileName = Path.ChangeExtension(outputFileName, ".pdf");
+                    string pdfPath = Path.Combine(outputFolder, pdfFileName);
+                    wordService.ConvertToPdf(outputPath, pdfPath);
+                }
+                catch (Exception)
+                {
+                    // Если не удалось создать PDF, просто игнорируем ошибку
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при создании заявления: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void ReplaceCheckMarksInDocument(string filePath, int selectedVariant)
+        {
+            // Символы для галочек
+            string checkedBox = "☑"; // Галочка в квадрате
+            string uncheckedBox = "☐"; // Пустой квадрат
+            
+            System.Diagnostics.Debug.WriteLine($"ReplaceCheckMarksInDocument вызван с selectedVariant = {selectedVariant}");
+            
+            try
+            {
+                using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(filePath, true))
+                {
+                    MainDocumentPart mainPart = wordDoc.MainDocumentPart;
+                    if (mainPart == null) return;
+
+                    // Получаем весь текст документа и заменяем {{Check}} последовательно
+                    var body = mainPart.Document.Body;
+                    string fullText = body.InnerText;
+                    
+                    System.Diagnostics.Debug.WriteLine($"Полный текст документа содержит {{{{Check}}}}: {fullText.Contains("{{Check}}")}");
+                    
+                    // Подсчитываем количество {{Check}} в документе
+                    int checkCount = 0;
+                    int index = 0;
+                    while ((index = fullText.IndexOf("{{Check}}", index)) != -1)
+                    {
+                        checkCount++;
+                        index += "{{Check}}".Length;
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"Найдено {{{{Check}}}} в тексте: {checkCount}");
+
+                    // Получаем все параграфы
+                    var paragraphs = mainPart.Document.Descendants<Paragraph>().ToList();
+                    
+                    int checkCounter = 0;
+                    foreach (var paragraph in paragraphs)
+                    {
+                        // Собираем весь текст параграфа
+                        var runs = paragraph.Elements<Run>().ToList();
+                        string paragraphText = string.Join("", runs.SelectMany(r => r.Elements<Text>()).Select(t => t.Text));
+                        
+                        // Проверяем, содержит ли параграф {{Check}}
+                        if (paragraphText.Contains("{{Check}}"))
+                        {
+                            checkCounter++;
+                            
+                            // Определяем, какой символ использовать
+                            string checkSymbol = (checkCounter == selectedVariant) ? checkedBox : uncheckedBox;
+                            
+                            System.Diagnostics.Debug.WriteLine($"Найден {{{{Check}}}} #{checkCounter} в параграфе, заменяем на: {checkSymbol}");
+                            
+                            // Собираем все текстовые элементы параграфа в один
+                            var allTexts = runs.SelectMany(r => r.Elements<Text>()).ToList();
+                            
+                            if (allTexts.Count > 0)
+                            {
+                                // Объединяем весь текст
+                                string combinedText = string.Join("", allTexts.Select(t => t.Text));
+                                
+                                // Заменяем {{Check}} на нужный символ
+                                string replacedText = combinedText.Replace("{{Check}}", checkSymbol);
+                                
+                                // Очищаем все текстовые элементы кроме первого
+                                for (int i = 1; i < allTexts.Count; i++)
+                                {
+                                    allTexts[i].Text = "";
+                                }
+                                
+                                // Записываем замененный текст в первый элемент
+                                allTexts[0].Text = replacedText;
+                                allTexts[0].Space = SpaceProcessingModeValues.Preserve;
+                            }
+                        }
+                    }
+                    
+                    System.Diagnostics.Debug.WriteLine($"Всего найдено и заменено {{{{Check}}}}: {checkCounter}");
+                    
+                    mainPart.Document.Save();
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка в ReplaceCheckMarksInDocument: {ex.Message}");
+                throw new Exception($"Ошибка при замене галочек: {ex.Message}", ex);
             }
         }
 
@@ -2630,6 +3198,191 @@ namespace Contract2512.Views
                 // Закрываем выпадающий список после выбора
                 ListenerComboBox.IsDropDownOpen = false;
             }
+        }
+
+        // Обработчик изменения выбора программы
+        private void ProgramComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+            if (ProgramComboBox.SelectedItem is LearningProgram selectedProgram)
+            {
+                // Закрываем выпадающий список после выбора
+                ProgramComboBox.IsDropDownOpen = false;
+                
+                // Проверяем, является ли текущий договор ДОП
+                if (ContractTypeComboBox.SelectedItem is ContractType contractType)
+                {
+                    bool isContractDOP = contractType.Name != null &&
+                               (contractType.Name.Contains("ДОП") ||
+                                contractType.Name.Contains("дополнительное образование"));
+                    
+                    if (isContractDOP)
+                    {
+                        // Проверяем формат программы
+                        bool isGroupFormat = selectedProgram.Format != null && 
+                                           selectedProgram.Format.Contains("С преподавателем в группе");
+                        
+                        if (isGroupFormat)
+                        {
+                            // Автоматически устанавливаем Вариант 2 (2 акад. часа в неделю)
+                            var studyOptions = GetStudyOptions();
+                            var option2Index = studyOptions.FindIndex(o => o.OptionKey == "Option_study2");
+                            if (option2Index >= 0)
+                            {
+                                StudyOptionComboBox.SelectedIndex = option2Index;
+                                // Блокируем выбор
+                                StudyOptionComboBox.IsEnabled = false;
+                                System.Diagnostics.Debug.WriteLine($"Программа в группе - автоматически установлен Вариант 2 (индекс {option2Index}), выбор заблокирован");
+                            }
+                        }
+                        else
+                        {
+                            // Разблокируем выбор для индивидуальных программ
+                            StudyOptionComboBox.IsEnabled = true;
+                            System.Diagnostics.Debug.WriteLine("Индивидуальная программа - выбор разблокирован");
+                        }
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Преобразует ФИО в родительный падеж (кого?)
+        /// </summary>
+        private string ConvertToGenitive(string lastName, string firstName, string patronymic)
+        {
+            string lastNameGen = ConvertLastNameToGenitive(lastName);
+            string firstNameGen = ConvertFirstNameToGenitive(firstName);
+            string patronymicGen = ConvertPatronymicToGenitive(patronymic);
+            
+            return $"{lastNameGen} {firstNameGen} {patronymicGen}".Trim();
+        }
+
+        /// <summary>
+        /// Склонение фамилии в родительный падеж
+        /// </summary>
+        private string ConvertLastNameToGenitive(string lastName)
+        {
+            if (string.IsNullOrWhiteSpace(lastName)) return "";
+            
+            lastName = lastName.Trim();
+            
+            // Фамилии на -ов, -ев, -ин, -ын
+            if (lastName.EndsWith("ов") || lastName.EndsWith("ев") || 
+                lastName.EndsWith("ин") || lastName.EndsWith("ын"))
+            {
+                return lastName + "а";
+            }
+            
+            // Фамилии на -ский, -цкий
+            if (lastName.EndsWith("ский") || lastName.EndsWith("цкий"))
+            {
+                return lastName.Substring(0, lastName.Length - 2) + "ого";
+            }
+            
+            // Фамилии на -ая, -яя (женские)
+            if (lastName.EndsWith("ая"))
+            {
+                return lastName.Substring(0, lastName.Length - 2) + "ой";
+            }
+            if (lastName.EndsWith("яя"))
+            {
+                return lastName.Substring(0, lastName.Length - 2) + "ей";
+            }
+            
+            // Фамилии на согласную (мужские)
+            if (!lastName.EndsWith("а") && !lastName.EndsWith("я"))
+            {
+                return lastName + "а";
+            }
+            
+            // Фамилии на -а, -я (женские)
+            if (lastName.EndsWith("а"))
+            {
+                return lastName.Substring(0, lastName.Length - 1) + "ы";
+            }
+            if (lastName.EndsWith("я"))
+            {
+                return lastName.Substring(0, lastName.Length - 1) + "и";
+            }
+            
+            return lastName;
+        }
+
+        /// <summary>
+        /// Склонение имени в родительный падеж
+        /// </summary>
+        private string ConvertFirstNameToGenitive(string firstName)
+        {
+            if (string.IsNullOrWhiteSpace(firstName)) return "";
+            
+            firstName = firstName.Trim();
+            
+            // Имена на -иль (Рамиль → Рамиля)
+            if (firstName.EndsWith("иль"))
+            {
+                return firstName.Substring(0, firstName.Length - 1) + "я";
+            }
+            
+            // Имена на -а, -я (женские и некоторые мужские)
+            if (firstName.EndsWith("а"))
+            {
+                return firstName.Substring(0, firstName.Length - 1) + "ы";
+            }
+            if (firstName.EndsWith("я"))
+            {
+                return firstName.Substring(0, firstName.Length - 1) + "и";
+            }
+            
+            // Имена на -ия
+            if (firstName.EndsWith("ия"))
+            {
+                return firstName.Substring(0, firstName.Length - 1) + "и";
+            }
+            
+            // Имена на -й
+            if (firstName.EndsWith("й"))
+            {
+                return firstName.Substring(0, firstName.Length - 1) + "я";
+            }
+            
+            // Имена на согласную (мужские)
+            return firstName + "а";
+        }
+
+        /// <summary>
+        /// Склонение отчества в родительный падеж
+        /// </summary>
+        private string ConvertPatronymicToGenitive(string patronymic)
+        {
+            if (string.IsNullOrWhiteSpace(patronymic)) return "";
+            
+            patronymic = patronymic.Trim();
+            
+            // Отчества на -ович, -евич (мужские)
+            if (patronymic.EndsWith("ович") || patronymic.EndsWith("евич"))
+            {
+                return patronymic + "а";
+            }
+            
+            // Отчества на -ич (мужские)
+            if (patronymic.EndsWith("ич"))
+            {
+                return patronymic + "а";
+            }
+            
+            // Отчества на -овна, -евна (женские)
+            if (patronymic.EndsWith("овна") || patronymic.EndsWith("евна"))
+            {
+                return patronymic.Substring(0, patronymic.Length - 1) + "ы";
+            }
+            
+            // Отчества на -ична (женские)
+            if (patronymic.EndsWith("ична"))
+            {
+                return patronymic.Substring(0, patronymic.Length - 1) + "ы";
+            }
+            
+            return patronymic;
         }
 
     }

@@ -3,6 +3,49 @@
 -- ВНИМАНИЕ: Выполняйте скрипты по порядку!
 
 -- ============================================
+-- 0. Миграция для изменения обязательных полей таблицы person на опциональные
+-- ============================================
+ALTER TABLE public.person
+ALTER COLUMN date_of_birth DROP NOT NULL,
+ALTER COLUMN gender_id DROP NOT NULL,
+ALTER COLUMN citizenship DROP NOT NULL,
+ALTER COLUMN snils DROP NOT NULL;
+
+-- Комментарии к полям
+COMMENT ON COLUMN public.person.date_of_birth IS 'Дата рождения (опционально)';
+COMMENT ON COLUMN public.person.gender_id IS 'Пол (опционально)';
+COMMENT ON COLUMN public.person.citizenship IS 'Гражданство (опционально)';
+COMMENT ON COLUMN public.person.snils IS 'СНИЛС (опционально)';
+
+-- ============================================
+-- 0.5. Миграция для изменения обязательных полей таблицы passport на опциональные
+-- ============================================
+ALTER TABLE public.passport
+ALTER COLUMN series DROP NOT NULL,
+ALTER COLUMN number DROP NOT NULL,
+ALTER COLUMN issuance_date DROP NOT NULL,
+ALTER COLUMN issued_by DROP NOT NULL,
+ALTER COLUMN division_code DROP NOT NULL,
+ALTER COLUMN registration_date DROP NOT NULL;
+
+-- Комментарии к полям
+COMMENT ON COLUMN public.passport.series IS 'Серия паспорта (опционально)';
+COMMENT ON COLUMN public.passport.number IS 'Номер паспорта (опционально)';
+COMMENT ON COLUMN public.passport.issuance_date IS 'Дата выдачи паспорта (опционально)';
+COMMENT ON COLUMN public.passport.issued_by IS 'Кем выдан паспорт (опционально)';
+COMMENT ON COLUMN public.passport.division_code IS 'Код подразделения (опционально)';
+COMMENT ON COLUMN public.passport.registration_date IS 'Дата регистрации (опционально)';
+
+-- ============================================
+-- 0.6. Миграция для изменения обязательных полей таблицы education на опциональные
+-- ============================================
+ALTER TABLE public.education
+ALTER COLUMN enrollment_date DROP NOT NULL;
+
+-- Комментарии к полям
+COMMENT ON COLUMN public.education.enrollment_date IS 'Дата зачисления (опционально)';
+
+-- ============================================
 -- 1. Миграция для добавления полей опций в таблицу contract
 -- ============================================
 ALTER TABLE public.contract

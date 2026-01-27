@@ -23,8 +23,11 @@ namespace Contract2512.Services
                 throw new FileNotFoundException($"Файл не найден: {sourceFilePath}");
             }
 
-            // Копируем исходный файл
-            File.Copy(sourceFilePath, targetFilePath, true);
+            // Копируем исходный файл только если пути разные
+            if (sourceFilePath != targetFilePath)
+            {
+                File.Copy(sourceFilePath, targetFilePath, true);
+            }
 
             using (WordprocessingDocument wordDoc = WordprocessingDocument.Open(targetFilePath, true))
             {

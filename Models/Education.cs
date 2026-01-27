@@ -20,8 +20,7 @@ namespace Contract2512.Models
         public virtual Person? Person { get; set; }
 
         [Column("enrollment_date")]
-        [Required]
-        public DateTime EnrollmentDate { get; set; }
+        public DateTime? EnrollmentDate { get; set; }
 
         [Column("base_education_id")]
         public short? BaseEducationId { get; set; }

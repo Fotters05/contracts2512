@@ -111,16 +111,11 @@ namespace Contract2512.Views
 
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
-            // Валидация
+            // Валидация - только Фамилия и Имя обязательны
             if (string.IsNullOrWhiteSpace(LastNameTextBox.Text) ||
-                string.IsNullOrWhiteSpace(FirstNameTextBox.Text) ||
-                DateOfBirthPicker.SelectedDate == null ||
-                GenderComboBox.SelectedItem == null ||
-                string.IsNullOrWhiteSpace(CitizenshipTextBox.Text) ||
-                string.IsNullOrWhiteSpace(SnilsTextBox.Text) ||
-                string.IsNullOrWhiteSpace(ContactPhoneTextBox.Text))
+                string.IsNullOrWhiteSpace(FirstNameTextBox.Text))
             {
-                MessageBox.Show("Заполните все обязательные поля!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Заполните Фамилию и Имя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
@@ -180,101 +175,147 @@ namespace Contract2512.Views
             person.LastName = LastNameTextBox.Text;
             person.FirstName = FirstNameTextBox.Text;
             person.Patronymic = string.IsNullOrWhiteSpace(PatronymicTextBox.Text) ? null : PatronymicTextBox.Text;
-            person.DateOfBirth = DateOfBirthPicker.SelectedDate.Value;
-            person.GenderId = ((Gender)GenderComboBox.SelectedItem).Id;
+            person.DateOfBirth = DateOfBirthPicker.SelectedDate;
+            person.GenderId = GenderComboBox.SelectedItem != null ? ((Gender)GenderComboBox.SelectedItem).Id : null;
             person.PlaceOfBirth = string.IsNullOrWhiteSpace(PlaceOfBirthTextBox.Text) ? null : PlaceOfBirthTextBox.Text;
-            person.Citizenship = CitizenshipTextBox.Text;
-            person.Snils = SnilsTextBox.Text;
+            person.Citizenship = string.IsNullOrWhiteSpace(CitizenshipTextBox.Text) ? null : CitizenshipTextBox.Text;
+            person.Snils = string.IsNullOrWhiteSpace(SnilsTextBox.Text) ? null : SnilsTextBox.Text;
             person.Inn = string.IsNullOrWhiteSpace(InnTextBox.Text) ? null : InnTextBox.Text;
             person.Workplace = string.IsNullOrWhiteSpace(WorkplaceTextBox.Text) ? null : WorkplaceTextBox.Text;
             person.UpdatedAt = DateTime.Now;
 
-            // Обновляем или создаем контакты
+            // Обновляем или создаем контакты - только если есть данные
+            bool hasContactData = !string.IsNullOrWhiteSpace(PostalCodeTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(RegionTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(CityTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(ResidenceAddressTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(ContactPhoneTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(EmailTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(HomePhoneTextBox.Text) ||
+                                 !string.IsNullOrWhiteSpace(WorkPhoneTextBox.Text);
+
             Contacts contacts;
-            if (person.ContactsId.HasValue)
+            if (hasContactData)
             {
-                contacts = db.Contacts.Find(person.ContactsId.Value);
+                if (person.ContactsId.HasValue)
+                {
+                    contacts = db.Contacts.Find(person.ContactsId.Value);
+                }
+                else
+                {
+                    contacts = new Contacts();
+                    db.Contacts.Add(contacts);
+                }
+
+                contacts.PostalCode = string.IsNullOrWhiteSpace(PostalCodeTextBox.Text) ? null : PostalCodeTextBox.Text;
+                contacts.Region = string.IsNullOrWhiteSpace(RegionTextBox.Text) ? null : RegionTextBox.Text;
+                contacts.City = string.IsNullOrWhiteSpace(CityTextBox.Text) ? null : CityTextBox.Text;
+                contacts.ResidenceAddress = string.IsNullOrWhiteSpace(ResidenceAddressTextBox.Text) ? null : ResidenceAddressTextBox.Text;
+                contacts.ContactPhone = string.IsNullOrWhiteSpace(ContactPhoneTextBox.Text) ? null : ContactPhoneTextBox.Text;
+                contacts.Email = string.IsNullOrWhiteSpace(EmailTextBox.Text) ? null : EmailTextBox.Text;
+                contacts.HomePhone = string.IsNullOrWhiteSpace(HomePhoneTextBox.Text) ? null : HomePhoneTextBox.Text;
+                contacts.WorkPhone = string.IsNullOrWhiteSpace(WorkPhoneTextBox.Text) ? null : WorkPhoneTextBox.Text;
+                contacts.CreatedAt = contacts.CreatedAt ?? DateTime.Now;
+
+                db.SaveChanges(); // Сохраняем контакты, чтобы получить ID
+                person.ContactsId = contacts.Id;
             }
             else
             {
-                contacts = new Contacts();
-                db.Contacts.Add(contacts);
+                // Если нет данных контактов, удаляем связь
+                if (person.ContactsId.HasValue)
+                {
+                    var existingContacts = db.Contacts.Find(person.ContactsId.Value);
+                    if (existingContacts != null)
+                    {
+                        db.Contacts.Remove(existingContacts);
+                    }
+                    person.ContactsId = null;
+                }
             }
-
-            contacts.PostalCode = string.IsNullOrWhiteSpace(PostalCodeTextBox.Text) ? null : PostalCodeTextBox.Text;
-            contacts.Region = string.IsNullOrWhiteSpace(RegionTextBox.Text) ? null : RegionTextBox.Text;
-            contacts.City = string.IsNullOrWhiteSpace(CityTextBox.Text) ? null : CityTextBox.Text;
-            contacts.ResidenceAddress = string.IsNullOrWhiteSpace(ResidenceAddressTextBox.Text) ? null : ResidenceAddressTextBox.Text;
-            contacts.ContactPhone = ContactPhoneTextBox.Text;
-            contacts.Email = string.IsNullOrWhiteSpace(EmailTextBox.Text) ? null : EmailTextBox.Text;
-            contacts.HomePhone = string.IsNullOrWhiteSpace(HomePhoneTextBox.Text) ? null : HomePhoneTextBox.Text;
-            contacts.WorkPhone = string.IsNullOrWhiteSpace(WorkPhoneTextBox.Text) ? null : WorkPhoneTextBox.Text;
-            contacts.CreatedAt = contacts.CreatedAt ?? DateTime.Now;
-
-                    db.SaveChanges(); // Сохраняем контакты, чтобы получить ID
-            person.ContactsId = contacts.Id;
 
             // Сохраняем изменения, чтобы получить ID для person (если это новый)
             db.SaveChanges();
 
-            // Обновляем или создаем паспорт
-            var passport = db.Passports.FirstOrDefault(p => p.PersonId == person.Id);
-            if (passport == null)
-            {
-                passport = new Passport { PersonId = person.Id };
-                db.Passports.Add(passport);
-            }
+            // Обновляем или создаем паспорт - только если есть данные
+            bool hasPassportData = !string.IsNullOrWhiteSpace(PassportSeriesTextBox.Text) ||
+                                   !string.IsNullOrWhiteSpace(PassportNumberTextBox.Text) ||
+                                   IssuanceDatePicker.SelectedDate.HasValue ||
+                                   !string.IsNullOrWhiteSpace(IssuedByTextBox.Text) ||
+                                   !string.IsNullOrWhiteSpace(DivisionCodeTextBox.Text) ||
+                                   RegistrationDatePicker.SelectedDate.HasValue ||
+                                   !string.IsNullOrWhiteSpace(RegistrationAddressTextBox.Text);
 
-            if (!string.IsNullOrWhiteSpace(PassportSeriesTextBox.Text) && 
-                !string.IsNullOrWhiteSpace(PassportNumberTextBox.Text) &&
-                IssuanceDatePicker.SelectedDate.HasValue &&
-                RegistrationDatePicker.SelectedDate.HasValue)
+            if (hasPassportData)
             {
-                passport.Series = PassportSeriesTextBox.Text;
-                passport.Number = PassportNumberTextBox.Text;
-                passport.IssuanceDate = IssuanceDatePicker.SelectedDate.Value;
-                passport.IssuedBy = IssuedByTextBox.Text;
-                passport.DivisionCode = DivisionCodeTextBox.Text;
-                passport.RegistrationDate = RegistrationDatePicker.SelectedDate.Value;
+                var passport = db.Passports.FirstOrDefault(p => p.PersonId == person.Id);
+                if (passport == null)
+                {
+                    passport = new Passport { PersonId = person.Id };
+                    db.Passports.Add(passport);
+                }
+
+                passport.Series = string.IsNullOrWhiteSpace(PassportSeriesTextBox.Text) ? null : PassportSeriesTextBox.Text;
+                passport.Number = string.IsNullOrWhiteSpace(PassportNumberTextBox.Text) ? null : PassportNumberTextBox.Text;
+                passport.IssuanceDate = IssuanceDatePicker.SelectedDate;
+                passport.IssuedBy = string.IsNullOrWhiteSpace(IssuedByTextBox.Text) ? null : IssuedByTextBox.Text;
+                passport.DivisionCode = string.IsNullOrWhiteSpace(DivisionCodeTextBox.Text) ? null : DivisionCodeTextBox.Text;
+                passport.RegistrationDate = RegistrationDatePicker.SelectedDate;
                 passport.RegistrationAddress = string.IsNullOrWhiteSpace(RegistrationAddressTextBox.Text) ? null : RegistrationAddressTextBox.Text;
                 passport.CreatedAt = passport.CreatedAt ?? DateTime.Now;
             }
             else
             {
-                // Сохраняем адрес регистрации даже если не все поля паспорта заполнены
-                passport.RegistrationAddress = string.IsNullOrWhiteSpace(RegistrationAddressTextBox.Text) ? null : RegistrationAddressTextBox.Text;
+                // Если нет данных паспорта, удаляем существующий паспорт
+                var existingPassport = db.Passports.FirstOrDefault(p => p.PersonId == person.Id);
+                if (existingPassport != null)
+                {
+                    db.Passports.Remove(existingPassport);
+                }
             }
 
-            // Обновляем или создаем образование
-            var education = db.Educations.FirstOrDefault(e => e.PersonId == person.Id);
-            if (education == null)
-            {
-                education = new Education { PersonId = person.Id };
-                db.Educations.Add(education);
-            }
+            // Обновляем или создаем образование - только если есть данные
+            bool hasEducationData = EnrollmentDatePicker.SelectedDate.HasValue ||
+                                   !string.IsNullOrWhiteSpace(EducationNumberTextBox.Text) ||
+                                   EducationIssueDatePicker.SelectedDate.HasValue ||
+                                   !string.IsNullOrWhiteSpace(EducationIssuedByTextBox.Text) ||
+                                   !string.IsNullOrWhiteSpace(EducationPlaceOfIssueTextBox.Text) ||
+                                   !string.IsNullOrWhiteSpace(EducationCityTextBox.Text) ||
+                                   !string.IsNullOrWhiteSpace(EducationSpecialtyTextBox.Text);
 
-            // Сохраняем образование только если заполнены обязательные поля
-            if (EnrollmentDatePicker.SelectedDate.HasValue &&
-                !string.IsNullOrWhiteSpace(EducationNumberTextBox.Text) &&
-                EducationIssueDatePicker.SelectedDate.HasValue &&
-                !string.IsNullOrWhiteSpace(EducationIssuedByTextBox.Text) &&
-                !string.IsNullOrWhiteSpace(EducationPlaceOfIssueTextBox.Text))
+            if (hasEducationData)
             {
-                education.EnrollmentDate = EnrollmentDatePicker.SelectedDate.Value;
-                education.BaseEducationId = BaseEducationComboBox.SelectedValue != null 
-                    ? (short?)BaseEducationComboBox.SelectedValue 
+                var education = db.Educations.FirstOrDefault(e => e.PersonId == person.Id);
+                if (education == null)
+                {
+                    education = new Education { PersonId = person.Id };
+                    db.Educations.Add(education);
+                }
+
+                education.EnrollmentDate = EnrollmentDatePicker.SelectedDate;
+                education.BaseEducationId = BaseEducationComboBox.SelectedValue != null
+                    ? (short?)BaseEducationComboBox.SelectedValue
                     : null;
-                education.EducationLevelId = EducationLevelComboBox.SelectedValue != null 
-                    ? (short?)EducationLevelComboBox.SelectedValue 
+                education.EducationLevelId = EducationLevelComboBox.SelectedValue != null
+                    ? (short?)EducationLevelComboBox.SelectedValue
                     : null;
                 education.Series = string.IsNullOrWhiteSpace(EducationSeriesTextBox.Text) ? null : EducationSeriesTextBox.Text;
-                education.Number = EducationNumberTextBox.Text;
-                education.IssueDate = EducationIssueDatePicker.SelectedDate.Value;
-                education.IssuedBy = EducationIssuedByTextBox.Text;
-                education.PlaceOfIssue = EducationPlaceOfIssueTextBox.Text;
+                education.Number = string.IsNullOrWhiteSpace(EducationNumberTextBox.Text) ? null : EducationNumberTextBox.Text;
+                education.IssueDate = EducationIssueDatePicker.SelectedDate;
+                education.IssuedBy = string.IsNullOrWhiteSpace(EducationIssuedByTextBox.Text) ? null : EducationIssuedByTextBox.Text;
+                education.PlaceOfIssue = string.IsNullOrWhiteSpace(EducationPlaceOfIssueTextBox.Text) ? null : EducationPlaceOfIssueTextBox.Text;
                 education.City = string.IsNullOrWhiteSpace(EducationCityTextBox.Text) ? null : EducationCityTextBox.Text;
                 education.Specialty = string.IsNullOrWhiteSpace(EducationSpecialtyTextBox.Text) ? null : EducationSpecialtyTextBox.Text;
                 education.CreatedAt = education.CreatedAt ?? DateTime.Now;
+            }
+            else
+            {
+                // Если нет данных образования, удаляем существующее образование
+                var existingEducation = db.Educations.FirstOrDefault(e => e.PersonId == person.Id);
+                if (existingEducation != null)
+                {
+                    db.Educations.Remove(existingEducation);
+                }
             }
         }
 
