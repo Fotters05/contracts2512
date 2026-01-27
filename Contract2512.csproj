@@ -36,9 +36,18 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="progaico.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Properties\" />
+  </ItemGroup>
+
   <PropertyGroup>
     <!-- Исключаем SQL файлы из анализа SQL Server -->
     <EnableDefaultItems>true</EnableDefaultItems>
+    <ApplicationIcon>progaico.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>

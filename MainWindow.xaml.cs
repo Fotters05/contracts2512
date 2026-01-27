@@ -14,6 +14,7 @@ namespace Contract2512
     public partial class MainWindow : FluentWindow
     {
         private System.Collections.ObjectModel.ObservableCollection<Contract> _allContracts;
+        private System.Windows.Threading.DispatcherTimer _autoRefreshTimer;
 
         public MainWindow()
         {
@@ -21,6 +22,32 @@ namespace Contract2512
             LoadData();
             SetupNavigation();
             SetupDataGridClips();
+            SetupAutoRefresh();
+        }
+
+        private void SetupAutoRefresh()
+        {
+            // Создаем таймер для автообновления данных каждые 5 секунд
+            _autoRefreshTimer = new System.Windows.Threading.DispatcherTimer();
+            _autoRefreshTimer.Interval = TimeSpan.FromSeconds(5);
+            _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
+            _autoRefreshTimer.Start();
+            
+            System.Diagnostics.Debug.WriteLine("Автообновление данных запущено (каждые 5 секунд)");
+        }
+
+        private void AutoRefreshTimer_Tick(object sender, EventArgs e)
+        {
+            // Обновляем данные из БД
+            try
+            {
+                LoadData();
+                System.Diagnostics.Debug.WriteLine($"Данные автоматически обновлены: {DateTime.Now:HH:mm:ss}");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка при автообновлении: {ex.Message}");
+            }
         }
 
         private void SetupDataGridClips()
@@ -1010,6 +1037,19 @@ namespace Contract2512
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);
             }
+        }
+
+        protected override void OnClosing(CancelEventArgs e)
+        {
+            // Останавливаем таймер при закрытии окна
+            if (_autoRefreshTimer != null)
+            {
+                _autoRefreshTimer.Stop();
+                _autoRefreshTimer = null;
+                System.Diagnostics.Debug.WriteLine("Автообновление остановлено");
+            }
+            
+            base.OnClosing(e);
         }
     }
 

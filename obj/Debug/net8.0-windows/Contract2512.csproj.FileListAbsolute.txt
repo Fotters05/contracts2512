@@ -138,3 +138,4 @@ C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win
 C:\Users\Fotters\source\repos\Contract2512\bin\Debug\net8.0-windows\runtimes\win-x86\native\libHarfBuzzSharp.dll
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\OrganizationEditWindow.baml
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\OrganizationEditWindow.g.cs
+C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Contract2512_Content.g.cs

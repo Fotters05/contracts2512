@@ -27,7 +27,7 @@ namespace Contract2512.Services
             if (!optionsBuilder.IsConfigured)
             {
                 // Строка подключения к PostgreSQL
-                var connectionString = "Host=localhost;Port=5432;Username=postgres;Password=1;Database=MPT2512";
+                var connectionString = "Host=95.84.200.41;Port=5435;Username=contracts_25-12;Password=k3aH05aOu1Zlfeboc-xr;Database=contracts_25-12";
                 
                 // Отключаем преобразование DateTime в UTC
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

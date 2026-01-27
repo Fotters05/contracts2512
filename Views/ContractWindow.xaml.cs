@@ -408,8 +408,59 @@ namespace Contract2512.Views
                 }
 
                 // Формируем номер договора в формате: "ДОП-01 04.12.25"
+                // Это ПРЕДВАРИТЕЛЬНЫЙ номер для отображения
                 ContractNumberTextBox.Text = $"{key}-{nextNumber:D2} {dateStr}";
             }
+        }
+
+        /// <summary>
+        /// Генерирует финальный уникальный номер договора при сохранении
+        /// </summary>
+        private string GenerateFinalContractNumber(ContractType contractType, AppDbContext db)
+        {
+            if (contractType == null || string.IsNullOrWhiteSpace(contractType.Name))
+                return null;
+
+            // Извлекаем ключ из названия типа договора
+            string key = ExtractKeyFromContractTypeName(contractType.Name);
+            
+            if (string.IsNullOrWhiteSpace(key))
+                return null;
+
+            // Используем дату из DatePicker или текущую дату
+            DateTime contractDate = ContractDatePicker.SelectedDate ?? DateTime.Today;
+            string dateStr = contractDate.ToString("dd.MM.yy");
+
+            // Находим все договоры с таким же ключом (свежий запрос к БД!)
+            var existingContracts = db.Contracts
+                .Where(c => c.ContractNumber.StartsWith(key + "-"))
+                .Select(c => c.ContractNumber)
+                .ToList();
+
+            // Определяем следующий номер
+            int nextNumber = 1;
+            if (existingContracts.Any())
+            {
+                string escapedKey = System.Text.RegularExpressions.Regex.Escape(key);
+                var numbers = existingContracts
+                    .Select(cn => 
+                    {
+                        var match = System.Text.RegularExpressions.Regex.Match(cn, $@"^{escapedKey}-(\d{{2}})\s+");
+                        if (match.Success && match.Groups.Count > 1 && int.TryParse(match.Groups[1].Value, out int num))
+                            return num;
+                        return 0;
+                    })
+                    .Where(n => n > 0)
+                    .ToList();
+
+                if (numbers.Any())
+                {
+                    nextNumber = numbers.Max() + 1;
+                }
+            }
+
+            // Формируем финальный номер договора
+            return $"{key}-{nextNumber:D2} {dateStr}";
         }
 
         private string ExtractKeyFromContractTypeName(string contractTypeName)
@@ -552,12 +603,39 @@ namespace Contract2512.Views
             {
                 using (var db = new AppDbContext())
                 {
-                    // Проверяем, существует ли уже договор с таким номером
-                    if (db.Contracts.Any(c => c.ContractNumber == ContractNumberTextBox.Text))
+                    // Генерируем финальный уникальный номер договора прямо перед сохранением
+                    string finalContractNumber = null;
+                    int retryCount = 0;
+                    const int maxRetries = 20;
+                    
+                    while (retryCount < maxRetries)
                     {
-                        MessageBox.Show("Договор с таким номером уже существует!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        // Генерируем номер на основе свежих данных из БД
+                        finalContractNumber = GenerateFinalContractNumber(contractType, db);
+                        
+                        // Проверяем уникальность
+                        bool exists = db.Contracts.Any(c => c.ContractNumber == finalContractNumber);
+                        
+                        if (!exists)
+                        {
+                            // Номер свободен!
+                            break;
+                        }
+                        
+                        retryCount++;
+                        System.Diagnostics.Debug.WriteLine($"Номер {finalContractNumber} занят, попытка {retryCount}/{maxRetries}");
+                        
+                        // Небольшая задержка перед следующей попыткой
+                        System.Threading.Thread.Sleep(50);
+                    }
+                    
+                    if (retryCount >= maxRetries)
+                    {
+                        MessageBox.Show("Не удалось сгенерировать уникальный номер договора после нескольких попыток. Попробуйте еще раз.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                         return;
                     }
+                    
+                    System.Diagnostics.Debug.WriteLine($"Финальный номер договора: {finalContractNumber}");
 
                     // Сохраняем выбранные опции
                     string itogDocumentOptionKey = null;
@@ -669,7 +747,7 @@ namespace Contract2512.Views
                     // Создаем договор в БД
                     var contract = new Contract
                     {
-                        ContractNumber = ContractNumberTextBox.Text,
+                        ContractNumber = finalContractNumber, // Используем финальный уникальный номер
                         ContractDate = ContractDatePicker.SelectedDate.Value,
                         ContractTypeId = ((ContractType)ContractTypeComboBox.SelectedItem).Id,
                         ProgramId = ((LearningProgram)ProgramComboBox.SelectedItem).Id,
