@@ -28,6 +28,11 @@ namespace Contract2512.Views
         private List<ContractType> _allContractTypes;
         private List<LearningProgram> _allPrograms;
         private List<Person> _allPersons;
+        
+        // Полные списки ViewModel для фильтрации ComboBox
+        private List<PersonViewModel> _allPayerPersons;
+        private List<OrganizationViewModel> _allPayerOrganizations;
+        private List<PersonViewModel> _allListenerPersons;
 
         public ContractWindow(Person payer = null, Person listener = null)
         {
@@ -62,25 +67,33 @@ namespace Contract2512.Views
                 // Загружаем физических лиц без отслеживания и сохраняем полный список
                 _allPersons = db.Persons.AsNoTracking().ToList();
                 
-                // Для слушателей всегда показываем только физических лиц
-                var listenerViewModels = _allPersons.Select(p => new PersonViewModel
+                // Создаем и сохраняем полные списки ViewModel для слушателей
+                _allListenerPersons = _allPersons.Select(p => new PersonViewModel
                 {
                     Person = p,
                     DisplayName = p.FullName
                 }).ToList();
-                ListenerComboBox.ItemsSource = listenerViewModels;
+                ListenerComboBox.ItemsSource = _allListenerPersons;
                 ListenerComboBox.DisplayMemberPath = "DisplayName";
                 System.Windows.Controls.TextSearch.SetTextPath(ListenerComboBox, "DisplayName");
                 
-                // Для заказчиков изначально показываем физических лиц (обновится при выборе типа договора)
-                var payerViewModels = _allPersons.Select(p => new PersonViewModel
+                // Создаем и сохраняем полные списки ViewModel для заказчиков (физ лица)
+                _allPayerPersons = _allPersons.Select(p => new PersonViewModel
                 {
                     Person = p,
                     DisplayName = p.FullName
                 }).ToList();
-                PayerComboBox.ItemsSource = payerViewModels;
+                PayerComboBox.ItemsSource = _allPayerPersons;
                 PayerComboBox.DisplayMemberPath = "DisplayName";
                 System.Windows.Controls.TextSearch.SetTextPath(PayerComboBox, "DisplayName");
+                
+                // Загружаем и сохраняем организации для заказчиков
+                var organizations = db.Organizations.AsNoTracking().ToList();
+                _allPayerOrganizations = organizations.Select(org => new OrganizationViewModel
+                {
+                    Organization = org,
+                    DisplayName = org.OrganizationName
+                }).ToList();
             }
 
             // Добавляем обработчики для фильтрации при вводе текста
@@ -744,13 +757,26 @@ namespace Contract2512.Views
                         paymentOptionKey = "option1";
                     }
 
+                    // Извлекаем ID программы
+                    long programId = 0;
+                    if (ProgramComboBox.SelectedItem is LearningProgram program)
+                    {
+                        programId = program.Id;
+                    }
+                    
+                    if (programId == 0)
+                    {
+                        MessageBox.Show("Не удалось определить программу обучения!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        return;
+                    }
+
                     // Создаем договор в БД
                     var contract = new Contract
                     {
                         ContractNumber = finalContractNumber, // Используем финальный уникальный номер
                         ContractDate = ContractDatePicker.SelectedDate.Value,
                         ContractTypeId = ((ContractType)ContractTypeComboBox.SelectedItem).Id,
-                        ProgramId = ((LearningProgram)ProgramComboBox.SelectedItem).Id,
+                        ProgramId = programId,
                         StartDate = StartDatePicker.SelectedDate,
                         EndDate = EndDatePicker.SelectedDate,
                         PayerId = PayerComboBox.SelectedItem is PersonViewModel payerVm ? payerVm.Person.Id : 
@@ -1129,10 +1155,14 @@ namespace Contract2512.Views
                 if (selectedSigner != null)
                 {
                     replacements["{{choice_signer}}"] = selectedSigner.Text;
+                    
+                    // Добавляем метки для подписи подписанта
+                    AddSignerSignatureFields(replacements, selectedSigner);
                 }
                 else
                 {
                     replacements["{{choice_signer}}"] = "";
+                    ClearSignerSignatureFields(replacements);
                 }
             }
             else
@@ -1141,11 +1171,16 @@ namespace Contract2512.Views
                 var signers = GetSignersStatic();
                 if (signers.Any())
                 {
-                    replacements["{{choice_signer}}"] = signers.First().Text;
+                    var defaultSigner = signers.First();
+                    replacements["{{choice_signer}}"] = defaultSigner.Text;
+                    
+                    // Добавляем метки для подписи подписанта
+                    AddSignerSignatureFields(replacements, defaultSigner);
                 }
                 else
                 {
                     replacements["{{choice_signer}}"] = "";
+                    ClearSignerSignatureFields(replacements);
                 }
             }
 
@@ -1461,6 +1496,106 @@ namespace Contract2512.Views
                     Text = "в лице Руководителя направления дополнительного образования Бойцовой Екатерины Юрьевны, действующей на основании Доверенности №Д/02 от 01 октября 2025 г., с одной стороны"
                 }
             };
+        }
+
+        /// <summary>
+        /// Добавляет метки для подписи подписанта (должность и ФИО с инициалами)
+        /// </summary>
+        private static void AddSignerSignatureFields(Dictionary<string, string> replacements, Signer signer)
+        {
+            string post = "";
+            string lastName = "";
+            string firstName = "";
+            string patronymic = "";
+
+            // Определяем должность и ФИО в зависимости от подписанта
+            switch (signer.Id)
+            {
+                case 1: // Шимбирева Елена
+                    post = "Генеральный директор";
+                    lastName = "Шимбирева";
+                    firstName = "Е";
+                    patronymic = "А";
+                    break;
+                case 2: // Шимбирев Андрей
+                    post = "Исполнительный директор";
+                    lastName = "Шимбирёв";
+                    firstName = "А";
+                    patronymic = "А";
+                    break;
+                case 3: // Бойцова Екатерина
+                    post = "Руководитель направления дополнительного образования";
+                    lastName = "Бойцова";
+                    firstName = "Е";
+                    patronymic = "Ю";
+                    break;
+            }
+
+            replacements["{{Post}}"] = post;
+            replacements["{{Post_lastname}}"] = lastName;
+            replacements["{{Post_name.}}"] = firstName + ".";
+            replacements["{{Post_firstname.}}"] = patronymic + ".";
+        }
+
+        /// <summary>
+        /// Очищает метки для подписи подписанта
+        /// </summary>
+        private static void ClearSignerSignatureFields(Dictionary<string, string> replacements)
+        {
+            replacements["{{Post}}"] = "";
+            replacements["{{Post_lastname}}"] = "";
+            replacements["{{Post_name.}}"] = "";
+            replacements["{{Post_firstname.}}"] = "";
+        }
+
+        /// <summary>
+        /// Добавляет метки для подписанта в дательном падеже (для заявлений)
+        /// </summary>
+        private static void AddSignerDativeFields(Dictionary<string, string> replacements, Signer signer)
+        {
+            string postDative = "";
+            string lastNameDative = "";
+            string firstName = "";
+            string patronymic = "";
+
+            // Определяем должность и ФИО в дательном падеже в зависимости от подписанта
+            switch (signer.Id)
+            {
+                case 1: // Шимбирева Елена
+                    postDative = "Генеральному директору";
+                    lastNameDative = "Шимбиревой";
+                    firstName = "Е";
+                    patronymic = "А";
+                    break;
+                case 2: // Шимбирев Андрей
+                    postDative = "Исполнительному директору";
+                    lastNameDative = "Шимбирёву";
+                    firstName = "А";
+                    patronymic = "А";
+                    break;
+                case 3: // Бойцова Екатерина
+                    postDative = "Руководителю направления дополнительного образования";
+                    lastNameDative = "Бойцовой";
+                    firstName = "Е";
+                    patronymic = "Ю";
+                    break;
+            }
+
+            replacements["{{Post}}"] = postDative;
+            replacements["{{Post_lastnames}}"] = lastNameDative;
+            replacements["{{Post_names.}}"] = firstName + ".";
+            replacements["{{Post_firstnames.}}"] = patronymic + ".";
+        }
+
+        /// <summary>
+        /// Очищает метки для подписанта в дательном падеже
+        /// </summary>
+        private static void ClearSignerDativeFields(Dictionary<string, string> replacements)
+        {
+            replacements["{{Post}}"] = "";
+            replacements["{{Post_lastnames}}"] = "";
+            replacements["{{Post_names.}}"] = "";
+            replacements["{{Post_firstnames.}}"] = "";
         }
 
         private static List<StudyOption> GetStudyOptionsStatic()
@@ -1955,15 +2090,33 @@ namespace Contract2512.Views
                 if (selectedSigner != null)
                 {
                     replacements["{{choice_signer}}"] = selectedSigner.Text;
+                    
+                    // Добавляем метки для подписи подписанта
+                    AddSignerSignatureFields(replacements, selectedSigner);
                 }
                 else
                 {
                     replacements["{{choice_signer}}"] = "";
+                    ClearSignerSignatureFields(replacements);
                 }
             }
             else
             {
-                replacements["{{choice_signer}}"] = "";
+                // По умолчанию - первый подписант
+                var signers = GetSignersStatic();
+                if (signers.Any())
+                {
+                    var defaultSigner = signers.First();
+                    replacements["{{choice_signer}}"] = defaultSigner.Text;
+                    
+                    // Добавляем метки для подписи подписанта
+                    AddSignerSignatureFields(replacements, defaultSigner);
+                }
+                else
+                {
+                    replacements["{{choice_signer}}"] = "";
+                    ClearSignerSignatureFields(replacements);
+                }
             }
 
             // Вариант оплаты - берем из сохраненного в БД
@@ -2944,6 +3097,35 @@ namespace Contract2512.Views
             replacements["{{Program_name}}"] = program.Name ?? "";
             replacements["{{time_program}}"] = program.Hours.ToString();
             
+            // Подписант в дательном падеже для заявлений
+            if (contract.SignerId.HasValue)
+            {
+                var signers = GetSignersStatic();
+                var selectedSigner = signers.FirstOrDefault(s => s.Id == contract.SignerId.Value);
+                if (selectedSigner != null)
+                {
+                    AddSignerDativeFields(replacements, selectedSigner);
+                }
+                else
+                {
+                    ClearSignerDativeFields(replacements);
+                }
+            }
+            else
+            {
+                // По умолчанию - первый подписант
+                var signers = GetSignersStatic();
+                if (signers.Any())
+                {
+                    var defaultSigner = signers.First();
+                    AddSignerDativeFields(replacements, defaultSigner);
+                }
+                else
+                {
+                    ClearSignerDativeFields(replacements);
+                }
+            }
+            
             // Варианты обучения для заявлений (новые метки)
             replacements["{{Check1}}"] = "Вариант1 — с пониженной недельной учебной нагрузкой (1 акад. час в неделю).";
             replacements["{{Check2}}"] = "Вариант2 — с умеренной недельной учебной нагрузкой (2 акад. часа в неделю).";
@@ -3202,42 +3384,124 @@ namespace Contract2512.Views
 
         private void PayerComboBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (_allPersons == null) return;
+            var searchText = PayerComboBox.Text?.Trim() ?? "";
             
-            var searchText = PayerComboBox.Text?.ToLower() ?? "";
+            // Если текст пустой, восстанавливаем полный список
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                PayerComboBox.ItemsSource = _allPersons;
+                // Определяем какой список показывать (персоны или организации)
+                if (_allPayerOrganizations != null && PayerComboBox.ItemsSource is IEnumerable<OrganizationViewModel>)
+                {
+                    PayerComboBox.ItemsSource = _allPayerOrganizations;
+                }
+                else if (_allPayerPersons != null)
+                {
+                    PayerComboBox.ItemsSource = _allPayerPersons;
+                }
                 return;
             }
 
-            var filtered = _allPersons.Where(p => 
-                (p.FullName != null && p.FullName.ToLower().Contains(searchText)) ||
-                (p.Snils != null && p.Snils.ToLower().Contains(searchText))
-            ).ToList();
+            // Фильтруем в зависимости от текущего типа списка
+            if (PayerComboBox.ItemsSource is IEnumerable<OrganizationViewModel>)
+            {
+                // Фильтруем организации
+                if (_allPayerOrganizations != null)
+                {
+                    var filtered = _allPayerOrganizations.Where(ovm => 
+                        ovm.DisplayName != null && ovm.DisplayName.ToLower().Contains(searchText.ToLower())
+                    ).ToList();
+                    PayerComboBox.ItemsSource = filtered;
+                    
+                    // Автоматически выбираем, если точное совпадение или один элемент
+                    AutoSelectIfMatch(PayerComboBox, filtered, searchText);
+                }
+            }
+            else
+            {
+                // Фильтруем персоны
+                if (_allPayerPersons != null)
+                {
+                    var filtered = _allPayerPersons.Where(pvm => 
+                        pvm.DisplayName != null && pvm.DisplayName.ToLower().Contains(searchText.ToLower())
+                    ).ToList();
+                    PayerComboBox.ItemsSource = filtered;
+                    
+                    // Автоматически выбираем, если точное совпадение или один элемент
+                    AutoSelectIfMatch(PayerComboBox, filtered, searchText);
+                }
+            }
 
-            PayerComboBox.ItemsSource = filtered;
             PayerComboBox.IsDropDownOpen = true;
         }
 
         private void ListenerComboBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
-            if (_allPersons == null) return;
+            var searchText = ListenerComboBox.Text?.Trim() ?? "";
             
-            var searchText = ListenerComboBox.Text?.ToLower() ?? "";
+            // Если текст пустой, восстанавливаем полный список
             if (string.IsNullOrWhiteSpace(searchText))
             {
-                ListenerComboBox.ItemsSource = _allPersons;
+                if (_allListenerPersons != null)
+                {
+                    ListenerComboBox.ItemsSource = _allListenerPersons;
+                }
                 return;
             }
 
-            var filtered = _allPersons.Where(p => 
-                (p.FullName != null && p.FullName.ToLower().Contains(searchText)) ||
-                (p.Snils != null && p.Snils.ToLower().Contains(searchText))
-            ).ToList();
+            // Фильтруем персоны
+            if (_allListenerPersons != null)
+            {
+                var filtered = _allListenerPersons.Where(pvm => 
+                    pvm.DisplayName != null && pvm.DisplayName.ToLower().Contains(searchText.ToLower())
+                ).ToList();
+                ListenerComboBox.ItemsSource = filtered;
+                
+                // Автоматически выбираем, если точное совпадение или один элемент
+                AutoSelectIfMatch(ListenerComboBox, filtered, searchText);
+            }
 
-            ListenerComboBox.ItemsSource = filtered;
             ListenerComboBox.IsDropDownOpen = true;
+        }
+
+        /// <summary>
+        /// Автоматически выбирает элемент в ComboBox если есть точное совпадение или остался один элемент
+        /// </summary>
+        private void AutoSelectIfMatch<T>(System.Windows.Controls.ComboBox comboBox, List<T> filtered, string searchText) where T : class
+        {
+            if (filtered.Count == 0)
+            {
+                comboBox.SelectedItem = null;
+                return;
+            }
+
+            // Если остался только один элемент - выбираем его
+            if (filtered.Count == 1)
+            {
+                comboBox.SelectedItem = filtered[0];
+                return;
+            }
+
+            // Ищем точное совпадение (без учета регистра)
+            foreach (var item in filtered)
+            {
+                string displayName = null;
+                
+                if (item is PersonViewModel pvm)
+                {
+                    displayName = pvm.DisplayName;
+                }
+                else if (item is OrganizationViewModel ovm)
+                {
+                    displayName = ovm.DisplayName;
+                }
+
+                if (displayName != null && 
+                    string.Equals(displayName.Trim(), searchText.Trim(), StringComparison.OrdinalIgnoreCase))
+                {
+                    comboBox.SelectedItem = item;
+                    return;
+                }
+            }
         }
 
         // Обработчик для открытия ComboBox при клике на любую часть поля

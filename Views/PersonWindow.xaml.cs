@@ -29,7 +29,12 @@ namespace Contract2512.Views
             {
                 // Загружаем список полов
                 GenderComboBox.ItemsSource = db.Genders.ToList();
-                GenderComboBox.SelectedIndex = 0;
+                
+                // Устанавливаем пол по умолчанию только для нового лица
+                if (!_isEditMode)
+                {
+                    GenderComboBox.SelectedIndex = 0;
+                }
 
                 // Загружаем справочники образования
                 BaseEducationComboBox.ItemsSource = db.BaseEducations.ToList();
@@ -47,7 +52,10 @@ namespace Contract2512.Views
                     FirstNameTextBox.Text = _person.FirstName;
                     PatronymicTextBox.Text = _person.Patronymic ?? "";
                     DateOfBirthPicker.SelectedDate = _person.DateOfBirth;
+                    
+                    // Устанавливаем пол для редактирования
                     GenderComboBox.SelectedValue = _person.GenderId;
+                    
                     PlaceOfBirthTextBox.Text = _person.PlaceOfBirth ?? "";
                     CitizenshipTextBox.Text = _person.Citizenship;
                     SnilsTextBox.Text = _person.Snils;
@@ -117,6 +125,37 @@ namespace Contract2512.Views
             {
                 MessageBox.Show("Заполните Фамилию и Имя!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
+            }
+
+            // Валидация СНИЛС
+            if (!string.IsNullOrWhiteSpace(SnilsTextBox.Text))
+            {
+                string snils = SnilsTextBox.Text.Replace("-", "").Replace(" ", "").Trim();
+                
+                if (snils.Length != 11)
+                {
+                    MessageBox.Show(
+                        $"СНИЛС должен содержать 11 цифр!\n\n" +
+                        $"Введено: {snils.Length} цифр\n" +
+                        $"Формат: XXX-XXX-XXX XX или 11 цифр подряд",
+                        "Ошибка валидации СНИЛС",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    SnilsTextBox.Focus();
+                    return;
+                }
+                
+                if (!snils.All(char.IsDigit))
+                {
+                    MessageBox.Show(
+                        "СНИЛС должен содержать только цифры!\n\n" +
+                        "Формат: XXX-XXX-XXX XX или 11 цифр подряд",
+                        "Ошибка валидации СНИЛС",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                    SnilsTextBox.Focus();
+                    return;
+                }
             }
 
             try

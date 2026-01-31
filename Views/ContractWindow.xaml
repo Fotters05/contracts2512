@@ -698,6 +698,7 @@
                         <ComboBox Grid.Row="6" Grid.Column="1" 
                                  x:Name="PayerComboBox" 
                                  Margin="0,5"
+                                 IsEditable="True"
                                  IsTextSearchEnabled="True"
                                  Style="{StaticResource DarkComboBoxStyle}"/>
 
@@ -709,6 +710,7 @@
                         <ComboBox Grid.Row="7" Grid.Column="1" 
                                  x:Name="ListenerComboBox" 
                                  Margin="0,5"
+                                 IsEditable="True"
                                  IsTextSearchEnabled="True"
                                  Style="{StaticResource DarkComboBoxStyle}"/>
 

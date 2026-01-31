@@ -656,7 +656,8 @@
                                           Foreground="{StaticResource TextPrimary}"/>
                                 <ComboBox Grid.Row="4" Grid.Column="1" 
                                          x:Name="GenderComboBox" 
-                                         DisplayMemberPath="Name" 
+                                         DisplayMemberPath="Name"
+                                         SelectedValuePath="Id"
                                          Margin="0,5"
                                          Style="{StaticResource DarkComboBoxStyle}"/>
 
