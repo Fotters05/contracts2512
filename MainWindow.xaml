@@ -510,7 +510,7 @@
                     <DataGrid x:Name="PersonsDataGrid" 
                              Style="{StaticResource DarkDataGridStyle}"
                              ClipToBounds="True"
-                             MouseDoubleClick="PersonsDataGrid_MouseDoubleClick">
+                             MouseDoubleClick="PersonsDataGrid_MouseDoubleClick" SelectionChanged="PersonsDataGrid_SelectionChanged">
                         <DataGrid.ColumnHeaderStyle>
                             <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
                         </DataGrid.ColumnHeaderStyle>

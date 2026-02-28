@@ -38,7 +38,6 @@ namespace Contract2512
 
         private void AutoRefreshTimer_Tick(object sender, EventArgs e)
         {
-            // Обновляем данные из БД
             try
             {
                 LoadData();
@@ -1050,6 +1049,11 @@ namespace Contract2512
             }
             
             base.OnClosing(e);
+        }
+
+        private void PersonsDataGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        {
+
         }
     }
 

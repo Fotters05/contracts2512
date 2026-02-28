@@ -24,12 +24,10 @@ namespace Contract2512.Views
         private ContractType _selectedContractType;
         private LearningProgram _selectedProgram;
 
-        // Полные списки для фильтрации
         private List<ContractType> _allContractTypes;
         private List<LearningProgram> _allPrograms;
         private List<Person> _allPersons;
-        
-        // Полные списки ViewModel для фильтрации ComboBox
+
         private List<PersonViewModel> _allPayerPersons;
         private List<OrganizationViewModel> _allPayerOrganizations;
         private List<PersonViewModel> _allListenerPersons;
@@ -228,7 +226,6 @@ namespace Contract2512.Views
             }
         }
         
-        // Вспомогательные классы для отображения в ComboBox
         private class PersonViewModel
         {
             public Person Person { get; set; }
@@ -519,7 +516,6 @@ namespace Contract2512.Views
 
         private void CreateContractButton_Click(object sender, RoutedEventArgs e)
         {
-            // Валидация
             if (ContractTypeComboBox.SelectedItem == null)
             {
                 MessageBox.Show("Выберите тип договора!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
@@ -838,6 +834,13 @@ namespace Contract2512.Views
                                 savedContractType.Name.Contains("повышение квалификации") ||
                                 savedContractType.Name.Contains("повышения квалификации"));
                     
+                    // Проверяем, является ли договор ПП (профессиональная переподготовка)
+                    bool isContractPP = savedContractType != null && savedContractType.Name != null &&
+                                (savedContractType.Name.Contains("ПП") ||
+                                savedContractType.Name.Contains("профпереподготовк") ||
+                                savedContractType.Name.Contains("профессиональной переподготовки") ||
+                                savedContractType.Name.Contains("профессиональная переподготовка"));
+                    
                     // Проверяем, является ли договор ДОП (дополнительное образование)
                     bool isContractDOP_Application = savedContractType != null && savedContractType.Name != null &&
                                 (savedContractType.Name.Contains("ДОП") ||
@@ -845,6 +848,11 @@ namespace Contract2512.Views
                     
                     if (isContractPK)
                     {
+                        CreateApplicationDocument(savedContract, db);
+                    }
+                    else if (isContractPP)
+                    {
+                        // Для ПП договоров также создаем заявление
                         CreateApplicationDocument(savedContract, db);
                     }
                     else if (isContractDOP_Application)
@@ -2920,6 +2928,12 @@ namespace Contract2512.Views
                         contractType.Name.Contains("повышение квалификации") ||
                         contractType.Name.Contains("повышения квалификации"));
             
+            bool isContractPP = contractType != null && contractType.Name != null &&
+                       (contractType.Name.Contains("ПП") ||
+                        contractType.Name.Contains("профпереподготовк") ||
+                        contractType.Name.Contains("профессиональной переподготовки") ||
+                        contractType.Name.Contains("профессиональная переподготовка"));
+            
             // Загружаем данные слушателя для проверки паспорта
             var listener = db.Persons.FirstOrDefault(p => p.Id == contract.ListenerId);
             if (listener == null)
@@ -2931,6 +2945,9 @@ namespace Contract2512.Views
             // Проверяем наличие паспорта у слушателя
             var listenerPassport = db.Passports.FirstOrDefault(p => p.PersonId == listener.Id);
             bool hasPassport = listenerPassport != null;
+            
+            // Определяем, является ли договор трехсторонним (заказчик != слушатель)
+            bool isThreeSided = contract.PayerId != contract.ListenerId;
             
             // Выбираем правильный шаблон в зависимости от типа договора и наличия паспорта
             string templatePath;
@@ -2950,7 +2967,31 @@ namespace Contract2512.Views
             }
             else if (isContractPK)
             {
-                templatePath = @"C:\Dogovora\Шаблон заявления(ПК двухсторонний).docx";
+                // Для ПК договоров выбираем шаблон в зависимости от того, двухсторонний или трехсторонний
+                if (isThreeSided)
+                {
+                    templatePath = @"C:\Dogovora\Шаблон заявлений ПК трехстрононний.docx";
+                    System.Diagnostics.Debug.WriteLine("Используется шаблон для ПК трехстороннего");
+                }
+                else
+                {
+                    templatePath = @"C:\Dogovora\Шаблон заявления(ПК двухсторонний).docx";
+                    System.Diagnostics.Debug.WriteLine("Используется шаблон для ПК двухстороннего");
+                }
+            }
+            else if (isContractPP)
+            {
+                // Для ПП договоров выбираем шаблон в зависимости от того, двухсторонний или трехсторонний
+                if (isThreeSided)
+                {
+                    templatePath = @"C:\Dogovora\Шаблон заявлений ПП трехстрононний.docx";
+                    System.Diagnostics.Debug.WriteLine("Используется шаблон для ПП трехстороннего");
+                }
+                else
+                {
+                    templatePath = @"C:\Dogovora\Шаблон заявления ПП двухсторонний.docx";
+                    System.Diagnostics.Debug.WriteLine("Используется шаблон для ПП двухстороннего");
+                }
             }
             else
             {
@@ -3005,15 +3046,15 @@ namespace Contract2512.Views
             var replacements = new Dictionary<string, string>();
 
             // Определяем, чьи данные использовать для полей заказчика
-            // Для ПК договоров или если слушатель == заказчик, используем данные слушателя
+            // Для ПК/ПП договоров или если слушатель == заказчик, используем данные слушателя
             // Для ДОП договоров, если слушатель != заказчик, используем данные заказчика
             Person payerData;
             Models.Contacts payerContactsData;
             Passport payerPassportData;
             
-            if (!isContractDOP || listener.Id == payer.Id)
+            if ((isContractPK || isContractPP) || listener.Id == payer.Id)
             {
-                // Для ПК договоров или если слушатель == заказчик, используем данные слушателя
+                // Для ПК/ПП договоров (включая трехсторонние) или если слушатель == заказчик, используем данные слушателя
                 payerData = listener;
                 payerContactsData = listenerContacts;
                 payerPassportData = listenerPassport;
@@ -3040,6 +3081,9 @@ namespace Contract2512.Views
             // ФИО слушателя
             replacements["{{FIO_Slushatel}}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
             replacements["{{FIO_Slushatela}}"] = ConvertToGenitive(listener.LastName, listener.FirstName, listener.Patronymic);
+            // Добавляем варианты с опечатками из шаблонов
+            replacements["{{FIO_Slushtel}}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
+            replacements["{{FIO_ Slushtel }}"] = $"{listener.LastName} {listener.FirstName} {listener.Patronymic}".Trim();
 
             // Дата и место рождения слушателя
             replacements["{{birthday}}"] = listener.DateOfBirth?.ToString("dd.MM.yyyy") ?? "";
@@ -3190,6 +3234,9 @@ namespace Contract2512.Views
             {
                 replacements[$"{{{{Check{i}}}}}"] = (selectedVariant == i) ? checkedBox : uncheckedBox;
             }
+            
+            // Добавляем вариант с опечаткой из шаблона (русская "е" вместо английской "e")
+            replacements["{{Checkе6}}"] = (selectedVariant == 6) ? checkedBox : uncheckedBox;
             
             // Также добавим общий {{Check}} для обратной совместимости
             replacements["{{Check}}"] = (selectedVariant == 1) ? checkedBox : uncheckedBox;
