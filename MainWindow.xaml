@@ -625,7 +625,17 @@
                     <Button Content="Удалить" 
                            x:Name="DeleteProgramButton"
                            Style="{StaticResource DarkGrayButton}"
-                           Click="DeleteProgramButton_Click"/>
+                           Click="DeleteProgramButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Подробнее" 
+                           x:Name="ViewProgramDetailsButton"
+                           Style="{StaticResource PurpleButton}"
+                           Click="ViewProgramDetailsButton_Click"
+                           Margin="0,0,8,0"/>
+                    <Button Content="Загрузить программы с сайта" 
+                           x:Name="ImportProgramsButton"
+                           Style="{StaticResource OrangeRedButton}"
+                           Click="ImportProgramsButton_Click"/>
                     </StackPanel>
 
                 <!-- Карточки программ -->

@@ -21,13 +21,14 @@ namespace Contract2512.Services
         public DbSet<LearningProgram> LearningPrograms { get; set; }
         public DbSet<Contract> Contracts { get; set; }
         public DbSet<Organization> Organizations { get; set; }
+        public DbSet<ProgramModule> ProgramModules { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
                 // Строка подключения к PostgreSQL
-                var connectionString = "Host=localhost;Port=5432;Username=postgres;Password=1;Database=MPT2512";
+                var connectionString = "Host=26.242.232.93;Port=5432;Username=postgres;Password=1;Database=MPT2512";
                 
                 // Отключаем преобразование DateTime в UTC
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);

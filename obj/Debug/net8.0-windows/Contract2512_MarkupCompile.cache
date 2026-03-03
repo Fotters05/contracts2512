@@ -1,20 +1,20 @@
 ﻿Contract2512
 
 
-winexe
+exe
 C#
 .cs
-C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\
 Contract2512
 none
 false
-TRACE;DEBUG;NET;NET8_0;NETCOREAPP
-C:\Users\Fotters\source\repos\Contract2512\App.xaml
-9-1834705199
+TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
+C:\Users\rhali\Desktop\contracts2512\App.xaml
+111953075036
 11172441761
-31494042896
-220841318157
-MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\OrganizationEditWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;
+35-757946681
+2201512298152
+MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\OrganizationEditWindow.xaml;Views\ParserWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramDetailsWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;
 
 False
 

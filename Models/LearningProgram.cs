@@ -45,6 +45,10 @@ namespace Contract2512.Models
         [MaxLength(255)]
         public string? Image { get; set; }
 
+        [Column("source_url")]
+        [MaxLength(500)]
+        public string? SourceUrl { get; set; }
+
         [Column("created_at")]
         public DateTime? CreatedAt { get; set; }
     }

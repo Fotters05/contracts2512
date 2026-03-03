@@ -683,6 +683,62 @@ namespace Contract2512
             }
         }
 
+        private void ViewProgramDetailsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedProgram = GetSelectedProgram();
+            if (selectedProgram != null)
+            {
+                using (var db = new AppDbContext())
+                {
+                    var program = db.LearningPrograms.Find(selectedProgram.Id);
+                    if (program != null)
+                    {
+                        var window = new ProgramDetailsWindow(program);
+                        window.Owner = this;
+                        window.ShowDialog();
+                    }
+                }
+            }
+            else
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите программу для просмотра подробностей!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+            }
+        }
+
+        private void ImportProgramsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var result = System.Windows.MessageBox.Show(
+                "Запустить импорт программ с сайта 25-12.ru?\n\n" +
+                "Это займет несколько минут.\n" +
+                "Новые программы будут добавлены в базу данных.",
+                "Импорт программ",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Question);
+
+            if (result == System.Windows.MessageBoxResult.Yes)
+            {
+                var parserWindow = new ParserWindow();
+                parserWindow.Owner = this;
+                bool? dialogResult = parserWindow.ShowDialog();
+
+                // Если импорт завершен успешно, обновляем список программ
+                if (dialogResult == true)
+                {
+                    LoadPrograms();
+                    System.Windows.MessageBox.Show(
+                        "Список программ обновлен!",
+                        "Готово",
+                        System.Windows.MessageBoxButton.OK,
+                        System.Windows.MessageBoxImage.Information);
+                }
+            }
+        }
+
+
         private ProgramViewModel? GetSelectedProgram()
         {
             if (ProgramsItemsControl.ItemsSource != null)
