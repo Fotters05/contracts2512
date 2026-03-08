@@ -1,0 +1,214 @@
+<ui:FluentWindow x:Class="Contract2512.Views.WorkloadWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
+        mc:Ignorable="d"
+        Title="Формирование учебной нагрузки"
+        WindowStartupLocation="CenterOwner"
+        Height="600"
+        Width="900"
+        ExtendsContentIntoTitleBar="True">
+
+    <Window.Resources>
+        <!-- Градиентный фиолетово-синий фон -->
+        <LinearGradientBrush x:Key="AppBackground" StartPoint="0 0" EndPoint="1 1">
+            <GradientStop Color="#1E1B4B" Offset="0"/>
+            <GradientStop Color="#0F172A" Offset="1"/>
+        </LinearGradientBrush>
+
+        <SolidColorBrush x:Key="TextPrimary" Color="White"/>
+        <SolidColorBrush x:Key="TextSecondary" Color="#D1D5DB"/>
+        <SolidColorBrush x:Key="BorderColor" Color="#64748B"/>
+
+        <!-- Стиль кнопок -->
+        <Style x:Key="AccentButton" TargetType="Button">
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="Background" Value="#8B5CF6"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="FontWeight" Value="SemiBold"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}"
+                                CornerRadius="8"
+                                SnapsToDevicePixels="True"
+                                Padding="{TemplateBinding Padding}">
+                            <ContentPresenter HorizontalAlignment="Center"
+                                              VerticalAlignment="Center"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Background" Value="#A78BFA"/>
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- Стиль для текстового поля -->
+        <Style x:Key="DarkTextBoxStyle" TargetType="TextBox">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#1E293B" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="TextBox">
+                        <Border Background="{TemplateBinding Background}"
+                                BorderBrush="{TemplateBinding BorderBrush}"
+                                BorderThickness="{TemplateBinding BorderThickness}"
+                                CornerRadius="6"
+                                Padding="{TemplateBinding Padding}">
+                            <ScrollViewer x:Name="PART_ContentHost"
+                                        Background="Transparent"
+                                        Foreground="{TemplateBinding Foreground}"/>
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Стиль для ComboBox -->
+        <Style x:Key="DarkComboBoxStyle" TargetType="ComboBox">
+            <Setter Property="Background">
+                <Setter.Value>
+                    <SolidColorBrush Color="#1E293B" Opacity="0.4"/>
+                </Setter.Value>
+            </Setter>
+            <Setter Property="Foreground" Value="{StaticResource TextPrimary}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource BorderColor}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="8,6"/>
+            <Setter Property="FontSize" Value="14"/>
+        </Style>
+    </Window.Resources>
+
+    <Grid Background="{StaticResource AppBackground}">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="32"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <!-- Кастомный TitleBar -->
+        <Grid Grid.Row="0" Background="Transparent" MouseDown="TitleBar_MouseDown">
+            <TextBlock Text="Формирование учебной нагрузки"
+                      Foreground="{StaticResource TextPrimary}"
+                      VerticalAlignment="Center"
+                      Margin="12,0"/>
+        </Grid>
+
+        <!-- Основной контент -->
+        <Border Grid.Row="1" 
+                Margin="20"
+                Background="#1E293B"
+                Opacity="0.3"
+                CornerRadius="12"
+                BorderBrush="#475569"
+                BorderThickness="1">
+            <Grid Margin="20">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                </Grid.RowDefinitions>
+
+                <!-- Заголовок -->
+                <TextBlock Grid.Row="0"
+                          Text="Формирование учебной нагрузки"
+                          FontSize="24"
+                          FontWeight="SemiBold"
+                          Foreground="{StaticResource TextPrimary}"
+                          Margin="0,0,0,20"/>
+
+                <!-- Выбор программы -->
+                <StackPanel Grid.Row="1" Margin="0,0,0,15">
+                    <TextBlock Text="Программа обучения:"
+                              FontSize="14"
+                              Foreground="{StaticResource TextSecondary}"
+                              Margin="0,0,0,5"/>
+                    <ComboBox x:Name="ProgramComboBox"
+                             Style="{StaticResource DarkComboBoxStyle}"
+                             DisplayMemberPath="Name"
+                             SelectionChanged="ProgramComboBox_SelectionChanged"/>
+                </StackPanel>
+
+                <!-- Выбор преподавателя -->
+                <StackPanel Grid.Row="2" Margin="0,0,0,15">
+                    <TextBlock Text="Преподаватель:"
+                              FontSize="14"
+                              Foreground="{StaticResource TextSecondary}"
+                              Margin="0,0,0,5"/>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        <ComboBox x:Name="TeacherComboBox"
+                                 Grid.Column="0"
+                                 Style="{StaticResource DarkComboBoxStyle}"
+                                 DisplayMemberPath="FullName"
+                                 Margin="0,0,10,0"/>
+                        <Button Grid.Column="1"
+                               Content="Добавить преподавателя"
+                               Style="{StaticResource AccentButton}"
+                               Click="AddTeacherButton_Click"/>
+                    </Grid>
+                </StackPanel>
+
+                <!-- Информация о программе -->
+                <Border Grid.Row="3"
+                       Background="#0F172A"
+                       Opacity="0.5"
+                       CornerRadius="8"
+                       BorderBrush="#475569"
+                       BorderThickness="1"
+                       Padding="15"
+                       Margin="0,0,0,15">
+                    <StackPanel>
+                        <TextBlock Text="Информация о программе:"
+                                  FontSize="16"
+                                  FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimary}"
+                                  Margin="0,0,0,10"/>
+                        
+                        <TextBlock x:Name="ProgramInfoTextBlock"
+                                  FontSize="14"
+                                  Foreground="{StaticResource TextSecondary}"
+                                  TextWrapping="Wrap"
+                                  Text="Выберите программу обучения"/>
+                    </StackPanel>
+                </Border>
+
+                <!-- Кнопки действий -->
+                <StackPanel Grid.Row="4" 
+                           Orientation="Horizontal" 
+                           HorizontalAlignment="Right">
+                    <Button Content="Сформировать документ"
+                           x:Name="GenerateButton"
+                           Style="{StaticResource AccentButton}"
+                           Click="GenerateButton_Click"
+                           Margin="0,0,10,0"
+                           IsEnabled="False"/>
+                    <Button Content="Отмена"
+                           Style="{StaticResource AccentButton}"
+                           Click="CancelButton_Click"/>
+                </StackPanel>
+            </Grid>
+        </Border>
+    </Grid>
+</ui:FluentWindow>

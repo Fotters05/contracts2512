@@ -439,6 +439,15 @@
                                    FontSize="16"
                                    Foreground="{StaticResource TextPrimary}"/>
                     </Border>
+
+                    <!-- Учебная нагрузка -->
+                    <Border x:Name="BtnWorkload"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnWorkload_Click">
+                        <TextBlock Text="📊  Учебная нагрузка"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
                 </StackPanel>
 
                 <!-- Тех поддержка -->
@@ -879,6 +888,62 @@
                             <DataGridTextColumn Header="Email" Binding="{Binding Email}" Width="*"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- Учебная нагрузка -->
+            <Grid x:Name="WorkloadPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <!-- Заголовок и описание -->
+                <StackPanel Grid.Row="0" Margin="0,0,0,20">
+                    <TextBlock Text="Учебная нагрузка"
+                              FontSize="28"
+                              FontWeight="SemiBold"
+                              Foreground="{StaticResource TextPrimary}"
+                              Margin="0,0,0,10"/>
+                    <TextBlock Text="Формирование расписания занятий по программам обучения"
+                              FontSize="16"
+                              Foreground="{StaticResource TextSecondary}"/>
+                </StackPanel>
+
+                <!-- Контент -->
+                <Border Grid.Row="1"
+                       Background="{StaticResource DataGridBackground}"
+                       CornerRadius="12"
+                       BorderBrush="#475569"
+                       BorderThickness="1"
+                       Effect="{StaticResource CardShadow}"
+                       Padding="30">
+                    <StackPanel VerticalAlignment="Center">
+                        <TextBlock Text="📊"
+                                  FontSize="64"
+                                  HorizontalAlignment="Center"
+                                  Margin="0,0,0,20"/>
+                        <TextBlock Text="Формирование учебной нагрузки"
+                                  FontSize="24"
+                                  FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimary}"
+                                  HorizontalAlignment="Center"
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="Создайте расписание занятий на основе выбранной программы обучения"
+                                  FontSize="16"
+                                  Foreground="{StaticResource TextSecondary}"
+                                  HorizontalAlignment="Center"
+                                  TextWrapping="Wrap"
+                                  TextAlignment="Center"
+                                  MaxWidth="500"
+                                  Margin="0,0,0,30"/>
+                        <Button Content="Сформировать учебную нагрузку"
+                               x:Name="CreateWorkloadButton"
+                               Style="{StaticResource PurpleButton}"
+                               Click="CreateWorkloadButton_Click"
+                               HorizontalAlignment="Center"
+                               Padding="24,12"/>
+                    </StackPanel>
                 </Border>
             </Grid>
         </Grid>

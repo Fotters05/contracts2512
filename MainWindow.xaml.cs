@@ -88,6 +88,7 @@ namespace Contract2512
             BtnPrograms.Tag = null;
             BtnContractTypes.Tag = null;
             BtnOrganizations.Tag = null;
+            BtnWorkload.Tag = null;
             
             // Устанавливаем выделение выбранной кнопки
             if (selectedButton != null)
@@ -104,6 +105,7 @@ namespace Contract2512
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnContracts_Click(object sender, RoutedEventArgs e)
@@ -114,6 +116,7 @@ namespace Contract2512
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnPrograms_Click(object sender, RoutedEventArgs e)
@@ -124,6 +127,7 @@ namespace Contract2512
             ProgramsPanel.Visibility = Visibility.Visible;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
         }
 
         private void BtnContractTypes_Click(object sender, RoutedEventArgs e)
@@ -134,6 +138,7 @@ namespace Contract2512
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Visible;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
             LoadContractTypes();
         }
 
@@ -145,7 +150,19 @@ namespace Contract2512
             ProgramsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Visible;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
             LoadOrganizations();
+        }
+
+        private void BtnWorkload_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnWorkload);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Visible;
         }
 
         private void BtnSupport_Click(object sender, RoutedEventArgs e)
@@ -1110,6 +1127,13 @@ namespace Contract2512
         private void PersonsDataGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
 
+        }
+
+        private void CreateWorkloadButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new WorkloadWindow();
+            window.Owner = this;
+            window.ShowDialog();
         }
     }
 

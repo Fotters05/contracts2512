@@ -284,3 +284,10 @@ C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\ProgramDetai
 C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\ProgramDetailsWindow.g.cs
 C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\ParserWindow.baml
 C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\ParserWindow.g.cs
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\WorkloadWindow.baml
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\WorkloadWindow.g.cs
+C:\Users\rhali\Desktop\contracts2512\bin\Debug\net8.0-windows\ClosedXML.dll
+C:\Users\rhali\Desktop\contracts2512\bin\Debug\net8.0-windows\ClosedXML.Parser.dll
+C:\Users\rhali\Desktop\contracts2512\bin\Debug\net8.0-windows\ExcelNumberFormat.dll
+C:\Users\rhali\Desktop\contracts2512\bin\Debug\net8.0-windows\RBush.dll
+C:\Users\rhali\Desktop\contracts2512\bin\Debug\net8.0-windows\SixLabors.Fonts.dll
