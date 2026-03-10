@@ -15,6 +15,7 @@ namespace Contract2512
     {
         private System.Collections.ObjectModel.ObservableCollection<Contract> _allContracts;
         private System.Windows.Threading.DispatcherTimer _autoRefreshTimer;
+        private bool _dbConfigMissingNotified;
 
         public MainWindow()
         {
@@ -163,6 +164,7 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Visible;
+            LoadWorkloadDocuments();
         }
 
         private void BtnSupport_Click(object sender, RoutedEventArgs e)
@@ -171,6 +173,61 @@ namespace Contract2512
             var window = new SupportWindow();
             window.Owner = this;
             window.ShowDialog();
+        }
+
+        private void BtnSettings_Click(object sender, RoutedEventArgs e)
+        {
+            // Не обновляем выделение меню, так как это не вкладка, а окно
+            try
+            {
+                var window = new DatabaseSettingsWindow();
+                window.Owner = this;
+
+                var result = window.ShowDialog();
+                if (result == true)
+                {
+                    try
+                    {
+                        _dbConfigMissingNotified = false;
+                        LoadData();
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Windows.MessageBox.Show(
+                            $"Ошибка загрузки данных после подключения к БД:\n{ex.Message}",
+                            "Ошибка",
+                            System.Windows.MessageBoxButton.OK,
+                            System.Windows.MessageBoxImage.Error);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Не удалось открыть окно настроек БД:\n{ex}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private bool IsDbConfigured()
+        {
+            var cs = EnvConfigService.Get(EnvConfigService.ConnectionStringKey);
+            return !string.IsNullOrWhiteSpace(cs);
+        }
+
+        private void NotifyDbConfigMissingOnce()
+        {
+            if (_dbConfigMissingNotified)
+                return;
+
+            _dbConfigMissingNotified = true;
+            System.Windows.MessageBox.Show(
+                "Не задана строка подключения к базе данных.\nОткройте Настройки и укажите строку подключения.",
+                "Подключение к БД",
+                System.Windows.MessageBoxButton.OK,
+                System.Windows.MessageBoxImage.Information);
         }
 
         private void PersonsDataGridBorder_SizeChanged(object sender, SizeChangedEventArgs e)
@@ -246,13 +303,23 @@ namespace Contract2512
 
         private void LoadData()
         {
+            if (!IsDbConfigured())
+            {
+                NotifyDbConfigMissingOnce();
+                return;
+            }
+
             LoadPersons();
             LoadContracts();
             LoadPrograms();
+            LoadWorkloadDocuments();
         }
 
         private void LoadPersons()
         {
+            if (!IsDbConfigured())
+                return;
+
             try
             {
                 using (var db = new AppDbContext())
@@ -276,6 +343,9 @@ namespace Contract2512
 
         private void LoadContracts()
         {
+            if (!IsDbConfigured())
+                return;
+
             try
             {
                 using (var db = new AppDbContext())
@@ -551,9 +621,12 @@ namespace Contract2512
 
         private void LoadPrograms()
         {
+            if (!IsDbConfigured())
+                return;
+
             try
-        {
-            using (var db = new AppDbContext())
+            {
+                using (var db = new AppDbContext())
             {
                 var programs = db.LearningPrograms.ToList();
                 var programViewModels = programs.Select(p =>
@@ -847,6 +920,9 @@ namespace Contract2512
 
         private void LoadContractTypes()
         {
+            if (!IsDbConfigured())
+                return;
+
             try
             {
                 using (var db = new AppDbContext())
@@ -1007,8 +1083,50 @@ namespace Contract2512
             }
         }
 
+        private void WorkloadDocumentsDataGridBorder_SizeChanged(object sender, SizeChangedEventArgs e)
+        {
+            if (sender is System.Windows.Controls.Border border)
+            {
+                var rect = new System.Windows.Rect(0, 0, border.ActualWidth, border.ActualHeight);
+                border.Clip = new System.Windows.Media.RectangleGeometry(rect)
+                {
+                    RadiusX = 12,
+                    RadiusY = 12
+                };
+            }
+        }
+
+        private void LoadWorkloadDocuments()
+        {
+            if (!IsDbConfigured())
+                return;
+
+            try
+            {
+                using (var db = new AppDbContext())
+                {
+                    var workloadDocuments = db.WorkloadDocuments
+                        .AsNoTracking()
+                        .Include(w => w.Program)
+                        .Include(w => w.Listener)
+                        .Include(w => w.Teacher)
+                        .OrderByDescending(w => w.GeneratedAt)
+                        .ToList();
+
+                    WorkloadDocumentsDataGrid.ItemsSource = workloadDocuments;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка при загрузке учебной нагрузки: {ex.Message}");
+            }
+        }
+
         private void LoadOrganizations()
         {
+            if (!IsDbConfigured())
+                return;
+
             try
             {
                 using (var db = new AppDbContext())
@@ -1133,7 +1251,60 @@ namespace Contract2512
         {
             var window = new WorkloadWindow();
             window.Owner = this;
+            var result = window.ShowDialog();
+            if (result == true)
+            {
+                LoadWorkloadDocuments();
+            }
+        }
+
+        private void OpenHolidayCalendarButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new HolidayCalendarWindow();
+            window.Owner = this;
             window.ShowDialog();
+        }
+
+        private void OpenWorkloadDocumentButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (WorkloadDocumentsDataGrid.SelectedItem is not WorkloadDocument selectedDocument)
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите файл учебной нагрузки!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            if (string.IsNullOrWhiteSpace(selectedDocument.FilePath) || !File.Exists(selectedDocument.FilePath))
+            {
+                System.Windows.MessageBox.Show(
+                    "Файл не найден. Возможно, он был удален или перемещен.",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                var excelService = new ExcelDocumentService();
+                excelService.OpenDocument(selectedDocument.FilePath);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при открытии файла: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void RefreshWorkloadDocumentsButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadWorkloadDocuments();
         }
     }
 

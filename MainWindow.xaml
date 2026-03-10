@@ -384,6 +384,7 @@
             <RowDefinition Height="Auto"/>
             <RowDefinition Height="*"/>
                     <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
         </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0"
@@ -457,6 +458,17 @@
                         MouseLeftButtonDown="BtnSupport_Click"
                         Margin="0,20,0,0">
                     <TextBlock Text="💬  Тех поддержка"
+                               FontSize="16"
+                               Foreground="{StaticResource TextPrimary}"/>
+                </Border>
+
+                <!-- Настройки -->
+                <Border Grid.Row="3"
+                        x:Name="BtnSettings"
+                        Style="{StaticResource MenuItemStyle}"
+                        MouseLeftButtonDown="BtnSettings_Click"
+                        Margin="0,10,0,0">
+                    <TextBlock Text="⚙  Настройки"
                                FontSize="16"
                                Foreground="{StaticResource TextPrimary}"/>
                 </Border>
@@ -898,52 +910,94 @@
                     <RowDefinition Height="*"/>
                 </Grid.RowDefinitions>
 
-                <!-- Заголовок и описание -->
-                <StackPanel Grid.Row="0" Margin="0,0,0,20">
-                    <TextBlock Text="Учебная нагрузка"
-                              FontSize="28"
-                              FontWeight="SemiBold"
-                              Foreground="{StaticResource TextPrimary}"
-                              Margin="0,0,0,10"/>
-                    <TextBlock Text="Формирование расписания занятий по программам обучения"
-                              FontSize="16"
-                              Foreground="{StaticResource TextSecondary}"/>
-                </StackPanel>
+                <Grid Grid.Row="0" Margin="0,0,0,20">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
 
-                <!-- Контент -->
+                    <StackPanel Grid.Column="0">
+                        <TextBlock Text="Учебная нагрузка"
+                                  FontSize="28"
+                                  FontWeight="SemiBold"
+                                  Foreground="{StaticResource TextPrimary}"
+                                  Margin="0,0,0,10"/>
+                        <TextBlock Text="Формирование расписания занятий по программам обучения"
+                                  FontSize="16"
+                                  Foreground="{StaticResource TextSecondary}"/>
+                    </StackPanel>
+
+                    <StackPanel Grid.Column="1"
+                                Orientation="Horizontal"
+                                VerticalAlignment="Center"
+                                HorizontalAlignment="Right">
+                        <Button Content="Сформировать учебную нагрузку"
+                               x:Name="CreateWorkloadButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="CreateWorkloadButton_Click"
+                               Padding="24,12"
+                               Margin="0,0,12,0"/>
+                        <Button Content="Календарь нерабочих дней"
+                               x:Name="OpenHolidayCalendarButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="OpenHolidayCalendarButton_Click"
+                               Padding="24,12"/>
+                    </StackPanel>
+                </Grid>
+
+                <!-- Список сформированных документов -->
                 <Border Grid.Row="1"
+                       x:Name="WorkloadDocumentsDataGridBorder"
                        Background="{StaticResource DataGridBackground}"
                        CornerRadius="12"
                        BorderBrush="#475569"
                        BorderThickness="1"
-                       Effect="{StaticResource CardShadow}"
-                       Padding="30">
-                    <StackPanel VerticalAlignment="Center">
-                        <TextBlock Text="📊"
-                                  FontSize="64"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,20"/>
-                        <TextBlock Text="Формирование учебной нагрузки"
-                                  FontSize="24"
-                                  FontWeight="SemiBold"
-                                  Foreground="{StaticResource TextPrimary}"
-                                  HorizontalAlignment="Center"
-                                  Margin="0,0,0,10"/>
-                        <TextBlock Text="Создайте расписание занятий на основе выбранной программы обучения"
-                                  FontSize="16"
-                                  Foreground="{StaticResource TextSecondary}"
-                                  HorizontalAlignment="Center"
-                                  TextWrapping="Wrap"
-                                  TextAlignment="Center"
-                                  MaxWidth="500"
-                                  Margin="0,0,0,30"/>
-                        <Button Content="Сформировать учебную нагрузку"
-                               x:Name="CreateWorkloadButton"
-                               Style="{StaticResource PurpleButton}"
-                               Click="CreateWorkloadButton_Click"
-                               HorizontalAlignment="Center"
-                               Padding="24,12"/>
-                    </StackPanel>
+                       ClipToBounds="True"
+                       SizeChanged="WorkloadDocumentsDataGridBorder_SizeChanged"
+                       Effect="{StaticResource CardShadow}">
+                    <Grid Margin="20">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="*"/>
+                        </Grid.RowDefinitions>
+
+                        <StackPanel Grid.Row="0"
+                                   Orientation="Horizontal"
+                                   Margin="0,0,0,16">
+                            <Button Content="Открыть файл"
+                                   x:Name="OpenWorkloadDocumentButton"
+                                   Style="{StaticResource DarkGrayButton}"
+                                   Click="OpenWorkloadDocumentButton_Click"
+                                   Margin="0,0,8,0"/>
+                            <Button Content="Обновить список"
+                                   x:Name="RefreshWorkloadDocumentsButton"
+                                   Style="{StaticResource DarkGrayButton}"
+                                   Click="RefreshWorkloadDocumentsButton_Click"/>
+                        </StackPanel>
+
+                        <DataGrid Grid.Row="1"
+                                 x:Name="WorkloadDocumentsDataGrid"
+                                 Style="{StaticResource DarkDataGridStyle}"
+                                 ClipToBounds="True">
+                            <DataGrid.ColumnHeaderStyle>
+                                <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
+                            </DataGrid.ColumnHeaderStyle>
+                            <DataGrid.CellStyle>
+                                <Style TargetType="DataGridCell" BasedOn="{StaticResource DarkDataGridCellStyle}"/>
+                            </DataGrid.CellStyle>
+                            <DataGrid.RowStyle>
+                                <Style TargetType="DataGridRow" BasedOn="{StaticResource DarkDataGridRowStyle}"/>
+                            </DataGrid.RowStyle>
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding GeneratedAt, StringFormat=dd.MM.yyyy HH:mm}" Width="150"/>
+                                <DataGridTextColumn Header="Программа" Binding="{Binding Program.Name}" Width="2*"/>
+                                <DataGridTextColumn Header="Слушатель" Binding="{Binding Listener.FullName}" Width="2*"/>
+                                <DataGridTextColumn Header="Группа" Binding="{Binding GroupName}" Width="*"/>
+                                <DataGridTextColumn Header="Преподаватель" Binding="{Binding Teacher.FullName}" Width="2*"/>
+                                <DataGridTextColumn Header="Файл" Binding="{Binding FileName}" Width="2*"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </Grid>
                 </Border>
             </Grid>
         </Grid>

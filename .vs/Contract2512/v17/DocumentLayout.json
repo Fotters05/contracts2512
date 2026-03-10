@@ -3,6 +3,14 @@
   "WorkspaceRootPath": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\",
   "Documents": [
     {
+      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\programwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\programwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    },
+    {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\contractwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\contractwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
@@ -13,10 +21,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\models\\contract.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:models\\contract.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:mainwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\organizationeditwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -41,10 +45,6 @@
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\personcontractswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
       "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\personcontractswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
-    },
-    {
-      "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\programwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
-      "RelativeMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|solutionrelative:views\\programwindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
     },
     {
       "AbsoluteMoniker": "D:0:0:{D1FD4329-F3BE-4FE1-A0E8-9D8682E4846B}|Contract2512.csproj|c:\\users\\fotters\\source\\repos\\contract2512\\views\\personcardswindow.xaml.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
@@ -166,7 +166,7 @@
       "DocumentGroups": [
         {
           "DockedWidth": 268,
-          "SelectedChildIndex": 23,
+          "SelectedChildIndex": 21,
           "Children": [
             {
               "$type": "Bookmark",
@@ -247,18 +247,6 @@
             {
               "$type": "Document",
               "DocumentIndex": 7,
-              "Title": "WordDocumentService.cs",
-              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\WordDocumentService.cs",
-              "RelativeDocumentMoniker": "Services\\WordDocumentService.cs",
-              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\WordDocumentService.cs",
-              "RelativeToolTip": "Services\\WordDocumentService.cs",
-              "ViewState": "AgIAACEBAAAAAAAAAAAcwBgAAAAAAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:49:12.766Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 6,
               "Title": "PersonWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\PersonWindow.xaml.cs",
@@ -270,7 +258,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 4,
+              "DocumentIndex": 5,
               "Title": "OrganizationEditWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\OrganizationEditWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\OrganizationEditWindow.xaml.cs",
@@ -282,19 +270,20 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 3,
+              "DocumentIndex": 0,
               "Title": "MainWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\MainWindow.xaml.cs",
               "RelativeDocumentMoniker": "MainWindow.xaml.cs",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\MainWindow.xaml.cs",
               "RelativeToolTip": "MainWindow.xaml.cs",
-              "ViewState": "AgIAAOkAAAAAAAAAAAAtwAIBAAAAAAAAAAAAAA==",
+              "ViewState": "AgIAAHsEAAAAAAAAAAAQwHkEAAAAAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:29:20.58Z"
+              "WhenOpened": "2025-12-04T21:29:20.58Z",
+              "EditorCaption": ""
             },
             {
               "$type": "Document",
-              "DocumentIndex": 0,
+              "DocumentIndex": 2,
               "Title": "ContractWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\ContractWindow.xaml.cs",
@@ -302,12 +291,11 @@
               "RelativeToolTip": "Views\\ContractWindow.xaml.cs",
               "ViewState": "AgIAAOIGAAAAAAAAAAAwwOwGAAAbAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:55:12.295Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:55:12.295Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 2,
+              "DocumentIndex": 4,
               "Title": "Contract.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Models\\Contract.cs",
               "RelativeDocumentMoniker": "Models\\Contract.cs",
@@ -315,24 +303,46 @@
               "RelativeToolTip": "Models\\Contract.cs",
               "ViewState": "AgIAAAgAAAAAAAAAAAAQwAQAAAAWAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:48:27.728Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:48:27.728Z"
             },
             {
               "$type": "Document",
-              "DocumentIndex": 1,
+              "DocumentIndex": 3,
               "Title": "ContractWindow.xaml",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml",
               "RelativeDocumentMoniker": "Views\\ContractWindow.xaml",
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractWindow.xaml",
               "RelativeToolTip": "Views\\ContractWindow.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:49:17.765Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:49:17.765Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "ProgramWindow.xaml.cs",
+              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
+              "RelativeDocumentMoniker": "Views\\ProgramWindow.xaml.cs",
+              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
+              "RelativeToolTip": "Views\\ProgramWindow.xaml.cs",
+              "ViewState": "AgIAAPIAAAAAAAAAAAAlwP0AAAAMAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-04T21:56:06.999Z"
             },
             {
               "$type": "Document",
               "DocumentIndex": 8,
+              "Title": "WordDocumentService.cs",
+              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\WordDocumentService.cs",
+              "RelativeDocumentMoniker": "Services\\WordDocumentService.cs",
+              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\WordDocumentService.cs",
+              "RelativeToolTip": "Services\\WordDocumentService.cs",
+              "ViewState": "AgIAACEBAAAAAAAAAAAcwBgAAAAAAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2025-12-04T21:49:12.766Z"
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 9,
               "Title": "AppDbContext.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Services\\AppDbContext.cs",
               "RelativeDocumentMoniker": "Services\\AppDbContext.cs",
@@ -344,7 +354,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 5,
+              "DocumentIndex": 6,
               "Title": "ContractTypeWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ContractTypeWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\ContractTypeWindow.xaml.cs",
@@ -357,7 +367,7 @@
             },
             {
               "$type": "Document",
-              "DocumentIndex": 9,
+              "DocumentIndex": 10,
               "Title": "PersonContractsWindow.xaml.cs",
               "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\PersonContractsWindow.xaml.cs",
               "RelativeDocumentMoniker": "Views\\PersonContractsWindow.xaml.cs",
@@ -366,19 +376,6 @@
               "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAMAAAAAAAAAA==",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
               "WhenOpened": "2026-02-10T08:07:45.428Z"
-            },
-            {
-              "$type": "Document",
-              "DocumentIndex": 10,
-              "Title": "ProgramWindow.xaml.cs",
-              "DocumentMoniker": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
-              "RelativeDocumentMoniker": "Views\\ProgramWindow.xaml.cs",
-              "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Views\\ProgramWindow.xaml.cs",
-              "RelativeToolTip": "Views\\ProgramWindow.xaml.cs",
-              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAQAAAAaAAAAAAAAAA==",
-              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
-              "WhenOpened": "2025-12-04T21:56:06.999Z",
-              "EditorCaption": ""
             },
             {
               "$type": "Document",
@@ -448,8 +445,7 @@
               "ToolTip": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\App.xaml",
               "RelativeToolTip": "App.xaml",
               "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.003549|",
-              "WhenOpened": "2025-12-04T21:40:09.104Z",
-              "EditorCaption": ""
+              "WhenOpened": "2025-12-04T21:40:09.104Z"
             },
             {
               "$type": "Document",

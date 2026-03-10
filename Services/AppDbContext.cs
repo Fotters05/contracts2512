@@ -23,13 +23,16 @@ namespace Contract2512.Services
         public DbSet<Organization> Organizations { get; set; }
         public DbSet<ProgramModule> ProgramModules { get; set; }
         public DbSet<Teacher> Teachers { get; set; }
+        public DbSet<WorkloadBatch> WorkloadBatches { get; set; }
+        public DbSet<WorkloadDocument> WorkloadDocuments { get; set; }
+        public DbSet<WorkloadScheduleEntry> WorkloadScheduleEntries { get; set; }
+        public DbSet<HolidayCalendarDay> HolidayCalendarDays { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
             {
-                // Строка подключения к PostgreSQL
-                var connectionString = "Host=26.242.232.93;Port=5432;Username=postgres;Password=1;Database=MPT2512";
+                var connectionString = DbConnectionStringProvider.GetConnectionString();
                 
                 // Отключаем преобразование DateTime в UTC
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -77,6 +80,82 @@ namespace Contract2512.Services
                 .WithMany()
                 .HasForeignKey(c => c.ListenerId)
                 .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WorkloadBatch>()
+                .HasOne(w => w.Program)
+                .WithMany()
+                .HasForeignKey(w => w.ProgramId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WorkloadBatch>()
+                .HasOne(w => w.Teacher)
+                .WithMany()
+                .HasForeignKey(w => w.TeacherId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasOne(w => w.Program)
+                .WithMany()
+                .HasForeignKey(w => w.ProgramId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasOne(w => w.Batch)
+                .WithMany()
+                .HasForeignKey(w => w.BatchId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasOne(w => w.Contract)
+                .WithMany()
+                .HasForeignKey(w => w.ContractId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasOne(w => w.Listener)
+                .WithMany()
+                .HasForeignKey(w => w.ListenerId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasOne(w => w.Teacher)
+                .WithMany()
+                .HasForeignKey(w => w.TeacherId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<WorkloadScheduleEntry>()
+                .HasOne(s => s.WorkloadDocument)
+                .WithMany()
+                .HasForeignKey(s => s.WorkloadDocumentId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<WorkloadBatch>()
+                .HasIndex(w => w.ProgramId);
+
+            modelBuilder.Entity<WorkloadBatch>()
+                .HasIndex(w => w.TeacherId);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasIndex(w => w.ProgramId);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasIndex(w => w.TeacherId);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasIndex(w => w.BatchId);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasIndex(w => w.ContractId);
+
+            modelBuilder.Entity<WorkloadDocument>()
+                .HasIndex(w => w.ListenerId);
+
+            modelBuilder.Entity<WorkloadScheduleEntry>()
+                .HasIndex(s => s.WorkloadDocumentId);
+
+            modelBuilder.Entity<HolidayCalendarDay>()
+                .HasIndex(h => h.HolidayDate)
+                .IsUnique();
         }
     }
 }

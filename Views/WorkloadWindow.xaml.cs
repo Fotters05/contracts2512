@@ -2,23 +2,29 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
+using System.Windows.Controls;
 using Contract2512.Models;
 using Contract2512.Services;
 using Microsoft.EntityFrameworkCore;
-using Wpf.Ui.Controls;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
 using MessageBoxImage = System.Windows.MessageBoxImage;
+using FluentWindow = Wpf.Ui.Controls.FluentWindow;
 
 namespace Contract2512.Views
 {
     public partial class WorkloadWindow : FluentWindow
     {
+        private List<Contract> _availableContracts = new();
+        private List<Contract> _selectedContracts = new();
+
         public WorkloadWindow()
         {
             InitializeComponent();
             LoadData();
+            UpdateSelectedListenersSummary();
         }
 
         private void LoadData()
@@ -31,21 +37,15 @@ namespace Contract2512.Views
         {
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    var programs = db.LearningPrograms
-                        .OrderBy(p => p.Name)
-                        .ToList();
-                    ProgramComboBox.ItemsSource = programs;
-                }
+                using var db = new AppDbContext();
+                ProgramComboBox.ItemsSource = db.LearningPrograms
+                    .AsNoTracking()
+                    .OrderBy(p => p.Name)
+                    .ToList();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Ошибка при загрузке программ: {ex.Message}",
-                    "Ошибка",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при загрузке программ: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
@@ -53,80 +53,124 @@ namespace Contract2512.Views
         {
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    var teachers = db.Teachers
-                        .OrderBy(t => t.FullName)
-                        .ToList();
-                    TeacherComboBox.ItemsSource = teachers;
-                }
+                using var db = new AppDbContext();
+                TeacherComboBox.ItemsSource = db.Teachers
+                    .AsNoTracking()
+                    .OrderBy(t => t.FullName)
+                    .ToList();
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Ошибка при загрузке преподавателей: {ex.Message}",
-                    "Ошибка",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при загрузке преподавателей: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
 
-        private void ProgramComboBox_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
+        private void ProgramComboBox_SelectionChanged(object sender, SelectionChangedEventArgs e)
         {
-            if (ProgramComboBox.SelectedItem is LearningProgram selectedProgram)
-            {
-                // Обновляем информацию о программе
-                ProgramInfoTextBlock.Text = $"Название: {selectedProgram.Name}\n" +
-                                           $"Формат: {selectedProgram.Format}\n" +
-                                           $"Объем: {selectedProgram.Hours} академических часов\n" +
-                                           $"Количество уроков: {selectedProgram.LessonsCount}\n" +
-                                           $"Цена: {selectedProgram.Price:N2} ₽";
-
-                // Активируем кнопку генерации
-                GenerateButton.IsEnabled = true;
-            }
-            else
+            if (ProgramComboBox.SelectedItem is not LearningProgram selectedProgram)
             {
                 ProgramInfoTextBlock.Text = "Выберите программу обучения";
+                GroupNamePanel.Visibility = Visibility.Collapsed;
+                _availableContracts.Clear();
+                _selectedContracts.Clear();
+                UpdateSelectedListenersSummary();
                 GenerateButton.IsEnabled = false;
+                return;
             }
+
+            try
+            {
+                using var db = new AppDbContext();
+                var programType = db.ProgramViews
+                    .Where(pv => pv.Id == selectedProgram.ProgramViewId)
+                    .Select(pv => pv.Name)
+                    .FirstOrDefault() ?? "Не указан";
+
+                ProgramInfoTextBlock.Text =
+                    $"Название: {selectedProgram.Name}\n" +
+                    $"Тип программы: {programType}\n" +
+                    $"Формат: {selectedProgram.Format}\n" +
+                    $"Объем: {selectedProgram.Hours} академических часов\n" +
+                    $"Количество уроков: {selectedProgram.LessonsCount}\n" +
+                    $"Цена: {selectedProgram.Price:N2} ₽";
+
+                _availableContracts = db.Contracts
+                    .AsNoTracking()
+                    .Include(c => c.Listener)
+                    .Where(c => c.ProgramId == selectedProgram.Id)
+                    .OrderByDescending(c => c.ContractDate)
+                    .ToList()
+                    .Where(c => c.Listener != null)
+                    .GroupBy(c => c.ListenerId)
+                    .Select(group => group.First())
+                    .OrderBy(c => c.Listener!.LastName)
+                    .ThenBy(c => c.Listener!.FirstName)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при загрузке договоров слушателей: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                _availableContracts.Clear();
+            }
+
+            GroupNamePanel.Visibility = IsGroupProgram(selectedProgram) ? Visibility.Visible : Visibility.Collapsed;
+            if (!IsGroupProgram(selectedProgram))
+            {
+                GroupNameTextBox.Text = string.Empty;
+            }
+
+            _selectedContracts.Clear();
+            UpdateSelectedListenersSummary();
+            GenerateButton.IsEnabled = true;
         }
 
         private void AddTeacherButton_Click(object sender, RoutedEventArgs e)
         {
-            var dialog = new TeacherDialog();
-            dialog.Owner = this;
+            var dialog = new TeacherDialog { Owner = this };
+            if (dialog.ShowDialog() != true)
+            {
+                return;
+            }
+
+            try
+            {
+                using var db = new AppDbContext();
+                var teacher = new Teacher { FullName = dialog.TeacherName };
+                db.Teachers.Add(teacher);
+                db.SaveChanges();
+                LoadTeachers();
+                TeacherComboBox.SelectedItem = teacher;
+                MessageBox.Show("Преподаватель успешно добавлен.", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка при добавлении преподавателя: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            }
+        }
+
+        private void SelectListenersButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ProgramComboBox.SelectedItem is not LearningProgram selectedProgram)
+            {
+                MessageBox.Show("Сначала выберите программу обучения.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (_availableContracts.Count == 0)
+            {
+                MessageBox.Show("Для выбранной программы не найдено договоров слушателей.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var dialog = new ListenerSelectionDialog(_availableContracts, _selectedContracts, IsGroupProgram(selectedProgram))
+            {
+                Owner = this
+            };
+
             if (dialog.ShowDialog() == true)
             {
-                try
-                {
-                    using (var db = new AppDbContext())
-                    {
-                        var teacher = new Teacher
-                        {
-                            FullName = dialog.TeacherName
-                        };
-                        db.Teachers.Add(teacher);
-                        db.SaveChanges();
-
-                        LoadTeachers();
-                        TeacherComboBox.SelectedItem = teacher;
-
-                        MessageBox.Show(
-                            "Преподаватель успешно добавлен!",
-                            "Успех",
-                            MessageBoxButton.OK,
-                            MessageBoxImage.Information);
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(
-                        $"Ошибка при добавлении преподавателя: {ex.Message}",
-                        "Ошибка",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
-                }
+                _selectedContracts = dialog.SelectedContracts;
+                UpdateSelectedListenersSummary();
             }
         }
 
@@ -134,21 +178,43 @@ namespace Contract2512.Views
         {
             if (ProgramComboBox.SelectedItem is not LearningProgram selectedProgram)
             {
-                MessageBox.Show(
-                    "Выберите программу обучения!",
-                    "Внимание",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Warning);
+                MessageBox.Show("Выберите программу обучения.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            bool isGroupMode = IsGroupProgram(selectedProgram);
+            if (_selectedContracts.Count == 0)
+            {
+                MessageBox.Show(isGroupMode ? "Для группового режима выберите слушателей." : "Выберите слушателя по договору.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            if (!isGroupMode && _selectedContracts.Count > 1)
+            {
+                MessageBox.Show("В индивидуальном режиме можно выбрать только одного слушателя.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
+            var groupName = GroupNameTextBox.Text?.Trim() ?? string.Empty;
+            if (isGroupMode && string.IsNullOrWhiteSpace(groupName))
+            {
+                MessageBox.Show("Укажите название группы для группового режима.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
                 return;
             }
 
             try
             {
-                // Загружаем модули программы
                 List<ProgramModule> modules;
-                using (var db = new AppDbContext())
+                string programType;
+
+                using (var lookupDb = new AppDbContext())
                 {
-                    modules = db.ProgramModules
+                    programType = lookupDb.ProgramViews
+                        .Where(pv => pv.Id == selectedProgram.ProgramViewId)
+                        .Select(pv => pv.Name)
+                        .FirstOrDefault() ?? string.Empty;
+
+                    modules = lookupDb.ProgramModules
                         .Where(m => m.ProgramId == selectedProgram.Id)
                         .OrderBy(m => m.ModuleNumber)
                         .ToList();
@@ -156,60 +222,64 @@ namespace Contract2512.Views
 
                 if (modules.Count == 0)
                 {
-                    MessageBox.Show(
-                        "У выбранной программы нет модулей!\nВозможно, данные не были загружены из парсера.",
-                        "Внимание",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Warning);
+                    MessageBox.Show("У выбранной программы нет модулей.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
-                // Путь к шаблону
-                string templatePath = @"C:\Dogovora\Шаблон формирования учебной нагрузки.xlsx";
-                
+                var templatePath = @"C:\Dogovora\Шаблон формирования учебной нагрузки.xlsx";
                 if (!File.Exists(templatePath))
                 {
-                    MessageBox.Show(
-                        $"Файл шаблона не найден:\n{templatePath}",
-                        "Ошибка",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Error);
+                    MessageBox.Show($"Файл шаблона не найден:\n{templatePath}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
                     return;
                 }
 
-                // Создаем папку для сохранения документов
-                string documentsFolder = Path.Combine(
-                    Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                    "Учебная нагрузка");
+                var documentsFolder = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Учебная нагрузка");
                 Directory.CreateDirectory(documentsFolder);
 
-                // Формируем имя файла
-                string fileName = $"Учебная_нагрузка_{selectedProgram.Name}_{DateTime.Now:yyyyMMdd_HHmmss}.xlsx";
-                // Убираем недопустимые символы из имени файла
-                foreach (char c in Path.GetInvalidFileNameChars())
-                {
-                    fileName = fileName.Replace(c, '_');
-                }
-                string targetPath = Path.Combine(documentsFolder, fileName);
+                using var db = new AppDbContext();
+                EnsureWorkloadTablesCreated(db);
 
-                // Подготавливаем замены
-                var replacements = new Dictionary<string, string>
+                var now = DateTime.Now;
+                var batch = new WorkloadBatch
                 {
-                    { "{{Program_Name}}", selectedProgram.Name ?? "" },
-                    { "{{Time}}", selectedProgram.Hours.ToString() },
-                    { "{{Teacher}}", TeacherComboBox.SelectedItem is Teacher teacher ? teacher.FullName : "" },
-                    { "{{Teatcher}}", TeacherComboBox.SelectedItem is Teacher teacherAlias ? teacherAlias.FullName : "" }
+                    ProgramId = selectedProgram.Id,
+                    TeacherId = (TeacherComboBox.SelectedItem as Teacher)?.Id,
+                    GroupName = isGroupMode ? groupName : null,
+                    IsGroup = isGroupMode,
+                    CreatedAt = now
                 };
 
-                // Формируем документ
+                db.WorkloadBatches.Add(batch);
+                db.SaveChanges();
+
+                var generatedFiles = new List<string>();
                 var excelService = new ExcelDocumentService();
-                excelService.GenerateWorkloadDocument(templatePath, targetPath, replacements, modules);
 
-                // Открываем документ
-                excelService.OpenDocument(targetPath);
+                foreach (var contract in _selectedContracts)
+                {
+                    if (contract.Listener == null)
+                    {
+                        continue;
+                    }
 
+                    var targetPath = Path.Combine(documentsFolder, BuildFileName(selectedProgram.Name, contract.Listener.FullName, now, generatedFiles.Count));
+                    var replacements = BuildReplacements(selectedProgram, programType, contract, isGroupMode ? groupName : string.Empty);
+                    excelService.GenerateWorkloadDocument(templatePath, targetPath, replacements, modules);
+                    SaveWorkloadDocumentToDatabase(db, batch, selectedProgram, contract, programType, targetPath, modules, isGroupMode, groupName, now);
+                    generatedFiles.Add(targetPath);
+                }
+
+                if (generatedFiles.Count == 0)
+                {
+                    MessageBox.Show("Не удалось сформировать ни одного документа.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    return;
+                }
+
+                excelService.OpenDocument(generatedFiles[0]);
                 MessageBox.Show(
-                    $"Документ успешно сформирован и сохранен:\n{targetPath}",
+                    generatedFiles.Count == 1
+                        ? $"Документ успешно сформирован:\n{generatedFiles[0]}"
+                        : $"Сформировано документов: {generatedFiles.Count}\nПапка: {documentsFolder}",
                     "Успех",
                     MessageBoxButton.OK,
                     MessageBoxImage.Information);
@@ -219,12 +289,24 @@ namespace Contract2512.Views
             }
             catch (Exception ex)
             {
-                MessageBox.Show(
-                    $"Ошибка при формировании документа: {ex.Message}\n\nДетали: {ex.StackTrace}",
-                    "Ошибка",
-                    MessageBoxButton.OK,
-                    MessageBoxImage.Error);
+                MessageBox.Show($"Ошибка при формировании документов: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private Dictionary<string, string> BuildReplacements(LearningProgram selectedProgram, string programType, Contract contract, string groupName)
+        {
+            return new Dictionary<string, string>
+            {
+                { "{{Program_Name}}", selectedProgram.Name ?? string.Empty },
+                { "{{Program_Type}}", programType },
+                { "{{Time}}", selectedProgram.Hours.ToString() },
+                { "{{Teacher}}", TeacherComboBox.SelectedItem is Teacher teacher ? teacher.FullName : string.Empty },
+                { "{{Teatcher}}", TeacherComboBox.SelectedItem is Teacher teacherAlias ? teacherAlias.FullName : string.Empty },
+                { "{{FIO_Slushatel}}", contract.Listener?.FullName ?? string.Empty },
+                { "{{Group_Name}}", groupName },
+                { "{{Date Start}}", contract.StartDate?.ToString("dd.MM.yyyy") ?? string.Empty },
+                { "{{Date End}}", contract.EndDate?.ToString("dd.MM.yyyy") ?? string.Empty }
+            };
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -233,155 +315,198 @@ namespace Contract2512.Views
             Close();
         }
 
+        private void UpdateSelectedListenersSummary()
+        {
+            if (_selectedContracts.Count == 0)
+            {
+                SelectedListenersTextBlock.Text = "Слушатели не выбраны";
+                return;
+            }
+
+            SelectedListenersTextBlock.Text = string.Join(
+                Environment.NewLine,
+                _selectedContracts.Where(c => c.Listener != null).Select(c =>
+                {
+                    string start = c.StartDate?.ToString("dd.MM.yyyy") ?? "без даты";
+                    string end = c.EndDate?.ToString("dd.MM.yyyy") ?? "без даты";
+                    return $"{c.Listener!.FullName} ({start} - {end})";
+                }));
+        }
+
+        private static bool IsGroupProgram(LearningProgram program)
+        {
+            return !string.IsNullOrWhiteSpace(program.Format) &&
+                   program.Format.Contains("С преподавателем в группе", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string BuildFileName(string programName, string listenerName, DateTime timestamp, int index)
+        {
+            string fileName = $"Учебная_нагрузка_{programName}_{listenerName}_{timestamp:yyyyMMdd_HHmmss}_{index + 1}.xlsx";
+            foreach (var invalidChar in Path.GetInvalidFileNameChars())
+            {
+                fileName = fileName.Replace(invalidChar, '_');
+            }
+
+            return fileName;
+        }
+
+        private static void SaveWorkloadDocumentToDatabase(AppDbContext db, WorkloadBatch batch, LearningProgram selectedProgram, Contract contract, string programType, string targetPath, List<ProgramModule> modules, bool isGroupMode, string groupName, DateTime timestamp)
+        {
+            var workloadDocument = new WorkloadDocument
+            {
+                BatchId = batch.Id,
+                ProgramId = selectedProgram.Id,
+                ContractId = contract.Id,
+                ListenerId = contract.ListenerId,
+                TeacherId = batch.TeacherId,
+                ProgramType = string.IsNullOrWhiteSpace(programType) ? null : programType.Trim(),
+                GroupName = isGroupMode ? groupName : null,
+                IsGroup = isGroupMode,
+                FileName = Path.GetFileName(targetPath),
+                FilePath = targetPath,
+                GeneratedAt = timestamp,
+                CreatedAt = timestamp
+            };
+
+            db.WorkloadDocuments.Add(workloadDocument);
+            db.SaveChanges();
+
+            var scheduleEntries = BuildScheduleEntries(modules, workloadDocument.Id, timestamp);
+            if (scheduleEntries.Count > 0)
+            {
+                db.WorkloadScheduleEntries.AddRange(scheduleEntries);
+                db.SaveChanges();
+            }
+        }
+
+        private static void EnsureWorkloadTablesCreated(AppDbContext db)
+        {
+            db.Database.ExecuteSqlRaw(
+                """
+                CREATE TABLE IF NOT EXISTS public.workload_batch
+                (
+                    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                    program_id BIGINT NOT NULL,
+                    teacher_id BIGINT NULL,
+                    group_name VARCHAR(255) NULL,
+                    is_group BOOLEAN NOT NULL DEFAULT FALSE,
+                    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+                    CONSTRAINT fk_workload_batch_program FOREIGN KEY (program_id) REFERENCES public.learning_program(id) ON DELETE RESTRICT,
+                    CONSTRAINT fk_workload_batch_teacher FOREIGN KEY (teacher_id) REFERENCES public.teacher(id) ON DELETE SET NULL
+                );
+
+                CREATE INDEX IF NOT EXISTS ix_workload_batch_program_id ON public.workload_batch(program_id);
+                CREATE INDEX IF NOT EXISTS ix_workload_batch_teacher_id ON public.workload_batch(teacher_id);
+
+                CREATE TABLE IF NOT EXISTS public.workload_document
+                (
+                    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                    program_id BIGINT NOT NULL,
+                    batch_id BIGINT NULL,
+                    contract_id BIGINT NULL,
+                    listener_id BIGINT NULL,
+                    teacher_id BIGINT NULL,
+                    program_type VARCHAR(255) NULL,
+                    group_name VARCHAR(255) NULL,
+                    is_group BOOLEAN NOT NULL DEFAULT FALSE,
+                    file_name VARCHAR(500) NOT NULL,
+                    file_path VARCHAR(1000) NOT NULL,
+                    generated_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW(),
+                    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+                );
+
+                ALTER TABLE public.workload_document ADD COLUMN IF NOT EXISTS batch_id BIGINT NULL;
+                ALTER TABLE public.workload_document ADD COLUMN IF NOT EXISTS contract_id BIGINT NULL;
+                ALTER TABLE public.workload_document ADD COLUMN IF NOT EXISTS listener_id BIGINT NULL;
+                ALTER TABLE public.workload_document ADD COLUMN IF NOT EXISTS group_name VARCHAR(255) NULL;
+                ALTER TABLE public.workload_document ADD COLUMN IF NOT EXISTS is_group BOOLEAN NOT NULL DEFAULT FALSE;
+
+                CREATE INDEX IF NOT EXISTS ix_workload_document_program_id ON public.workload_document(program_id);
+                CREATE INDEX IF NOT EXISTS ix_workload_document_teacher_id ON public.workload_document(teacher_id);
+                CREATE INDEX IF NOT EXISTS ix_workload_document_batch_id ON public.workload_document(batch_id);
+                CREATE INDEX IF NOT EXISTS ix_workload_document_contract_id ON public.workload_document(contract_id);
+                CREATE INDEX IF NOT EXISTS ix_workload_document_listener_id ON public.workload_document(listener_id);
+
+                CREATE TABLE IF NOT EXISTS public.workload_schedule_entry
+                (
+                    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                    workload_document_id BIGINT NOT NULL,
+                    lesson_number INTEGER NOT NULL,
+                    module_number INTEGER NULL,
+                    module_name VARCHAR(500) NULL,
+                    topic TEXT NOT NULL,
+                    lesson_date DATE NULL,
+                    day_of_week VARCHAR(50) NULL,
+                    start_time TIME WITHOUT TIME ZONE NULL,
+                    end_time TIME WITHOUT TIME ZONE NULL,
+                    hours INTEGER NULL,
+                    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+                );
+
+                CREATE INDEX IF NOT EXISTS ix_workload_schedule_entry_document_id ON public.workload_schedule_entry(workload_document_id);
+
+                CREATE TABLE IF NOT EXISTS public.holiday_calendar_day
+                (
+                    id BIGINT GENERATED BY DEFAULT AS IDENTITY PRIMARY KEY,
+                    holiday_date DATE NOT NULL,
+                    holiday_name VARCHAR(255) NULL,
+                    created_at TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT NOW()
+                );
+
+                CREATE UNIQUE INDEX IF NOT EXISTS ix_holiday_calendar_day_holiday_date
+                    ON public.holiday_calendar_day(holiday_date);
+                """);
+        }
+
+        private static List<WorkloadScheduleEntry> BuildScheduleEntries(List<ProgramModule> modules, long workloadDocumentId, DateTime createdAt)
+        {
+            var result = new List<WorkloadScheduleEntry>();
+            int lessonNumber = 1;
+
+            foreach (var module in modules.OrderBy(m => m.ModuleNumber))
+            {
+                foreach (var topic in ExtractTopics(module.Description))
+                {
+                    result.Add(new WorkloadScheduleEntry
+                    {
+                        WorkloadDocumentId = workloadDocumentId,
+                        LessonNumber = lessonNumber++,
+                        ModuleNumber = module.ModuleNumber,
+                        ModuleName = string.IsNullOrWhiteSpace(module.ModuleName) ? null : module.ModuleName.Trim(),
+                        Topic = topic,
+                        LessonDate = null,
+                        DayOfWeek = null,
+                        StartTime = null,
+                        EndTime = null,
+                        Hours = 1,
+                        CreatedAt = createdAt
+                    });
+                }
+            }
+
+            return result;
+        }
+
+        private static List<string> ExtractTopics(string? description)
+        {
+            if (string.IsNullOrWhiteSpace(description))
+            {
+                return new List<string>();
+            }
+
+            return description
+                .Split(new[] { "\r\n", "\r", "\n" }, StringSplitOptions.RemoveEmptyEntries)
+                .Select(line => Regex.Replace(line.Trim(), @"^\d+[\.\)]\s*", string.Empty))
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .ToList();
+        }
+
         private void TitleBar_MouseDown(object sender, System.Windows.Input.MouseButtonEventArgs e)
         {
             if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
             {
                 DragMove();
             }
-        }
-    }
-
-    // Диалог для добавления преподавателя
-    public partial class TeacherDialog : FluentWindow
-    {
-        public string TeacherName { get; private set; } = "";
-
-        public TeacherDialog()
-        {
-            InitializeComponent();
-        }
-
-        private void InitializeComponent()
-        {
-            Title = "Добавить преподавателя";
-            WindowStartupLocation = WindowStartupLocation.CenterOwner;
-            Width = 400;
-            Height = 200;
-            ExtendsContentIntoTitleBar = true;
-
-            var grid = new System.Windows.Controls.Grid();
-            grid.Background = new System.Windows.Media.LinearGradientBrush(
-                System.Windows.Media.Color.FromRgb(30, 27, 75),
-                System.Windows.Media.Color.FromRgb(15, 23, 42),
-                new System.Windows.Point(0, 0),
-                new System.Windows.Point(1, 1));
-
-            grid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = new GridLength(32) });
-            grid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-            // TitleBar
-            var titleBar = new System.Windows.Controls.Grid();
-            titleBar.Background = System.Windows.Media.Brushes.Transparent;
-            titleBar.MouseDown += (s, e) => { if (e.ChangedButton == System.Windows.Input.MouseButton.Left) DragMove(); };
-            var titleText = new System.Windows.Controls.TextBlock
-            {
-                Text = "Добавить преподавателя",
-                Foreground = System.Windows.Media.Brushes.White,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(12, 0, 0, 0)
-            };
-            titleBar.Children.Add(titleText);
-            System.Windows.Controls.Grid.SetRow(titleBar, 0);
-            grid.Children.Add(titleBar);
-
-            // Content
-            var contentBorder = new System.Windows.Controls.Border
-            {
-                Margin = new Thickness(20),
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59)) { Opacity = 0.3 },
-                CornerRadius = new CornerRadius(12),
-                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(71, 85, 105)),
-                BorderThickness = new Thickness(1)
-            };
-
-            var contentGrid = new System.Windows.Controls.Grid();
-            contentGrid.Margin = new Thickness(20);
-            contentGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = GridLength.Auto });
-            contentGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = GridLength.Auto });
-            contentGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-            contentGrid.RowDefinitions.Add(new System.Windows.Controls.RowDefinition { Height = GridLength.Auto });
-
-            var label = new System.Windows.Controls.TextBlock
-            {
-                Text = "ФИО преподавателя:",
-                FontSize = 14,
-                Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(209, 213, 219)),
-                Margin = new Thickness(0, 0, 0, 5)
-            };
-            System.Windows.Controls.Grid.SetRow(label, 0);
-            contentGrid.Children.Add(label);
-
-            var textBox = new System.Windows.Controls.TextBox
-            {
-                FontSize = 14,
-                Padding = new Thickness(8, 6, 8, 6),
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59)) { Opacity = 0.4 },
-                Foreground = System.Windows.Media.Brushes.White,
-                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(100, 116, 139)),
-                BorderThickness = new Thickness(1)
-            };
-            System.Windows.Controls.Grid.SetRow(textBox, 1);
-            contentGrid.Children.Add(textBox);
-
-            var buttonPanel = new System.Windows.Controls.StackPanel
-            {
-                Orientation = System.Windows.Controls.Orientation.Horizontal,
-                HorizontalAlignment = HorizontalAlignment.Right,
-                Margin = new Thickness(0, 15, 0, 0)
-            };
-
-            var okButton = new System.Windows.Controls.Button
-            {
-                Content = "Добавить",
-                Padding = new Thickness(16, 10, 16, 10),
-                Margin = new Thickness(0, 0, 10, 0),
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(139, 92, 246)),
-                Foreground = System.Windows.Media.Brushes.White,
-                BorderThickness = new Thickness(0),
-                Cursor = System.Windows.Input.Cursors.Hand,
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 14
-            };
-            okButton.Click += (s, e) =>
-            {
-                if (string.IsNullOrWhiteSpace(textBox.Text))
-                {
-                    MessageBox.Show("Введите ФИО преподавателя!", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
-                    return;
-                }
-                TeacherName = textBox.Text.Trim();
-                DialogResult = true;
-                Close();
-            };
-
-            var cancelButton = new System.Windows.Controls.Button
-            {
-                Content = "Отмена",
-                Padding = new Thickness(16, 10, 16, 10),
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(75, 85, 99)) { Opacity = 0.3 },
-                Foreground = System.Windows.Media.Brushes.White,
-                BorderThickness = new Thickness(0),
-                Cursor = System.Windows.Input.Cursors.Hand,
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 14
-            };
-            cancelButton.Click += (s, e) =>
-            {
-                DialogResult = false;
-                Close();
-            };
-
-            buttonPanel.Children.Add(okButton);
-            buttonPanel.Children.Add(cancelButton);
-            System.Windows.Controls.Grid.SetRow(buttonPanel, 3);
-            contentGrid.Children.Add(buttonPanel);
-
-            contentBorder.Child = contentGrid;
-            System.Windows.Controls.Grid.SetRow(contentBorder, 1);
-            grid.Children.Add(contentBorder);
-
-            Content = grid;
         }
     }
 }
