@@ -81,8 +81,9 @@ namespace Contract2512
                 var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "contracts2512";
                 var githubToken = EnvConfigService.Get("GITHUB_TOKEN");
                 
-                // URL для Squirrel (GitHub Releases)
-                var updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/latest/download";
+                // URL для Squirrel (GitHub Releases) - правильный формат
+                // Squirrel ищет файл RELEASES по этому URL
+                var updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/download";
                 
                 var updateService = new AutoUpdateService(updateUrl);
                 
