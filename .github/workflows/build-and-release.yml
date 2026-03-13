@@ -24,11 +24,8 @@ jobs:
     - name: Restore dependencies
       run: dotnet restore Contract2512.csproj
       
-    - name: Build Release
-      run: dotnet build Contract2512.csproj -c Release
-      
-    - name: Publish Release
-      run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained false -o ./publish --no-build
+    - name: Publish Release (без предварительной сборки)
+      run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained false -o ./publish
       
     - name: Install Clowd.Squirrel
       run: dotnet tool install --global Clowd.Squirrel --version 2.11.1

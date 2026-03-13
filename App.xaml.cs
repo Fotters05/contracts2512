@@ -3,7 +3,7 @@ using System.Data;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
-using Clowd.Squirrel;
+// using Clowd.Squirrel; // Закомментировано для избежания проблем с WPF временными проектами
 
 namespace Contract2512
 {
@@ -17,7 +17,7 @@ namespace Contract2512
             base.OnStartup(e);
             
             // Обрабатываем события Squirrel (установка, обновление, удаление)
-            await HandleSquirrelEventsAsync();
+            // await HandleSquirrelEventsAsync(); // Временно отключено из-за проблем с WPF компиляцией
             
             // Проверяем наличие настроек подключения к БД
             if (!DbConnectionStringProvider.HasConnectionString())
@@ -44,6 +44,7 @@ namespace Contract2512
             _ = CheckForUpdatesAsync();
         }
 
+        /*
         /// <summary>
         /// Обрабатывает события Squirrel (установка, обновление, удаление)
         /// </summary>
@@ -66,6 +67,7 @@ namespace Contract2512
                 // Игнорируем ошибки Squirrel при обычном запуске
             }
         }
+        */
 
         /// <summary>
         /// Проверяет наличие обновлений через Squirrel

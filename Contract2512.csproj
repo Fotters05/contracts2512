@@ -18,6 +18,9 @@
     <!-- Дополнительные настройки для корректной работы с пакетами в WPF -->
     <SkipWPFTempProjectCreation>true</SkipWPFTempProjectCreation>
     <DisableWPFTempProjectCreation>true</DisableWPFTempProjectCreation>
+    
+    <!-- Отключаем проверку типов в XAML на этапе компиляции -->
+    <SkipXamlMarkupCompilePass1>false</SkipXamlMarkupCompilePass1>
   </PropertyGroup>
 
   <ItemGroup>
