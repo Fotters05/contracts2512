@@ -76,14 +76,26 @@ namespace Contract2512
         {
             try
             {
-                // Читаем настройки из .env
-                var githubOwner = EnvConfigService.Get("GITHUB_OWNER") ?? "Pyanuk";
+                // Читаем настройки из .env с fallback значениями
+                var githubOwner = EnvConfigService.Get("GITHUB_OWNER") ?? "Fotters05";
                 var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "contracts2512";
                 var githubToken = EnvConfigService.Get("GITHUB_TOKEN");
                 
-                // URL для Squirrel (GitHub Releases) - правильный формат
-                // Squirrel ищет файл RELEASES по этому URL
-                var updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/download";
+                // URL для Squirrel (GitHub Releases)
+                // Для закрытых репозиториев добавляем токен в URL
+                string updateUrl;
+                if (!string.IsNullOrEmpty(githubToken))
+                {
+                    // Для закрытых репозиториев используем токен
+                    updateUrl = $"https://{githubToken}@github.com/{githubOwner}/{githubRepo}/releases/download";
+                    System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (private repo) по URL: https://***@github.com/{githubOwner}/{githubRepo}/releases/download");
+                }
+                else
+                {
+                    // Для публичных репозиториев токен не нужен
+                    updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/download";
+                    System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (public repo) по URL: {updateUrl}");
+                }
                 
                 var updateService = new AutoUpdateService(updateUrl);
                 
@@ -91,6 +103,8 @@ namespace Contract2512
 
                 if (updateInfo.HasUpdate)
                 {
+                    System.Diagnostics.Debug.WriteLine($"✅ Найдено обновление: {updateInfo.Version}");
+                    
                     // Показываем окно обновления в UI потоке
                     Dispatcher.Invoke(() =>
                     {
@@ -98,11 +112,20 @@ namespace Contract2512
                         updateWindow.ShowDialog();
                     });
                 }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine($"ℹ️ Обновлений нет. Текущая версия: {updateInfo.CurrentVersion}");
+                    if (!string.IsNullOrEmpty(updateInfo.Error))
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Ошибка: {updateInfo.Error}");
+                    }
+                }
             }
             catch (Exception ex)
             {
                 // Ошибки обновления не должны ломать приложение
-                System.Diagnostics.Debug.WriteLine($"Ошибка проверки обновлений: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"❌ Ошибка проверки обновлений: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
             }
         }
     }

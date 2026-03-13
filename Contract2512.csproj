@@ -8,9 +8,9 @@
     <UseWPF>true</UseWPF>
     
     <!-- Версионирование для автообновлений -->
-    <Version>1.0.7</Version>
-    <AssemblyVersion>1.0.7.0</AssemblyVersion>
-    <FileVersion>1.0.7.0</FileVersion>
+    <Version>1.0.8</Version>
+    <AssemblyVersion>1.0.8.0</AssemblyVersion>
+    <FileVersion>1.0.8.0</FileVersion>
     
     <!-- Отключаем генерацию временных проектов WPF для корректной работы с NuGet пакетами -->
     <GenerateTemporaryTargetAssembly>false</GenerateTemporaryTargetAssembly>
@@ -63,6 +63,9 @@
     <Content Include="splash.png">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <None Include=".env">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
