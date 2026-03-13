@@ -168,7 +168,7 @@
                                       Foreground="{StaticResource TextPrimary}"
                                       VerticalAlignment="Center"/>
                             <Button Grid.Column="2"
-                                   Content="Написать"
+                                   Content="Куку"
                                    Style="{StaticResource DarkButtonStyle}"
                                    Click="OpenTelegram1_Click"
                                    
