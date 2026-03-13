@@ -38,7 +38,7 @@ jobs:
         # GitHub Auto-Update Settings
         GITHUB_OWNER=Fotters05
         GITHUB_REPO=contracts2512
-        GITHUB_TOKEN=${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN=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
         "@ | Out-File -FilePath .env -Encoding UTF8
       shell: pwsh
       
