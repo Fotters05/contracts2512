@@ -17,10 +17,8 @@ namespace Contract2512.Views
             _updateService = updateService;
 
             // Заполняем информацию
-            VersionText.Text = $"Версия: {updateInfo.Version}";
-            DateText.Text = updateInfo.PublishedAt.HasValue 
-                ? $"Опубликовано: {updateInfo.PublishedAt.Value:dd.MM.yyyy HH:mm}"
-                : "";
+            VersionText.Text = $"Доступна версия: {updateInfo.Version}";
+            DateText.Text = $"Текущая версия: {updateInfo.CurrentVersion}";
             ReleaseNotesText.Text = updateInfo.ReleaseNotes;
         }
 
@@ -42,13 +40,18 @@ namespace Contract2512.Views
                     ProgressText.Text = $"Скачивание обновления... {percent}%";
                 });
 
-                // Скачиваем и устанавливаем
-                var success = await _updateService.DownloadAndInstallUpdateAsync(
-                    _updateInfo.DownloadUrl, 
-                    progress
-                );
+                // Скачиваем и устанавливаем через Squirrel
+                var success = await _updateService.DownloadAndInstallUpdateAsync(progress);
 
-                if (!success)
+                if (success)
+                {
+                    ProgressText.Text = "Обновление установлено! Перезапуск приложения...";
+                    await System.Threading.Tasks.Task.Delay(1000);
+                    
+                    // Перезапускаем приложение
+                    AutoUpdateService.RestartApp();
+                }
+                else
                 {
                     MessageBox.Show(
                         "Не удалось установить обновление. Попробуйте позже.",

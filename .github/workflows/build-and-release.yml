@@ -1,4 +1,4 @@
-name: Build and Release
+name: Build and Release with Squirrel
 
 # Запускается при push тега вида v1.0.0
 on:
@@ -25,42 +25,53 @@ jobs:
       run: dotnet restore Contract2512.csproj
       
     - name: Build Release
-      run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained true -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true -o ./publish
+      run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained false -o ./publish
+      
+    - name: Install Squirrel.Windows
+      run: dotnet tool install --global Squirrel.Windows --version 2.11.1
       
     - name: Get version from tag
       id: get_version
-      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
-      shell: bash
+      run: |
+        $version = "${{ github.ref }}".Replace("refs/tags/v", "")
+        echo "VERSION=$version" >> $env:GITHUB_OUTPUT
+      shell: pwsh
       
-    - name: Create Release
+    - name: Create Squirrel Release
+      run: |
+        $version = "${{ steps.get_version.outputs.VERSION }}"
+        squirrel pack --packId Contract2512 --packVersion $version --packDirectory ./publish --releaseDir ./releases --icon progaico.ico
+      shell: pwsh
+      
+    - name: Create GitHub Release
       id: create_release
-      uses: actions/create-release@v1
-      env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      uses: softprops/action-gh-release@v1
       with:
         tag_name: ${{ github.ref }}
-        release_name: Release ${{ github.ref }}
+        name: Release ${{ github.ref }}
         draft: false
         prerelease: false
         body: |
-          ## 🎉 Новая версия Contract2512
-          
-          ### Что нового:
-          - Автоматическая сборка через GitHub Actions
-          - Улучшения производительности
-          - Исправления ошибок
+          ## 🎉 Новая версия Contract2512 v${{ steps.get_version.outputs.VERSION }}
           
           ### Установка:
-          1. Скачайте Contract2512.exe
-          2. Запустите файл
-          3. Если у вас уже установлена предыдущая версия, приложение автоматически обновится
           
-    - name: Upload Release Asset
-      uses: actions/upload-release-asset@v1
+          **Первая установка:**
+          1. Скачайте `Setup.exe`
+          2. Запустите установщик
+          3. Приложение установится автоматически и создаст ярлык на рабочем столе
+          
+          **Обновление:**
+          - Если у вас уже установлена предыдущая версия, просто запустите приложение
+          - Обновление произойдёт автоматически в фоне
+          
+          ### Что нового:
+          - Автоматическая установка и обновление через Squirrel
+          - Улучшения производительности
+          - Исправления ошибок
+        files: |
+          ./releases/Setup.exe
+          ./releases/RELEASES
+          ./releases/*.nupkg
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./publish/Contract2512.exe
-        asset_name: Contract2512.exe
-        asset_content_type: application/octet-stream

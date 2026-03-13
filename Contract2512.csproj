@@ -27,8 +27,8 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
     <PackageReference Include="WPF-UI" Version="4.1.0" />
     
-    <!-- Автообновления -->
-    <PackageReference Include="Octokit" Version="13.0.1" />
+    <!-- Автообновления через Squirrel -->
+    <PackageReference Include="Squirrel.Windows" Version="2.11.1" />
   </ItemGroup>
 
   <ItemGroup>

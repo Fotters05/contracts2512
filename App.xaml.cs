@@ -3,6 +3,7 @@ using System.Data;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
+using Squirrel;
 
 namespace Contract2512
 {
@@ -14,6 +15,9 @@ namespace Contract2512
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            
+            // Обрабатываем события Squirrel (установка, обновление, удаление)
+            await HandleSquirrelEventsAsync();
             
             // Проверяем наличие настроек подключения к БД
             if (!DbConnectionStringProvider.HasConnectionString())
@@ -41,22 +45,48 @@ namespace Contract2512
         }
 
         /// <summary>
-        /// Проверяет наличие обновлений на GitHub
+        /// Обрабатывает события Squirrel (установка, обновление, удаление)
+        /// </summary>
+        private async System.Threading.Tasks.Task HandleSquirrelEventsAsync()
+        {
+            try
+            {
+                using (var mgr = new UpdateManager(""))
+                {
+                    // Обрабатываем аргументы командной строки от Squirrel
+                    await SquirrelAwareApp.HandleEvents(
+                        onInitialInstall: v => mgr.CreateShortcutForThisExe(),
+                        onAppUpdate: v => mgr.CreateShortcutForThisExe(),
+                        onAppUninstall: v => mgr.RemoveShortcutForThisExe()
+                    );
+                }
+            }
+            catch
+            {
+                // Игнорируем ошибки Squirrel при обычном запуске
+            }
+        }
+
+        /// <summary>
+        /// Проверяет наличие обновлений через Squirrel
         /// </summary>
         private async System.Threading.Tasks.Task CheckForUpdatesAsync()
         {
             try
             {
                 // Читаем настройки из .env
-                var githubOwner = EnvConfigService.Get("GITHUB_OWNER") ?? "твой-username";
+                var githubOwner = EnvConfigService.Get("GITHUB_OWNER") ?? "Pyanuk";
                 var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "contracts2512";
-                var githubToken = EnvConfigService.Get("GITHUB_TOKEN"); // Токен для приватного репозитория
+                var githubToken = EnvConfigService.Get("GITHUB_TOKEN");
                 
-                var updateService = new AutoUpdateService(githubOwner, githubRepo, githubToken);
+                // URL для Squirrel (GitHub Releases)
+                var updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/latest/download";
+                
+                var updateService = new AutoUpdateService(updateUrl);
                 
                 var updateInfo = await updateService.CheckForUpdatesAsync();
 
-                if (updateInfo.HasUpdate && !string.IsNullOrEmpty(updateInfo.DownloadUrl))
+                if (updateInfo.HasUpdate)
                 {
                     // Показываем окно обновления в UI потоке
                     Dispatcher.Invoke(() =>
@@ -69,7 +99,7 @@ namespace Contract2512
             catch (Exception ex)
             {
                 // Ошибки обновления не должны ломать приложение
-                Console.WriteLine($"Ошибка проверки обновлений: {ex.Message}");
+                System.Diagnostics.Debug.WriteLine($"Ошибка проверки обновлений: {ex.Message}");
             }
         }
     }
