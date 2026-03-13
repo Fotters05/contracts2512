@@ -50,7 +50,7 @@ namespace Contract2512 {
         /// InitializeComponent
         /// </summary>
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "8.0.22.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "9.0.11.0")]
         public void InitializeComponent() {
             if (_contentLoaded) {
                 return;
@@ -76,7 +76,7 @@ namespace Contract2512 {
         /// </summary>
         [System.STAThreadAttribute()]
         [System.Diagnostics.DebuggerNonUserCodeAttribute()]
-        [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "8.0.22.0")]
+        [System.CodeDom.Compiler.GeneratedCodeAttribute("PresentationBuildTasks", "9.0.11.0")]
         public static void Main() {
             Contract2512.App app = new Contract2512.App();
             app.InitializeComponent();

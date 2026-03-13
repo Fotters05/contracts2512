@@ -34,6 +34,14 @@ namespace Contract2512.Services
             {
                 var connectionString = DbConnectionStringProvider.GetConnectionString();
                 
+                if (string.IsNullOrWhiteSpace(connectionString))
+                {
+                    throw new InvalidOperationException(
+                        "Строка подключения к базе данных не настроена. " +
+                        "Пожалуйста, настройте подключение через окно настроек."
+                    );
+                }
+                
                 // Отключаем преобразование DateTime в UTC
                 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
                 

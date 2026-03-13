@@ -1,3 +1,7 @@
+// ВАЖНО: env-loader.js должен быть импортирован ПЕРВЫМ!
+// Это гарантирует, что .env загрузится до импорта config.js
+import './env-loader.js';
+
 import { parseAllPrograms, parseDetailsForPrograms } from './parser.js';
 import { testConnection, importProgram, deleteProgramsAboveId } from './import-to-db.js';
 import fs from 'fs/promises';

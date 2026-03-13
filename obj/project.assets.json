@@ -761,6 +761,19 @@
           }
         }
       },
+      "Octokit/13.0.1": {
+        "type": "package",
+        "compile": {
+          "lib/netstandard2.0/Octokit.dll": {
+            "related": ".xml"
+          }
+        },
+        "runtime": {
+          "lib/netstandard2.0/Octokit.dll": {
+            "related": ".xml"
+          }
+        }
+      },
       "RBush/4.0.0": {
         "type": "package",
         "compile": {
@@ -2511,6 +2524,20 @@
         "postgresql.png"
       ]
     },
+    "Octokit/13.0.1": {
+      "sha512": "tjXTa2FXzbd3n17VWpi8UXe05EIJqHcWJW8C2kukftIve00duWiZL8x4i1vlZQ0zQ4RbRANbRc7J5K7Co/1spQ==",
+      "type": "package",
+      "path": "octokit/13.0.1",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/netstandard2.0/Octokit.dll",
+        "lib/netstandard2.0/Octokit.xml",
+        "octokit.13.0.1.nupkg.sha512",
+        "octokit.nuspec",
+        "octokit.png"
+      ]
+    },
     "RBush/4.0.0": {
       "sha512": "j3GeRxxLUQdc+UrZnvythdQxi3bd8ayn87VDjfGXrvfodF550n9wR6SgQvpo+YiAv3GJezsu6lK0l47rRqnbdg==",
       "type": "package",
@@ -3399,24 +3426,30 @@
       "Microsoft.EntityFrameworkCore.Design >= 8.0.0",
       "Microsoft.Office.Interop.Word >= 15.0.4797.1004",
       "Npgsql.EntityFrameworkCore.PostgreSQL >= 8.0.0",
+      "Octokit >= 13.0.1",
       "System.Configuration.ConfigurationManager >= 9.0.0",
       "WPF-UI >= 4.1.0"
     ]
   },
   "packageFolders": {
-    "C:\\Users\\Fotters\\.nuget\\packages\\": {}
+    "C:\\Users\\rhali\\.nuget\\packages\\": {},
+    "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Contract2512.csproj",
+      "projectUniqueName": "C:\\Users\\rhali\\Desktop\\contracts2512\\Contract2512.csproj",
       "projectName": "Contract2512",
-      "projectPath": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\Contract2512.csproj",
-      "packagesPath": "C:\\Users\\Fotters\\.nuget\\packages\\",
-      "outputPath": "C:\\Users\\Fotters\\source\\repos\\Contract2512\\obj\\",
+      "projectPath": "C:\\Users\\rhali\\Desktop\\contracts2512\\Contract2512.csproj",
+      "packagesPath": "C:\\Users\\rhali\\.nuget\\packages\\",
+      "outputPath": "C:\\Users\\rhali\\Desktop\\contracts2512\\obj\\",
       "projectStyle": "PackageReference",
+      "fallbackFolders": [
+        "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"
+      ],
       "configFilePaths": [
-        "C:\\Users\\Fotters\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Users\\rhali\\AppData\\Roaming\\NuGet\\NuGet.Config",
+        "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.FallbackLocation.config",
         "C:\\Program Files (x86)\\NuGet\\Config\\Microsoft.VisualStudio.Offline.config"
       ],
       "originalTargetFrameworks": [
@@ -3424,7 +3457,6 @@
       ],
       "sources": {
         "C:\\Program Files (x86)\\Microsoft SDKs\\NuGetPackages\\": {},
-        "C:\\Program Files\\dotnet\\library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
@@ -3442,7 +3474,8 @@
         "enableAudit": "true",
         "auditLevel": "low",
         "auditMode": "direct"
-      }
+      },
+      "SdkAnalysisLevel": "9.0.300"
     },
     "frameworks": {
       "net8.0-windows7.0": {
@@ -3478,6 +3511,10 @@
             "target": "Package",
             "version": "[8.0.0, )"
           },
+          "Octokit": {
+            "target": "Package",
+            "version": "[13.0.1, )"
+          },
           "System.Configuration.ConfigurationManager": {
             "target": "Package",
             "version": "[9.0.0, )"
@@ -3506,7 +3543,7 @@
             "privateAssets": "none"
           }
         },
-        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\8.0.416/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "C:\\Program Files\\dotnet\\sdk\\9.0.308/PortableRuntimeIdentifierGraph.json"
       }
     }
   }

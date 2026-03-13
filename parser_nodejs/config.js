@@ -10,13 +10,13 @@ export const config = {
     'ДОП': 'дополнительное-образование'
   },
   
-  // База данных PostgreSQL
+  // База данных PostgreSQL (читаем ТОЛЬКО из переменных окружения)
   database: {
-    host: '26.242.232.93',  // Явно IPv4 вместо localhost
-    port: 5432,
-    user: 'postgres',
-    password: '1',
-    database: 'MPT2512'
+    host: process.env.DB_HOST,
+    port: parseInt(process.env.DB_PORT),
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME
   },
   
   // Настройки парсинга
@@ -27,3 +27,12 @@ export const config = {
     retryDelay: 2000     // Задержка между попытками (мс)
   }
 };
+
+// Отладка: выводим конфигурацию БД
+console.log('🔧 Конфигурация БД из config.js:');
+console.log('   host:', config.database.host);
+console.log('   port:', config.database.port);
+console.log('   database:', config.database.database);
+console.log('   user:', config.database.user);
+console.log('   password:', config.database.password ? '***' : '(пусто)');
+console.log('');

@@ -1,3 +1,7 @@
+// ВАЖНО: env-loader.js должен быть импортирован ПЕРВЫМ!
+// Это гарантирует, что .env загрузится до импорта config.js
+import './env-loader.js';
+
 import axios from 'axios';
 import * as cheerio from 'cheerio';
 import { config } from './config.js';

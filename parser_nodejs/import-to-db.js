@@ -1,3 +1,7 @@
+// ВАЖНО: env-loader.js должен быть импортирован ПЕРВЫМ!
+// Это гарантирует, что .env загрузится до импорта config.js
+import './env-loader.js';
+
 import pg from 'pg';
 import { config } from './config.js';
 import { parseAllPrograms, parseDetailsForPrograms } from './parser.js';
@@ -12,6 +16,13 @@ const pool = new Pool(config.database);
  */
 async function testConnection() {
   try {
+    console.log('🔍 Параметры подключения:');
+    console.log(`   Host: ${config.database.host}`);
+    console.log(`   Port: ${config.database.port}`);
+    console.log(`   Database: ${config.database.database}`);
+    console.log(`   User: ${config.database.user}`);
+    console.log('');
+    
     const client = await pool.connect();
     console.log('✓ Подключение к базе данных успешно');
     client.release();

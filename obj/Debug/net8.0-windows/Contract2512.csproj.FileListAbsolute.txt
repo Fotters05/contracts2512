@@ -306,3 +306,7 @@ C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\Holida
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\HolidayCalendarWindow.g.cs
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\DatabaseSettingsWindow.baml
 C:\Users\Fotters\source\repos\Contract2512\obj\Debug\net8.0-windows\Views\DatabaseSettingsWindow.g.cs
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\DatabaseSettingsWindow.baml
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\HolidayCalendarWindow.baml
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\DatabaseSettingsWindow.g.cs
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\HolidayCalendarWindow.g.cs

@@ -1,20 +1,20 @@
 ﻿Contract2512
-
+1.0.0.0
 
 winexe
 C#
 .cs
-C:\Users\Fotters\source\repos\Contract2512\obj\Release\net8.0-windows\
+C:\Users\rhali\Desktop\contracts2512\obj\Release\net8.0-windows\
 Contract2512
 none
 false
-TRACE;RELEASE;NET;NET8_0;NETCOREAPP
-C:\Users\Fotters\source\repos\Contract2512\App.xaml
-9-1834705199
+TRACE;RELEASE;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
+C:\Users\rhali\Desktop\contracts2512\App.xaml
+15608587858
 11172441761
-311821859035
-220841318157
-MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\OrganizationEditWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;
+50-381166641
+226-345070859
+MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\DatabaseSettingsWindow.xaml;Views\HolidayCalendarWindow.xaml;Views\OrganizationEditWindow.xaml;Views\ParserWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramDetailsWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;Views\UpdateWindow.xaml;Views\WorkloadWindow.xaml;
 
 False
 
