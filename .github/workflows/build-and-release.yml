@@ -28,7 +28,10 @@ jobs:
       run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained false -o ./publish
       
     - name: Install Clowd.Squirrel
-      run: dotnet tool install --global Clowd.Squirrel --version 2.11.1
+      run: |
+        # Clowd.Squirrel не является .NET tool, используем через NuGet
+        dotnet new tool-manifest --force
+        dotnet tool install Clowd.Squirrel --version 2.11.1
       
     - name: Get version from tag
       id: get_version
@@ -40,7 +43,7 @@ jobs:
     - name: Create Squirrel Release
       run: |
         $version = "${{ steps.get_version.outputs.VERSION }}"
-        squirrel pack --packId Contract2512 --packVersion $version --packDirectory ./publish --releaseDir ./releases --icon progaico.ico
+        dotnet tool run squirrel pack --packId Contract2512 --packVersion $version --packDirectory ./publish --releaseDir ./releases --icon progaico.ico
       shell: pwsh
       
     - name: Create GitHub Release
