@@ -17,9 +17,13 @@ namespace Contract2512.Services
         public NodePackageService()
         {
             // Get path to parser_nodejs folder
-            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            // Use the directory where the executable is located
+            var appDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) 
+                         ?? AppDomain.CurrentDomain.BaseDirectory;
             _parserPath = Path.Combine(appDir, "parser_nodejs");
             _nodeModulesPath = Path.Combine(_parserPath, "node_modules");
+            
+            System.Diagnostics.Debug.WriteLine($"📁 Parser path: {_parserPath}");
         }
 
         /// <summary>
