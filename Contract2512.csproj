@@ -28,7 +28,7 @@
     <PackageReference Include="WPF-UI" Version="4.1.0" />
     
     <!-- Автообновления через Squirrel -->
-    <PackageReference Include="Squirrel.Windows" Version="2.11.1" />
+    <PackageReference Include="Squirrel.Windows" Version="2.0.1" />
   </ItemGroup>
 
   <ItemGroup>
