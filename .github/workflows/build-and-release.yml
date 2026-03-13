@@ -35,14 +35,6 @@ jobs:
     - name: Create .env file
       run: |
         @"
-        # Database Connection Settings
-        DB_HOST=26.242.232.93
-        DB_PORT=5432
-        DB_NAME=MPT2512
-        DB_USER=postgres
-        DB_PASSWORD=1
-        DB_CONNECTION_STRING=Host=26.242.232.93;Port=5432;Database=MPT2512;Username=postgres;Password=1
-        
         # GitHub Auto-Update Settings
         GITHUB_OWNER=Fotters05
         GITHUB_REPO=contracts2512
