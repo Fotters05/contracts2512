@@ -11,6 +11,9 @@
     <Version>1.0.1</Version>
     <AssemblyVersion>1.0.1.0</AssemblyVersion>
     <FileVersion>1.0.1.0</FileVersion>
+    
+    <!-- Отключаем генерацию временных проектов WPF для корректной работы с NuGet пакетами -->
+    <GenerateTemporaryTargetAssembly>false</GenerateTemporaryTargetAssembly>
   </PropertyGroup>
 
   <ItemGroup>
