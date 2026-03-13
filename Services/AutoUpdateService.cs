@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
-using Squirrel;
+using Clowd.Squirrel;
 
 namespace Contract2512.Services
 {

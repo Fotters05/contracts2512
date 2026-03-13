@@ -3,7 +3,7 @@ using System.Data;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
-using Squirrel;
+using Clowd.Squirrel;
 
 namespace Contract2512
 {
