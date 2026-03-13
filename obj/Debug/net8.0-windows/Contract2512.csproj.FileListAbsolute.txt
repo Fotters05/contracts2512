@@ -310,3 +310,6 @@ C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\DatabaseSett
 C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\HolidayCalendarWindow.baml
 C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\DatabaseSettingsWindow.g.cs
 C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\HolidayCalendarWindow.g.cs
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\UpdateWindow.baml
+C:\Users\rhali\Desktop\contracts2512\obj\Debug\net8.0-windows\Views\UpdateWindow.g.cs
+C:\Users\rhali\Desktop\contracts2512\bin\Debug\net8.0-windows\SquirrelLib.dll

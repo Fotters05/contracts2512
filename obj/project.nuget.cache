@@ -1,11 +1,12 @@
 {
   "version": 2,
-  "dgSpecHash": "9XndkiPd/5o=",
+  "dgSpecHash": "VAywvkTUz4U=",
   "success": true,
   "projectFilePath": "C:\\Users\\rhali\\Desktop\\contracts2512\\Contract2512.csproj",
   "expectedPackageFiles": [
     "C:\\Users\\rhali\\.nuget\\packages\\closedxml\\0.104.2\\closedxml.0.104.2.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\closedxml.parser\\1.2.0\\closedxml.parser.1.2.0.nupkg.sha512",
+    "C:\\Users\\rhali\\.nuget\\packages\\clowd.squirrel\\2.11.1\\clowd.squirrel.2.11.1.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\documentformat.openxml\\3.3.0\\documentformat.openxml.3.3.0.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\documentformat.openxml.framework\\3.3.0\\documentformat.openxml.framework.3.3.0.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\excelnumberformat\\1.1.0\\excelnumberformat.1.1.0.nupkg.sha512",
@@ -38,7 +39,6 @@
     "C:\\Users\\rhali\\.nuget\\packages\\mono.texttemplating\\2.2.1\\mono.texttemplating.2.2.1.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\npgsql\\8.0.0\\npgsql.8.0.0.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\npgsql.entityframeworkcore.postgresql\\8.0.0\\npgsql.entityframeworkcore.postgresql.8.0.0.nupkg.sha512",
-    "C:\\Users\\rhali\\.nuget\\packages\\octokit\\13.0.1\\octokit.13.0.1.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\rbush\\4.0.0\\rbush.4.0.0.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\sixlabors.fonts\\1.0.0\\sixlabors.fonts.1.0.0.nupkg.sha512",
     "C:\\Users\\rhali\\.nuget\\packages\\system.codedom\\4.4.0\\system.codedom.4.4.0.nupkg.sha512",

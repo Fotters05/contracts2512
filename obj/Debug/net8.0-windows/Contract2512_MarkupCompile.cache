@@ -1,5 +1,5 @@
 ﻿Contract2512
-
+1.0.1.0
 
 winexe
 C#
@@ -10,11 +10,11 @@ none
 false
 TRACE;DEBUG;NET;NET8_0;NETCOREAPP;WINDOWS;WINDOWS7_0;NET5_0_OR_GREATER;NET6_0_OR_GREATER;NET7_0_OR_GREATER;NET8_0_OR_GREATER;NETCOREAPP3_0_OR_GREATER;NETCOREAPP3_1_OR_GREATER;WINDOWS7_0_OR_GREATER
 C:\Users\rhali\Desktop\contracts2512\App.xaml
-141294919590
+15608587858
 11172441761
-48-1211142102
-2251716387498
-MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\DatabaseSettingsWindow.xaml;Views\HolidayCalendarWindow.xaml;Views\OrganizationEditWindow.xaml;Views\ParserWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramDetailsWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;Views\WorkloadWindow.xaml;
+50-1708982780
+226839290571
+MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\DatabaseSettingsWindow.xaml;Views\HolidayCalendarWindow.xaml;Views\OrganizationEditWindow.xaml;Views\ParserWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramDetailsWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;Views\UpdateWindow.xaml;Views\WorkloadWindow.xaml;
 
 False
 

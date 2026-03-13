@@ -2,12 +2,13 @@ using System;
 using System.Diagnostics;
 using System.Reflection;
 using System.Threading.Tasks;
-using Clowd.Squirrel;
+// using Clowd.Squirrel; // Закомментировано для избежания проблем с WPF временными проектами
 
 namespace Contract2512.Services
 {
     /// <summary>
     /// Сервис автоматического обновления приложения через Squirrel.Windows
+    /// Использует рефлексию для загрузки Clowd.Squirrel в рантайме
     /// </summary>
     public class AutoUpdateService
     {
@@ -31,15 +32,27 @@ namespace Contract2512.Services
         }
 
         /// <summary>
-        /// Проверяет наличие обновлений через Squirrel
+        /// Проверяет наличие обновлений через Squirrel (используя рефлексию)
         /// </summary>
         public async Task<UpdateInfo> CheckForUpdatesAsync()
         {
             try
             {
-                using (var updateManager = new UpdateManager(_updateUrl))
+                // Загружаем Clowd.Squirrel через рефлексию
+                var squirrelAssembly = Assembly.Load("Clowd.Squirrel");
+                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                
+                if (updateManagerType == null)
                 {
-                    var updateInfo = await updateManager.CheckForUpdate();
+                    return new UpdateInfo { HasUpdate = false, Error = "UpdateManager не найден", CurrentVersion = _currentVersion };
+                }
+
+                // Создаём UpdateManager через рефлексию
+                using (dynamic updateManager = Activator.CreateInstance(updateManagerType, _updateUrl))
+                {
+                    // Вызываем CheckForUpdate через рефлексию
+                    var checkMethod = updateManagerType.GetMethod("CheckForUpdate");
+                    dynamic updateInfo = await (Task<dynamic>)checkMethod.Invoke(updateManager, null);
 
                     if (updateInfo?.ReleasesToApply?.Count > 0)
                     {
@@ -64,21 +77,38 @@ namespace Contract2512.Services
         }
 
         /// <summary>
-        /// Скачивает и устанавливает обновление через Squirrel
+        /// Скачивает и устанавливает обновление через Squirrel (используя рефлексию)
         /// </summary>
         public async Task<bool> DownloadAndInstallUpdateAsync(IProgress<int> progress = null)
         {
             try
             {
-                using (var updateManager = new UpdateManager(_updateUrl))
+                // Загружаем Clowd.Squirrel через рефлексию
+                var squirrelAssembly = Assembly.Load("Clowd.Squirrel");
+                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                
+                if (updateManagerType == null)
                 {
-                    // Скачиваем обновление с прогрессом
-                    var updateInfo = await updateManager.CheckForUpdate();
+                    return false;
+                }
+
+                // Создаём UpdateManager через рефлексию
+                using (dynamic updateManager = Activator.CreateInstance(updateManagerType, _updateUrl))
+                {
+                    // Проверяем обновления
+                    var checkMethod = updateManagerType.GetMethod("CheckForUpdate");
+                    dynamic updateInfo = await (Task<dynamic>)checkMethod.Invoke(updateManager, null);
                     
                     if (updateInfo?.ReleasesToApply?.Count > 0)
                     {
-                        await updateManager.DownloadReleases(updateInfo.ReleasesToApply, p => progress?.Report(p));
-                        await updateManager.ApplyReleases(updateInfo);
+                        // Скачиваем релизы
+                        var downloadMethod = updateManagerType.GetMethod("DownloadReleases");
+                        Action<int> progressCallback = p => progress?.Report(p);
+                        await (Task)downloadMethod.Invoke(updateManager, new object[] { updateInfo.ReleasesToApply, progressCallback });
+                        
+                        // Применяем обновления
+                        var applyMethod = updateManagerType.GetMethod("ApplyReleases");
+                        await (Task)applyMethod.Invoke(updateManager, new object[] { updateInfo });
                         
                         return true;
                     }
@@ -94,11 +124,21 @@ namespace Contract2512.Services
         }
 
         /// <summary>
-        /// Перезапускает приложение после обновления
+        /// Перезапускает приложение после обновления (используя рефлексию)
         /// </summary>
         public static void RestartApp()
         {
-            UpdateManager.RestartApp();
+            try
+            {
+                var squirrelAssembly = Assembly.Load("Clowd.Squirrel");
+                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                var restartMethod = updateManagerType?.GetMethod("RestartApp", BindingFlags.Public | BindingFlags.Static);
+                restartMethod?.Invoke(null, null);
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"❌ Ошибка перезапуска: {ex.Message}");
+            }
         }
     }
 
