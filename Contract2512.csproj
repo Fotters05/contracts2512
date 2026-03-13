@@ -60,6 +60,9 @@
 
   <ItemGroup>
     <Content Include="progaico.ico" />
+    <Content Include="splash.png">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

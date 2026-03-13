@@ -52,6 +52,8 @@ jobs:
           --packDirectory bin/Release/net8.0-windows/win-x64/publish `
           --releaseDir releases `
           --icon progaico.ico `
+          --appIcon progaico.ico `
+          --splashImage splash.png `
           --allowUnaware
       shell: pwsh
       
