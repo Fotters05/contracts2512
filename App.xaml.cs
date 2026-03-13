@@ -19,6 +19,9 @@ namespace Contract2512
             // Обрабатываем события Squirrel (установка, обновление, удаление)
             // await HandleSquirrelEventsAsync(); // Временно отключено из-за проблем с WPF компиляцией
             
+            // Проверяем и устанавливаем npm пакеты для парсера (если нужно)
+            await CheckAndInstallNodePackagesAsync();
+            
             // Проверяем наличие настроек подключения к БД
             if (!DbConnectionStringProvider.HasConnectionString())
             {
@@ -68,6 +71,60 @@ namespace Contract2512
             }
         }
         */
+
+        /// <summary>
+        /// Проверяет наличие node_modules и устанавливает npm пакеты если нужно
+        /// </summary>
+        private async System.Threading.Tasks.Task CheckAndInstallNodePackagesAsync()
+        {
+            try
+            {
+                var nodePackageService = new NodePackageService();
+                
+                // Проверяем наличие node_modules
+                if (!nodePackageService.IsNodeModulesInstalled())
+                {
+                    System.Diagnostics.Debug.WriteLine("📦 node_modules not found, starting npm install...");
+                    
+                    // Показываем окно установки
+                    var installWindow = new NpmInstallWindow();
+                    installWindow.ShowDialog();
+                    
+                    if (!installWindow.InstallSuccess)
+                    {
+                        System.Diagnostics.Debug.WriteLine("⚠️ npm install failed or was cancelled");
+                        
+                        var result = MessageBox.Show(
+                            "Parser dependencies were not installed.\n\n" +
+                            "The parser will not work without these dependencies.\n\n" +
+                            "Do you want to continue anyway?",
+                            "Warning",
+                            MessageBoxButton.YesNo,
+                            MessageBoxImage.Warning
+                        );
+                        
+                        if (result == MessageBoxResult.No)
+                        {
+                            Shutdown();
+                            return;
+                        }
+                    }
+                    else
+                    {
+                        System.Diagnostics.Debug.WriteLine("✅ npm install completed successfully");
+                    }
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("✅ node_modules already installed");
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"❌ Error checking node packages: {ex.Message}");
+                // Не блокируем запуск приложения из-за ошибок с npm
+            }
+        }
 
         /// <summary>
         /// Проверяет наличие обновлений через Squirrel
