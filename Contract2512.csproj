@@ -14,6 +14,10 @@
     
     <!-- Отключаем генерацию временных проектов WPF для корректной работы с NuGet пакетами -->
     <GenerateTemporaryTargetAssembly>false</GenerateTemporaryTargetAssembly>
+    
+    <!-- Дополнительные настройки для корректной работы с пакетами в WPF -->
+    <SkipWPFTempProjectCreation>true</SkipWPFTempProjectCreation>
+    <DisableWPFTempProjectCreation>true</DisableWPFTempProjectCreation>
   </PropertyGroup>
 
   <ItemGroup>
@@ -31,7 +35,10 @@
     <PackageReference Include="WPF-UI" Version="4.1.0" />
     
     <!-- Автообновления через Clowd.Squirrel (современная версия для .NET 8) -->
-    <PackageReference Include="Clowd.Squirrel" Version="2.11.1" />
+    <!-- Используем PrivateAssets=none чтобы пакет был доступен во временных WPF проектах -->
+    <PackageReference Include="Clowd.Squirrel" Version="2.11.1">
+      <PrivateAssets>none</PrivateAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
