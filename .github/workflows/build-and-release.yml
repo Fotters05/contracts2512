@@ -27,12 +27,6 @@ jobs:
     - name: Publish Release (без предварительной сборки)
       run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained false -o ./publish
       
-    - name: Install Clowd.Squirrel
-      run: |
-        # Clowd.Squirrel не является .NET tool, используем через NuGet
-        dotnet new tool-manifest --force
-        dotnet tool install Clowd.Squirrel --version 2.11.1
-      
     - name: Get version from tag
       id: get_version
       run: |
@@ -40,10 +34,29 @@ jobs:
         echo "VERSION=$version" >> $env:GITHUB_OUTPUT
       shell: pwsh
       
+    - name: Install NuGet CLI
+      run: |
+        # Устанавливаем NuGet CLI если его нет
+        if (-not (Get-Command nuget -ErrorAction SilentlyContinue)) {
+          Invoke-WebRequest -Uri https://dist.nuget.org/win-x86-commandline/latest/nuget.exe -OutFile nuget.exe
+        }
+      shell: pwsh
+      
+    - name: Download and Install Clowd.Squirrel
+      run: |
+        # Скачиваем Squirrel напрямую из NuGet
+        if (Test-Path nuget.exe) {
+          .\nuget.exe install Clowd.Squirrel -Version 2.11.1 -OutputDirectory ./tools
+        } else {
+          nuget install Clowd.Squirrel -Version 2.11.1 -OutputDirectory ./tools
+        }
+      shell: pwsh
+      
     - name: Create Squirrel Release
       run: |
         $version = "${{ steps.get_version.outputs.VERSION }}"
-        dotnet tool run squirrel pack --packId Contract2512 --packVersion $version --packDirectory ./publish --releaseDir ./releases --icon progaico.ico
+        $squirrelPath = Get-ChildItem -Path ./tools/Clowd.Squirrel.*/tools/squirrel.exe -Recurse | Select-Object -First 1
+        & $squirrelPath pack --packId Contract2512 --packVersion $version --packDirectory ./publish --releaseDir ./releases --icon progaico.ico
       shell: pwsh
       
     - name: Create GitHub Release
