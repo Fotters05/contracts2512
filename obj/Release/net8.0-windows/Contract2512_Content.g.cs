@@ -8,5 +8,6 @@
 //------------------------------------------------------------------------------
 
 [assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("progaico.ico")]
+[assembly: System.Windows.Resources.AssemblyAssociatedContentFileAttribute("splash.png")]
 
 
