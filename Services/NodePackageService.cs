@@ -16,14 +16,28 @@ namespace Contract2512.Services
 
         public NodePackageService()
         {
-            // Get path to parser_nodejs folder
-            // Use the directory where the executable is located
-            var appDir = Path.GetDirectoryName(System.Reflection.Assembly.GetExecutingAssembly().Location) 
-                         ?? AppDomain.CurrentDomain.BaseDirectory;
-            _parserPath = Path.Combine(appDir, "parser_nodejs");
+            // Определяем путь к парсеру в зависимости от режима запуска
+            var appDir = AppDomain.CurrentDomain.BaseDirectory;
+            
+            // Сначала проверяем путь для опубликованного приложения (parser_nodejs рядом с exe)
+            string publishedPath = Path.Combine(appDir, "parser_nodejs");
+            
+            if (Directory.Exists(publishedPath))
+            {
+                _parserPath = publishedPath;
+            }
+            else
+            {
+                // Если не найдено, пробуем путь для режима разработки (Debug/Release)
+                string projectRoot = Path.GetFullPath(Path.Combine(appDir, @"..\..\..\"));
+                _parserPath = Path.Combine(projectRoot, "parser_nodejs");
+            }
+            
             _nodeModulesPath = Path.Combine(_parserPath, "node_modules");
             
+            System.Diagnostics.Debug.WriteLine($"📁 App directory: {appDir}");
             System.Diagnostics.Debug.WriteLine($"📁 Parser path: {_parserPath}");
+            System.Diagnostics.Debug.WriteLine($"📁 Parser exists: {Directory.Exists(_parserPath)}");
         }
 
         /// <summary>

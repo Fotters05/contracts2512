@@ -24,9 +24,8 @@ namespace Contract2512.Views
         {
             try
             {
-                // Путь к парсеру (относительно корня проекта)
-                string projectRoot = Path.GetFullPath(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, @"..\..\..\"));
-                string parserPath = Path.Combine(projectRoot, "parser_nodejs");
+                // Определяем путь к парсеру в зависимости от режима запуска
+                string parserPath = GetParserPath();
                 
                 // Проверяем существование папки
                 if (!Directory.Exists(parserPath))
@@ -34,6 +33,8 @@ namespace Contract2512.Views
                     StatusTextBlock.Text = "Ошибка: Папка парсера не найдена";
                     StatusTextBlock.Foreground = System.Windows.Media.Brushes.Red;
                     OutputTextBox.AppendText($"Папка не найдена: {parserPath}\n");
+                    OutputTextBox.AppendText($"Текущая директория: {AppDomain.CurrentDomain.BaseDirectory}\n");
+                    OutputTextBox.AppendText($"Проверьте, что папка parser_nodejs находится рядом с exe файлом\n");
                     CloseButton.IsEnabled = true;
                     return;
                 }
@@ -153,6 +154,29 @@ namespace Contract2512.Views
         {
             DialogResult = _isCompleted;
             Close();
+        }
+
+        /// <summary>
+        /// Определяет путь к папке парсера в зависимости от режима запуска
+        /// </summary>
+        private string GetParserPath()
+        {
+            // Получаем директорию exe файла
+            string exeDir = AppDomain.CurrentDomain.BaseDirectory;
+            
+            // Сначала проверяем путь для опубликованного приложения (parser_nodejs рядом с exe)
+            string publishedPath = Path.Combine(exeDir, "parser_nodejs");
+            
+            if (Directory.Exists(publishedPath))
+            {
+                return publishedPath;
+            }
+            
+            // Если не найдено, пробуем путь для режима разработки (Debug/Release)
+            string projectRoot = Path.GetFullPath(Path.Combine(exeDir, @"..\..\..\"));
+            string devPath = Path.Combine(projectRoot, "parser_nodejs");
+            
+            return devPath;
         }
 
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)

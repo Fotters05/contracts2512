@@ -470,7 +470,7 @@ namespace Contract2512.Services
             {
                 { "ПП", "https://25-12.ru/course-category/%D0%BF%D1%80%D0%BE%D1%84%D0%B5%D1%81%D1%81%D0%B8%D0%BE%D0%BD%D0%B0%D0%BB%D1%8C%D0%BD%D0%B0%D1%8F-%D0%BF%D0%B5%D1%80%D0%B5%D0%BF%D0%BE%D0%B4%D0%B3%D0%BE%D1%82%D0%BE%D0%B2%D0%BA%D0%B0/" },
                 { "ПК", "https://25-12.ru/course-category/%D0%BF%D0%BE%D0%B2%D1%8B%D1%88%D0%B5%D0%BD%D0%B8%D0%B5-%D0%BA%D0%B2%D0%B0%D0%BB%D0%B8%D1%84%D0%B8%D0%BA%D0%B0%D1%86%D0%B8%D0%B8/" },
-                { "ДОП", "https://25-12.ru/course-category/%D0%B4%D0%BE%D0%BF%D0%BE%D0%BB%D0%BD%D0%B8%D1%82%D0%B5%D0%BB%D1%8C%D0%BD%D0%BE%D0%B5-%D0%BE%D0%B1%D1%80%D0%B0%D0%B7%D0%BE%D0%B2%D0%B0%D0%BD%D0%B8%D0%B5/" }
+                { "ДОП", "https://25-12.ru/course-category/%d0%ba%d1%83%d1%80%d1%81%d1%8b-%d0%b4%d0%bb%d1%8f-%d0%b4%d0%b5%d1%82%d0%b5%d0%b9-%d0%b8-%d0%bf%d0%be%d0%b4%d1%80%d0%be%d1%81%d1%82%d0%ba%d0%be%d0%b2/" }
             };
             
             foreach (var category in categories)

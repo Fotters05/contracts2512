@@ -5,7 +5,7 @@
   },
   "projects": {
     "C:\\Users\\rhali\\Desktop\\contracts2512\\Contract2512.csproj": {
-      "version": "1.0.1",
+      "version": "1.1.2",
       "restore": {
         "projectUniqueName": "C:\\Users\\rhali\\Desktop\\contracts2512\\Contract2512.csproj",
         "projectName": "Contract2512",
@@ -55,7 +55,6 @@
               "version": "[0.104.2, )"
             },
             "Clowd.Squirrel": {
-              "suppressParent": "None",
               "target": "Package",
               "version": "[2.11.1, )"
             },

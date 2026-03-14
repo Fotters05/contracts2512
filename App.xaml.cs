@@ -1,9 +1,9 @@
 ﻿using System.Configuration;
 using System.Data;
+using System.Reflection;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
-// using Clowd.Squirrel; // Закомментировано для избежания проблем с WPF временными проектами
 
 namespace Contract2512
 {
@@ -17,7 +17,7 @@ namespace Contract2512
             base.OnStartup(e);
             
             // Обрабатываем события Squirrel (установка, обновление, удаление)
-            // await HandleSquirrelEventsAsync(); // Временно отключено из-за проблем с WPF компиляцией
+            await HandleSquirrelEventsAsync();
             
             // Проверяем и устанавливаем npm пакеты для парсера (если нужно)
             await CheckAndInstallNodePackagesAsync();
@@ -47,30 +47,125 @@ namespace Contract2512
             _ = CheckForUpdatesAsync();
         }
 
-        /*
         /// <summary>
-        /// Обрабатывает события Squirrel (установка, обновление, удаление)
+        /// Обрабатывает события Squirrel (установка, обновление, удаление) через рефлексию
         /// </summary>
         private async System.Threading.Tasks.Task HandleSquirrelEventsAsync()
         {
             try
             {
-                using (var mgr = new UpdateManager(""))
+                // Загружаем сборку Clowd.Squirrel через рефлексию
+                var squirrelAssembly = Assembly.Load("Clowd.Squirrel");
+                var squirrelAwareAppType = squirrelAssembly.GetType("Clowd.Squirrel.SquirrelAwareApp");
+                
+                if (squirrelAwareAppType == null)
                 {
-                    // Обрабатываем аргументы командной строки от Squirrel
-                    await SquirrelAwareApp.HandleEvents(
-                        onInitialInstall: v => mgr.CreateShortcutForThisExe(),
-                        onAppUpdate: v => mgr.CreateShortcutForThisExe(),
-                        onAppUninstall: v => mgr.RemoveShortcutForThisExe()
-                    );
+                    System.Diagnostics.Debug.WriteLine("⚠️ SquirrelAwareApp type not found");
+                    return;
+                }
+
+                // Получаем метод HandleEvents
+                var handleEventsMethod = squirrelAwareAppType.GetMethod("HandleEvents", BindingFlags.Public | BindingFlags.Static);
+                
+                if (handleEventsMethod == null)
+                {
+                    System.Diagnostics.Debug.WriteLine("⚠️ HandleEvents method not found");
+                    return;
+                }
+
+                // Создаём делегаты для обработки событий
+                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                
+                Action<object> onInitialInstall = v => 
+                {
+                    System.Diagnostics.Debug.WriteLine($"📦 Первая установка версии {v}");
+                    try
+                    {
+                        var mgr = Activator.CreateInstance(updateManagerType!, "");
+                        if (mgr != null)
+                        {
+                            var createShortcutMethod = updateManagerType!.GetMethod("CreateShortcutForThisExe");
+                            createShortcutMethod?.Invoke(mgr, null);
+                            
+                            if (mgr is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Ошибка создания ярлыка: {ex.Message}");
+                    }
+                };
+                
+                Action<object> onAppUpdate = v => 
+                {
+                    System.Diagnostics.Debug.WriteLine($"🔄 Обновление до версии {v}");
+                    try
+                    {
+                        var mgr = Activator.CreateInstance(updateManagerType!, "");
+                        if (mgr != null)
+                        {
+                            var createShortcutMethod = updateManagerType!.GetMethod("CreateShortcutForThisExe");
+                            createShortcutMethod?.Invoke(mgr, null);
+                            
+                            if (mgr is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Ошибка обновления ярлыка: {ex.Message}");
+                    }
+                };
+                
+                Action<object> onAppUninstall = v => 
+                {
+                    System.Diagnostics.Debug.WriteLine($"🗑️ Удаление версии {v}");
+                    try
+                    {
+                        var mgr = Activator.CreateInstance(updateManagerType!, "");
+                        if (mgr != null)
+                        {
+                            var removeShortcutMethod = updateManagerType!.GetMethod("RemoveShortcutForThisExe");
+                            removeShortcutMethod?.Invoke(mgr, null);
+                            
+                            if (mgr is IDisposable disposable)
+                            {
+                                disposable.Dispose();
+                            }
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"❌ Ошибка удаления ярлыка: {ex.Message}");
+                    }
+                };
+
+                // Вызываем HandleEvents через рефлексию
+                var task = handleEventsMethod.Invoke(null, new object?[] 
+                { 
+                    onInitialInstall, 
+                    onAppUpdate, 
+                    onAppUninstall, 
+                    null, // onFirstRun
+                    null  // arguments
+                }) as System.Threading.Tasks.Task;
+
+                if (task != null)
+                {
+                    await task;
                 }
             }
-            catch
+            catch (Exception ex)
             {
                 // Игнорируем ошибки Squirrel при обычном запуске
+                System.Diagnostics.Debug.WriteLine($"ℹ️ Squirrel events: {ex.Message}");
             }
         }
-        */
 
         /// <summary>
         /// Проверяет наличие node_modules и устанавливает npm пакеты если нужно
