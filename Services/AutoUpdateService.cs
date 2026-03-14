@@ -27,9 +27,33 @@ namespace Contract2512.Services
             {
                 Debug.WriteLine($"🔍 Checking updates: {_updateUrl}");
 
+                // КРИТИЧНО: Используем Location сборки, а не BaseDirectory
+                // Squirrel создает stub exe в корне, а реальное приложение в app-X.X.X
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? AppDomain.CurrentDomain.BaseDirectory;
+                var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
+                
+                Debug.WriteLine($"🔍 Assembly location: {assemblyLocation}");
+                Debug.WriteLine($"🔍 Assembly directory: {assemblyDir}");
+                Debug.WriteLine($"🔍 Looking for DLL at: {dllPath}");
+                Debug.WriteLine($"🔍 DLL exists: {File.Exists(dllPath)}");
+                
+                if (!File.Exists(dllPath))
+                {
+                    Debug.WriteLine("❌ SquirrelLib.dll not found");
+                    return new UpdateInfo
+                    {
+                        HasUpdate = false,
+                        Error = $"SquirrelLib.dll not found at: {dllPath}",
+                        CurrentVersion = GetCurrentVersion()
+                    };
+                }
+
                 // Загружаем Squirrel через рефлексию чтобы избежать проблем с WPF временными проектами
-                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                Debug.WriteLine($"🔄 Loading assembly from: {dllPath}");
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
+                Debug.WriteLine($"✅ Assembly loaded: {squirrelAssembly.FullName}");
+                
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
@@ -38,7 +62,7 @@ namespace Contract2512.Services
                     return new UpdateInfo
                     {
                         HasUpdate = false,
-                        Error = "Squirrel not loaded",
+                        Error = "UpdateManager type not found in SquirrelLib",
                         CurrentVersion = GetCurrentVersion()
                     };
                 }
@@ -136,8 +160,11 @@ namespace Contract2512.Services
         {
             try
             {
-                // Загружаем Squirrel через рефлексию
-                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                // КРИТИЧНО: Используем Location сборки, а не BaseDirectory
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? AppDomain.CurrentDomain.BaseDirectory;
+                var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
+                
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 
@@ -220,7 +247,11 @@ namespace Contract2512.Services
         {
             try
             {
-                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                // КРИТИЧНО: Используем Location сборки, а не BaseDirectory
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? AppDomain.CurrentDomain.BaseDirectory;
+                var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
+                
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 var restartMethod = updateManagerType?.GetMethod("RestartApp", BindingFlags.Public | BindingFlags.Static);

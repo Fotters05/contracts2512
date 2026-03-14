@@ -92,6 +92,18 @@ jobs:
             $publishPath = "bin/Release/net8.0-windows/win-x64/publish"
             Copy-Item $dllPath -Destination $publishPath -Force
             Write-Host "✅ SquirrelLib.dll скопирован в $publishPath" -ForegroundColor Green
+            
+            # ДИАГНОСТИКА: Проверяем что файл действительно скопирован
+            $copiedDll = Join-Path $publishPath "SquirrelLib.dll"
+            if (Test-Path $copiedDll) {
+              $fileInfo = Get-Item $copiedDll
+              Write-Host "✅ ПОДТВЕРЖДЕНИЕ: SquirrelLib.dll существует в publish папке" -ForegroundColor Green
+              Write-Host "   Размер: $($fileInfo.Length) байт" -ForegroundColor Green
+              Write-Host "   Полный путь: $($fileInfo.FullName)" -ForegroundColor Green
+            } else {
+              Write-Host "❌ ОШИБКА: SquirrelLib.dll НЕ найден после копирования!" -ForegroundColor Red
+              exit 1
+            }
           } else {
             Write-Host "❌ SquirrelLib.dll НЕ найден по пути: $dllPath" -ForegroundColor Red
             Write-Host "Содержимое $nugetPath :" -ForegroundColor Yellow
@@ -100,6 +112,22 @@ jobs:
           }
         } else {
           Write-Host "❌ Папка NuGet НЕ найдена: $nugetPath" -ForegroundColor Red
+          exit 1
+        }
+      shell: pwsh
+      
+    - name: Verify publish folder contents before Squirrel pack
+      run: |
+        Write-Host "📁 ДИАГНОСТИКА: Содержимое publish папки ПЕРЕД созданием Squirrel пакета:" -ForegroundColor Cyan
+        $publishPath = "bin/Release/net8.0-windows/win-x64/publish"
+        Get-ChildItem -Path $publishPath | Format-Table Name, Length -AutoSize
+        
+        # Проверяем наличие SquirrelLib.dll
+        $dllPath = Join-Path $publishPath "SquirrelLib.dll"
+        if (Test-Path $dllPath) {
+          Write-Host "✅ SquirrelLib.dll ПРИСУТСТВУЕТ в publish папке" -ForegroundColor Green
+        } else {
+          Write-Host "❌ SquirrelLib.dll ОТСУТСТВУЕТ в publish папке!" -ForegroundColor Red
           exit 1
         }
       shell: pwsh

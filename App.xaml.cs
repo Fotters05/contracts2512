@@ -65,8 +65,11 @@ namespace Contract2512
         {
             try
             {
-                // Загружаем сборку Clowd.Squirrel через рефлексию
-                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                // КРИТИЧНО: Используем Location сборки, а не BaseDirectory
+                var assemblyLocation = Assembly.GetExecutingAssembly().Location;
+                var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? AppDomain.CurrentDomain.BaseDirectory;
+                var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
+                
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 var squirrelAwareAppType = squirrelAssembly.GetType("Clowd.Squirrel.SquirrelAwareApp");
                 
