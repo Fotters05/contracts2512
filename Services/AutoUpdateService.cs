@@ -27,7 +27,8 @@ namespace Contract2512.Services
                 Debug.WriteLine($"🔍 Checking updates: {_updateUrl}");
 
                 // Загружаем Squirrel через рефлексию чтобы избежать проблем с WPF временными проектами
-                var squirrelAssembly = Assembly.Load("SquirrelLib");
+                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
@@ -135,7 +136,8 @@ namespace Contract2512.Services
             try
             {
                 // Загружаем Squirrel через рефлексию
-                var squirrelAssembly = Assembly.Load("SquirrelLib");
+                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
@@ -217,7 +219,8 @@ namespace Contract2512.Services
         {
             try
             {
-                var squirrelAssembly = Assembly.Load("SquirrelLib");
+                var dllPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "SquirrelLib.dll");
+                var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 var restartMethod = updateManagerType?.GetMethod("RestartApp", BindingFlags.Public | BindingFlags.Static);
                 restartMethod?.Invoke(null, null);
