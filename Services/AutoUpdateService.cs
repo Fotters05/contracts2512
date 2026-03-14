@@ -9,16 +9,18 @@ namespace Contract2512.Services
 {
     public class AutoUpdateService
     {
-        private readonly string _updateUrl;
+        private readonly string _repoUrl;
+        private readonly string _accessToken;
         private static readonly string LogFilePath = Path.Combine(
             Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
             "Contract2512",
             "update_log.txt"
         );
 
-        public AutoUpdateService(string updateUrl)
+        public AutoUpdateService(string repoUrl, string accessToken = null)
         {
-            _updateUrl = updateUrl;
+            _repoUrl = repoUrl;
+            _accessToken = accessToken;
         }
 
         private static void Log(string message)
@@ -51,7 +53,8 @@ namespace Contract2512.Services
         {
             try
             {
-                Log($"🔍 Checking updates: {_updateUrl}");
+                Log($"🔍 Checking updates: {_repoUrl}");
+                Log($"🔍 Access token: {(_accessToken != null ? "***" : "none")}");
 
                 // КРИТИЧНО: Используем Location сборки, а не BaseDirectory
                 // Squirrel создает stub exe в корне, а реальное приложение в app-X.X.X
@@ -94,27 +97,18 @@ namespace Contract2512.Services
                     };
                 }
 
-                // Логируем все конструкторы GithubUpdateManager
-                Log("🔍 Available constructors for GithubUpdateManager:");
-                var constructors = githubUpdateManagerType.GetConstructors();
-                foreach (var ctor in constructors)
-                {
-                    var parameters = ctor.GetParameters();
-                    var paramStr = string.Join(", ", parameters.Select(p => $"{p.ParameterType.Name} {p.Name}"));
-                    Log($"   Constructor({paramStr})");
-                }
-
                 // Создаём GithubUpdateManager через рефлексию
-                // GithubUpdateManager принимает URL репозитория (например, "https://github.com/owner/repo")
-                var mgr = Activator.CreateInstance(githubUpdateManagerType, _updateUrl);
+                // Constructor(String repoUrl, Boolean prerelease, String accessToken, String applicationIdOverride, String localAppDataDirectoryOverride, IFileDownloader urlDownloader)
+                Log($"🔧 Creating GithubUpdateManager with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
+                var mgr = Activator.CreateInstance(githubUpdateManagerType, _repoUrl, false, _accessToken, null, null, null);
                 
                 if (mgr == null)
                 {
-                    Log("⚠️ Failed to create UpdateManager");
+                    Log("⚠️ Failed to create GithubUpdateManager");
                     return new UpdateInfo
                     {
                         HasUpdate = false,
-                        Error = "Failed to create UpdateManager",
+                        Error = "Failed to create GithubUpdateManager",
                         CurrentVersion = GetCurrentVersion()
                     };
                 }
@@ -212,7 +206,9 @@ namespace Contract2512.Services
                     return false;
                 }
 
-                var mgr = Activator.CreateInstance(githubUpdateManagerType, _updateUrl);
+                // Constructor(String repoUrl, Boolean prerelease, String accessToken, String applicationIdOverride, String localAppDataDirectoryOverride, IFileDownloader urlDownloader)
+                Log($"🔧 Creating GithubUpdateManager for download with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
+                var mgr = Activator.CreateInstance(githubUpdateManagerType, _repoUrl, false, _accessToken, null, null, null);
                 
                 if (mgr == null)
                 {

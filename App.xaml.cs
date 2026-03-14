@@ -238,23 +238,13 @@ namespace Contract2512
                 var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "contracts2512";
                 var githubToken = EnvConfigService.Get("GITHUB_TOKEN");
                 
-                // URL для Squirrel (GitHub Releases)
-                // Для закрытых репозиториев добавляем токен в URL
-                string updateUrl;
-                if (!string.IsNullOrEmpty(githubToken))
-                {
-                    // Для закрытых репозиториев используем токен
-                    updateUrl = $"https://{githubToken}@github.com/{githubOwner}/{githubRepo}/releases/download";
-                    System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (private repo) по URL: https://***@github.com/{githubOwner}/{githubRepo}/releases/download");
-                }
-                else
-                {
-                    // Для публичных репозиториев токен не нужен
-                    updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/download";
-                    System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (public repo) по URL: {updateUrl}");
-                }
+                // URL для GithubUpdateManager (без /releases/download)
+                var repoUrl = $"https://github.com/{githubOwner}/{githubRepo}";
                 
-                var updateService = new AutoUpdateService(updateUrl);
+                System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений: {repoUrl}");
+                System.Diagnostics.Debug.WriteLine($"🔍 Токен: {(string.IsNullOrEmpty(githubToken) ? "отсутствует" : "***")}");
+                
+                var updateService = new AutoUpdateService(repoUrl, githubToken);
                 
                 var updateInfo = await updateService.CheckForUpdatesAsync();
 
