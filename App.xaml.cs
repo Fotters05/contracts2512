@@ -257,6 +257,16 @@ namespace Contract2512
                 {
                     System.Diagnostics.Debug.WriteLine($"✅ Найдено обновление: {updateInfo.Version}");
                     
+                    // ВРЕМЕННО: показываем MessageBox для диагностики
+                    MessageBox.Show(
+                        $"Найдено обновление!\n\n" +
+                        $"Текущая версия: {updateInfo.CurrentVersion}\n" +
+                        $"Новая версия: {updateInfo.Version}",
+                        "Обновление найдено",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
+                    
                     // Показываем окно обновления в UI потоке
                     Dispatcher.Invoke(() =>
                     {
@@ -267,10 +277,16 @@ namespace Contract2512
                 else
                 {
                     System.Diagnostics.Debug.WriteLine($"ℹ️ Обновлений нет. Текущая версия: {updateInfo.CurrentVersion}");
+                    
+                    // ВРЕМЕННО: показываем MessageBox для диагностики
+                    string message = $"Обновлений нет.\n\nТекущая версия: {updateInfo.CurrentVersion}";
                     if (!string.IsNullOrEmpty(updateInfo.Error))
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Ошибка: {updateInfo.Error}");
+                        message += $"\n\nОшибка: {updateInfo.Error}";
                     }
+                    
+                    MessageBox.Show(message, "Проверка обновлений", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
             catch (Exception ex)
