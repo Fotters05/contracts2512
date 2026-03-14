@@ -56,7 +56,7 @@ $graphics.FillRectangle($barFillBrush, $barX, $barY, $barWidth * 0.7, $barHeight
 # Версия внизу
 $fontVersion = New-Object System.Drawing.Font("Segoe UI", 10)
 $versionBrush = New-Object System.Drawing.SolidBrush([System.Drawing.Color]::FromArgb(180, 255, 255, 255))
-$text3 = "Version 1.1.3"
+$text3 = "Version 1.1.4"
 $size3 = $graphics.MeasureString($text3, $fontVersion)
 $x3 = ($width - $size3.Width) / 2
 $y3 = $height - 40
