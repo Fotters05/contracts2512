@@ -87,7 +87,7 @@ namespace Contract2512.Services
                     Log($"  - {type.FullName}");
                 }
                 
-                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
                 {
@@ -199,7 +199,7 @@ namespace Contract2512.Services
                 var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
                 
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
-                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
                 {
@@ -286,7 +286,7 @@ namespace Contract2512.Services
                 var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
                 
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
-                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
                 var restartMethod = updateManagerType?.GetMethod("RestartApp", BindingFlags.Public | BindingFlags.Static);
                 restartMethod?.Invoke(null, null);
             }

@@ -61,7 +61,7 @@ namespace Contract2512
                 var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
                 
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
-                var squirrelAwareAppType = squirrelAssembly.GetType("Clowd.Squirrel.SquirrelAwareApp");
+                var squirrelAwareAppType = squirrelAssembly.GetType("Squirrel.SquirrelAwareApp");
                 
                 if (squirrelAwareAppType == null)
                 {
@@ -79,7 +79,7 @@ namespace Contract2512
                 }
 
                 // Создаём делегаты для обработки событий
-                var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
+                var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
                 
                 Action<object> onInitialInstall = v => 
                 {
