@@ -109,7 +109,30 @@ namespace Contract2512.Services
 
                 // Создаём GithubUpdateManager через рефлексию
                 Log($"🔧 Creating GithubUpdateManager with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
-                var mgr = Activator.CreateInstance(githubUpdateManagerType, _repoUrl, false, _accessToken, null, null, null);
+                
+                // Получаем конструктор с нужными типами параметров
+                var constructor = githubUpdateManagerType.GetConstructor(new Type[] 
+                { 
+                    typeof(string),  // repoUrl
+                    typeof(bool),    // prerelease
+                    typeof(string),  // accessToken
+                    typeof(string),  // applicationIdOverride
+                    typeof(string),  // localAppDataDirectoryOverride
+                    squirrelAssembly.GetType("Squirrel.IFileDownloader")  // urlDownloader
+                });
+                
+                if (constructor == null)
+                {
+                    Log("⚠️ Constructor not found with expected signature");
+                    return new UpdateInfo
+                    {
+                        HasUpdate = false,
+                        Error = "Constructor not found",
+                        CurrentVersion = GetCurrentVersion()
+                    };
+                }
+                
+                var mgr = constructor.Invoke(new object[] { _repoUrl, false, _accessToken, null, null, null });
                 
                 if (mgr == null)
                 {
@@ -217,7 +240,25 @@ namespace Contract2512.Services
 
                 // Constructor(String repoUrl, Boolean prerelease, String accessToken, String applicationIdOverride, String localAppDataDirectoryOverride, IFileDownloader urlDownloader)
                 Log($"🔧 Creating GithubUpdateManager for download with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
-                var mgr = Activator.CreateInstance(githubUpdateManagerType, _repoUrl, false, _accessToken, null, null, null);
+                
+                // Получаем конструктор с нужными типами параметров
+                var constructor = githubUpdateManagerType.GetConstructor(new Type[] 
+                { 
+                    typeof(string),  // repoUrl
+                    typeof(bool),    // prerelease
+                    typeof(string),  // accessToken
+                    typeof(string),  // applicationIdOverride
+                    typeof(string),  // localAppDataDirectoryOverride
+                    squirrelAssembly.GetType("Squirrel.IFileDownloader")  // urlDownloader
+                });
+                
+                if (constructor == null)
+                {
+                    Log("⚠️ Constructor not found");
+                    return false;
+                }
+                
+                var mgr = constructor.Invoke(new object[] { _repoUrl, false, _accessToken, null, null, null });
                 
                 if (mgr == null)
                 {
