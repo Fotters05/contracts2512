@@ -1,5 +1,5 @@
 ﻿Contract2512
-1.4.6.0
+1.4.8.0
 
 winexe
 C#
@@ -16,5 +16,5 @@ C:\Users\rhali\Desktop\contracts2512\App.xaml
 226839290571
 MainWindow.xaml;Views\ContractTypeWindow.xaml;Views\ContractWindow.xaml;Views\DatabaseSettingsWindow.xaml;Views\HolidayCalendarWindow.xaml;Views\NpmInstallWindow.xaml;Views\OrganizationEditWindow.xaml;Views\ParserWindow.xaml;Views\PersonCardsWindow.xaml;Views\PersonContractsWindow.xaml;Views\PersonWindow.xaml;Views\ProgramDetailsWindow.xaml;Views\ProgramWindow.xaml;Views\SupportWindow.xaml;Views\UpdateWindow.xaml;Views\WorkloadWindow.xaml;
 
-True
+False
 
