@@ -97,8 +97,17 @@ namespace Contract2512.Services
                     };
                 }
 
+                // Логируем все конструкторы для диагностики
+                var constructors = githubUpdateManagerType.GetConstructors();
+                Log($"📋 Found {constructors.Length} constructors:");
+                foreach (var ctor in constructors)
+                {
+                    var parameters = ctor.GetParameters();
+                    var paramStr = string.Join(", ", parameters.Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                    Log($"   Constructor({paramStr})");
+                }
+
                 // Создаём GithubUpdateManager через рефлексию
-                // Constructor(String repoUrl, Boolean prerelease, String accessToken, String applicationIdOverride, String localAppDataDirectoryOverride, IFileDownloader urlDownloader)
                 Log($"🔧 Creating GithubUpdateManager with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
                 var mgr = Activator.CreateInstance(githubUpdateManagerType, _repoUrl, false, _accessToken, null, null, null);
                 
