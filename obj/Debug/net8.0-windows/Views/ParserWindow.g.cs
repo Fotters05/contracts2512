@@ -75,7 +75,7 @@ namespace Contract2512.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Contract2512;V1.1.7.0;component/views/parserwindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Contract2512;V1.2.1.0;component/views/parserwindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\ParserWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);
