@@ -72,89 +72,40 @@ jobs:
         }
       shell: pwsh
       
-    - name: Copy Clowd.Squirrel.dll from obj folder
+    - name: Copy Clowd.Squirrel.dll from NuGet cache
       run: |
-        Write-Host "🔍 Поиск Clowd.Squirrel.dll в obj папке после restore..." -ForegroundColor Cyan
+        Write-Host "🔍 Поиск Clowd.Squirrel.dll в NuGet кэше..." -ForegroundColor Cyan
         
-        # Ищем в obj папке - там должны быть все восстановленные зависимости
-        $objPaths = @(
-          "obj\Release\net8.0-windows",
-          "obj\Debug\net8.0-windows",
-          "obj"
-        )
+        # Ищем DLL рекурсивно в папке clowd.squirrel
+        $nugetBase = "C:\Users\runneradmin\.nuget\packages\clowd.squirrel\2.11.1"
         
-        $squirrelDll = $null
-        
-        foreach ($objPath in $objPaths) {
-          if (Test-Path $objPath) {
-            Write-Host "  Проверяю: $objPath" -ForegroundColor Gray
-            $found = Get-ChildItem -Path $objPath -Filter "Clowd.Squirrel.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-            if ($found) {
-              $squirrelDll = $found.FullName
-              Write-Host "✅ Найден в obj папке: $squirrelDll" -ForegroundColor Green
-              break
+        if (Test-Path $nugetBase) {
+          Write-Host "✅ Папка NuGet найдена: $nugetBase" -ForegroundColor Green
+          
+          # Рекурсивный поиск DLL в этой папке
+          $found = Get-ChildItem -Path $nugetBase -Filter "Clowd.Squirrel.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+          
+          if ($found) {
+            Write-Host "✅ DLL найден: $($found.FullName)" -ForegroundColor Green
+            
+            # Копируем в publish папку
+            Write-Host "📦 Копирование DLL в publish папку..." -ForegroundColor Cyan
+            Copy-Item $found.FullName -Destination "bin/Release/net8.0-windows/win-x64/publish/" -Force
+            Write-Host "✅ Clowd.Squirrel.dll скопирован" -ForegroundColor Green
+            
+            # Проверяем что файл скопирован
+            if (Test-Path "bin/Release/net8.0-windows/win-x64/publish/Clowd.Squirrel.dll") {
+              Write-Host "✅ ПОДТВЕРЖДЕНО: Clowd.Squirrel.dll присутствует в publish папке" -ForegroundColor Green
+            } else {
+              Write-Host "❌ ОШИБКА: Clowd.Squirrel.dll НЕ скопирован!" -ForegroundColor Red
+              exit 1
             }
+          } else {
+            Write-Host "❌ DLL не найден в $nugetBase" -ForegroundColor Red
+            exit 1
           }
-        }
-        
-        # Если не нашли в obj, ищем в NuGet кэше
-        if (-not $squirrelDll) {
-          Write-Host "⏳ Не найден в obj, ищем в NuGet кэше..." -ForegroundColor Yellow
-          
-          $nugetPaths = @(
-            "$env:USERPROFILE\.nuget\packages\clowd.squirrel\2.11.1\lib\net8.0\Clowd.Squirrel.dll",
-            "C:\Users\runneradmin\.nuget\packages\clowd.squirrel\2.11.1\lib\net8.0\Clowd.Squirrel.dll",
-            "$env:ProgramData\NuGet\packages\clowd.squirrel\2.11.1\lib\net8.0\Clowd.Squirrel.dll"
-          )
-          
-          foreach ($path in $nugetPaths) {
-            if (Test-Path $path) {
-              $squirrelDll = $path
-              Write-Host "✅ Найден в NuGet кэше: $squirrelDll" -ForegroundColor Green
-              break
-            }
-          }
-        }
-        
-        # Если всё ещё не нашли - рекурсивный поиск везде
-        if (-not $squirrelDll) {
-          Write-Host "⏳ Рекурсивный поиск во всех возможных местах..." -ForegroundColor Yellow
-          
-          $searchRoots = @("obj", "$env:USERPROFILE\.nuget\packages", "C:\Users\runneradmin\.nuget\packages")
-          
-          foreach ($root in $searchRoots) {
-            if (Test-Path $root) {
-              $found = Get-ChildItem -Path $root -Filter "Clowd.Squirrel.dll" -Recurse -ErrorAction SilentlyContinue | 
-                       Where-Object { $_.FullName -like "*2.11.1*" } | 
-                       Select-Object -First 1
-              if ($found) {
-                $squirrelDll = $found.FullName
-                Write-Host "✅ Найден через рекурсивный поиск: $squirrelDll" -ForegroundColor Green
-                break
-              }
-            }
-          }
-        }
-        
-        if (-not $squirrelDll) {
-          Write-Host "❌ КРИТИЧЕСКАЯ ОШИБКА: Clowd.Squirrel.dll НЕ НАЙДЕН!" -ForegroundColor Red
-          Write-Host "Проверенные места:" -ForegroundColor Yellow
-          Write-Host "  - obj/Release/net8.0-windows" -ForegroundColor Gray
-          Write-Host "  - obj/Debug/net8.0-windows" -ForegroundColor Gray
-          Write-Host "  - NuGet кэши" -ForegroundColor Gray
-          exit 1
-        }
-        
-        # Копируем найденный файл
-        Write-Host "📦 Копирование DLL в publish папку..." -ForegroundColor Cyan
-        Copy-Item $squirrelDll -Destination "bin/Release/net8.0-windows/win-x64/publish/" -Force
-        Write-Host "✅ Clowd.Squirrel.dll скопирован" -ForegroundColor Green
-        
-        # Проверяем что файл скопирован
-        if (Test-Path "bin/Release/net8.0-windows/win-x64/publish/Clowd.Squirrel.dll") {
-          Write-Host "✅ ПОДТВЕРЖДЕНО: Clowd.Squirrel.dll присутствует в publish папке" -ForegroundColor Green
         } else {
-          Write-Host "❌ ОШИБКА: Clowd.Squirrel.dll НЕ скопирован!" -ForegroundColor Red
+          Write-Host "❌ Папка NuGet не найдена: $nugetBase" -ForegroundColor Red
           exit 1
         }
       shell: pwsh
