@@ -8,12 +8,15 @@
     <UseWPF>true</UseWPF>
     
     <!-- Version info for auto-update -->
-    <Version>1.2.5</Version>
-    <AssemblyVersion>1.2.5.0</AssemblyVersion>
-    <FileVersion>1.2.5.0</FileVersion>
+    <Version>1.2.7</Version>
+    <AssemblyVersion>1.2.7.0</AssemblyVersion>
+    <FileVersion>1.2.7.0</FileVersion>
     
     <!-- Disable temporary WPF assembly generation -->
     <GenerateTemporaryTargetAssembly>false</GenerateTemporaryTargetAssembly>
+    
+    <!-- CRITICAL: Force copy all NuGet dependencies to output (including Clowd.Squirrel.dll) -->
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
   </PropertyGroup>
 
   <ItemGroup>
