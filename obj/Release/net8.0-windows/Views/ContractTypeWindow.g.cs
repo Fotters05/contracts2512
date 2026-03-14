@@ -103,7 +103,7 @@ namespace Contract2512.Views {
                 return;
             }
             _contentLoaded = true;
-            System.Uri resourceLocater = new System.Uri("/Contract2512;V1.4.3.0;component/views/contracttypewindow.xaml", System.UriKind.Relative);
+            System.Uri resourceLocater = new System.Uri("/Contract2512;V1.4.6.0;component/views/contracttypewindow.xaml", System.UriKind.Relative);
             
             #line 1 "..\..\..\..\Views\ContractTypeWindow.xaml"
             System.Windows.Application.LoadComponent(this, resourceLocater);

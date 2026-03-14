@@ -110,29 +110,18 @@ namespace Contract2512.Services
                 // Создаём GithubUpdateManager через рефлексию
                 Log($"🔧 Creating GithubUpdateManager with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
                 
-                // Получаем конструктор с нужными типами параметров
-                var constructor = githubUpdateManagerType.GetConstructor(new Type[] 
-                { 
-                    typeof(string),  // repoUrl
-                    typeof(bool),    // prerelease
-                    typeof(string),  // accessToken
-                    typeof(string),  // applicationIdOverride
-                    typeof(string),  // localAppDataDirectoryOverride
-                    squirrelAssembly.GetType("Squirrel.IFileDownloader")  // urlDownloader
-                });
-                
-                if (constructor == null)
-                {
-                    Log("⚠️ Constructor not found with expected signature");
-                    return new UpdateInfo
-                    {
-                        HasUpdate = false,
-                        Error = "Constructor not found",
-                        CurrentVersion = GetCurrentVersion()
-                    };
-                }
-                
-                var mgr = constructor.Invoke(new object[] { _repoUrl, false, _accessToken, null, null, null });
+                // Создаём GithubUpdateManager напрямую через Activator.CreateInstance
+                // Передаём параметры: repoUrl, prerelease=false, accessToken, null, null, null
+                Log($"🔧 Attempting to create instance with 6 parameters");
+                var mgr = Activator.CreateInstance(
+                    githubUpdateManagerType,
+                    _repoUrl,           // repoUrl (string)
+                    false,              // prerelease (bool)
+                    _accessToken,       // accessToken (string)
+                    null,               // applicationIdOverride (string)
+                    null,               // localAppDataDirectoryOverride (string)
+                    null                // urlDownloader (IFileDownloader)
+                );
                 
                 if (mgr == null)
                 {
@@ -241,24 +230,16 @@ namespace Contract2512.Services
                 // Constructor(String repoUrl, Boolean prerelease, String accessToken, String applicationIdOverride, String localAppDataDirectoryOverride, IFileDownloader urlDownloader)
                 Log($"🔧 Creating GithubUpdateManager for download with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
                 
-                // Получаем конструктор с нужными типами параметров
-                var constructor = githubUpdateManagerType.GetConstructor(new Type[] 
-                { 
-                    typeof(string),  // repoUrl
-                    typeof(bool),    // prerelease
-                    typeof(string),  // accessToken
-                    typeof(string),  // applicationIdOverride
-                    typeof(string),  // localAppDataDirectoryOverride
-                    squirrelAssembly.GetType("Squirrel.IFileDownloader")  // urlDownloader
-                });
-                
-                if (constructor == null)
-                {
-                    Log("⚠️ Constructor not found");
-                    return false;
-                }
-                
-                var mgr = constructor.Invoke(new object[] { _repoUrl, false, _accessToken, null, null, null });
+                // Создаём GithubUpdateManager напрямую через Activator.CreateInstance
+                var mgr = Activator.CreateInstance(
+                    githubUpdateManagerType,
+                    _repoUrl,           // repoUrl (string)
+                    false,              // prerelease (bool)
+                    _accessToken,       // accessToken (string)
+                    null,               // applicationIdOverride (string)
+                    null,               // localAppDataDirectoryOverride (string)
+                    null                // urlDownloader (IFileDownloader)
+                );
                 
                 if (mgr == null)
                 {
