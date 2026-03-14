@@ -17,18 +17,11 @@ namespace Contract2512
         {
             base.OnStartup(e);
             
-            // ДИАГНОСТИКА: самый первый MessageBox
-            MessageBox.Show("OnStartup начался!", "Диагностика 0", MessageBoxButton.OK, MessageBoxImage.Information);
-            
             // Обрабатываем события Squirrel (установка, обновление, удаление)
             await HandleSquirrelEventsAsync();
             
-            MessageBox.Show("HandleSquirrelEventsAsync завершен", "Диагностика 0.5", MessageBoxButton.OK, MessageBoxImage.Information);
-            
             // Проверяем и устанавливаем npm пакеты для парсера (если нужно)
             await CheckAndInstallNodePackagesAsync();
-            
-            MessageBox.Show("CheckAndInstallNodePackagesAsync завершен", "Диагностика 0.7", MessageBoxButton.OK, MessageBoxImage.Information);
             
             // Проверяем наличие настроек подключения к БД
             if (!DbConnectionStringProvider.HasConnectionString())
@@ -51,9 +44,6 @@ namespace Contract2512
                 }
             }
 
-            // ДИАГНОСТИКА: показываем что дошли до проверки обновлений
-            MessageBox.Show("Запускаем проверку обновлений...", "Диагностика", MessageBoxButton.OK, MessageBoxImage.Information);
-            
             // Проверяем обновления (в фоновом режиме, не блокируем запуск)
             _ = CheckForUpdatesAsync();
         }
@@ -243,15 +233,10 @@ namespace Contract2512
         {
             try
             {
-                MessageBox.Show("Начинаем CheckForUpdatesAsync", "Диагностика 1", MessageBoxButton.OK, MessageBoxImage.Information);
-                
                 // Читаем настройки из .env с fallback значениями
                 var githubOwner = EnvConfigService.Get("GITHUB_OWNER") ?? "Fotters05";
                 var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "contracts2512";
                 var githubToken = EnvConfigService.Get("GITHUB_TOKEN");
-                
-                MessageBox.Show($"Token: {(string.IsNullOrEmpty(githubToken) ? "НЕТ" : "ЕСТЬ")}\nOwner: {githubOwner}\nRepo: {githubRepo}", 
-                    "Диагностика 2", MessageBoxButton.OK, MessageBoxImage.Information);
                 
                 // URL для Squirrel (GitHub Releases)
                 // Для закрытых репозиториев добавляем токен в URL
@@ -271,13 +256,7 @@ namespace Contract2512
                 
                 var updateService = new AutoUpdateService(updateUrl);
                 
-                MessageBox.Show($"Вызываем CheckForUpdatesAsync...\nURL: {updateUrl.Replace(githubToken ?? "", "***")}", 
-                    "Диагностика 3", MessageBoxButton.OK, MessageBoxImage.Information);
-                
                 var updateInfo = await updateService.CheckForUpdatesAsync();
-
-                MessageBox.Show($"Результат проверки:\nHasUpdate: {updateInfo.HasUpdate}\nCurrent: {updateInfo.CurrentVersion}\nNew: {updateInfo.Version}\nError: {updateInfo.Error}", 
-                    "Диагностика 4", MessageBoxButton.OK, MessageBoxImage.Information);
 
                 if (updateInfo.HasUpdate)
                 {
@@ -320,9 +299,6 @@ namespace Contract2512
                 // Ошибки обновления не должны ломать приложение
                 System.Diagnostics.Debug.WriteLine($"❌ Ошибка проверки обновлений: {ex.Message}");
                 System.Diagnostics.Debug.WriteLine($"Stack trace: {ex.StackTrace}");
-                
-                MessageBox.Show($"ОШИБКА в CheckForUpdatesAsync:\n{ex.Message}\n\n{ex.StackTrace}", 
-                    "Диагностика ОШИБКА", MessageBoxButton.OK, MessageBoxImage.Error);
             }
         }
     }

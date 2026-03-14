@@ -1,6 +1,7 @@
 using System;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 
@@ -9,10 +10,35 @@ namespace Contract2512.Services
     public class AutoUpdateService
     {
         private readonly string _updateUrl;
+        private static readonly string LogFilePath = Path.Combine(
+            Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+            "Contract2512",
+            "update_log.txt"
+        );
 
         public AutoUpdateService(string updateUrl)
         {
             _updateUrl = updateUrl;
+        }
+
+        private static void Log(string message)
+        {
+            try
+            {
+                var logDir = Path.GetDirectoryName(LogFilePath);
+                if (!Directory.Exists(logDir))
+                {
+                    Directory.CreateDirectory(logDir!);
+                }
+                
+                var timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+                File.AppendAllText(LogFilePath, $"[{timestamp}] {message}\n");
+                Debug.WriteLine(message);
+            }
+            catch
+            {
+                // Игнорируем ошибки логирования
+            }
         }
 
         public string GetCurrentVersion()
@@ -25,7 +51,7 @@ namespace Contract2512.Services
         {
             try
             {
-                Debug.WriteLine($"🔍 Checking updates: {_updateUrl}");
+                Log($"🔍 Checking updates: {_updateUrl}");
 
                 // КРИТИЧНО: Используем Location сборки, а не BaseDirectory
                 // Squirrel создает stub exe в корне, а реальное приложение в app-X.X.X
@@ -33,14 +59,14 @@ namespace Contract2512.Services
                 var assemblyDir = Path.GetDirectoryName(assemblyLocation) ?? AppDomain.CurrentDomain.BaseDirectory;
                 var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
                 
-                Debug.WriteLine($"🔍 Assembly location: {assemblyLocation}");
-                Debug.WriteLine($"🔍 Assembly directory: {assemblyDir}");
-                Debug.WriteLine($"🔍 Looking for DLL at: {dllPath}");
-                Debug.WriteLine($"🔍 DLL exists: {File.Exists(dllPath)}");
+                Log($"🔍 Assembly location: {assemblyLocation}");
+                Log($"🔍 Assembly directory: {assemblyDir}");
+                Log($"🔍 Looking for DLL at: {dllPath}");
+                Log($"🔍 DLL exists: {File.Exists(dllPath)}");
                 
                 if (!File.Exists(dllPath))
                 {
-                    Debug.WriteLine("❌ SquirrelLib.dll not found");
+                    Log("❌ SquirrelLib.dll not found");
                     return new UpdateInfo
                     {
                         HasUpdate = false,
@@ -50,22 +76,22 @@ namespace Contract2512.Services
                 }
 
                 // Загружаем Squirrel через рефлексию чтобы избежать проблем с WPF временными проектами
-                Debug.WriteLine($"🔄 Loading assembly from: {dllPath}");
+                Log($"🔄 Loading assembly from: {dllPath}");
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
-                Debug.WriteLine($"✅ Assembly loaded: {squirrelAssembly.FullName}");
+                Log($"✅ Assembly loaded: {squirrelAssembly.FullName}");
                 
-                // ДИАГНОСТИКА: Выводим все типы в сборке
-                Debug.WriteLine("📋 Available types in SquirrelLib:");
-                foreach (var type in squirrelAssembly.GetTypes().Take(20))
+                // ДИАГНОСТИКА: Выводим ВСЕ типы в сборке
+                Log("📋 Available types in SquirrelLib:");
+                foreach (var type in squirrelAssembly.GetTypes())
                 {
-                    Debug.WriteLine($"  - {type.FullName}");
+                    Log($"  - {type.FullName}");
                 }
                 
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
                 {
-                    Debug.WriteLine("⚠️ UpdateManager type not found");
+                    Log("⚠️ UpdateManager type not found");
                     return new UpdateInfo
                     {
                         HasUpdate = false,
@@ -79,7 +105,7 @@ namespace Contract2512.Services
                 
                 if (mgr == null)
                 {
-                    Debug.WriteLine("⚠️ Failed to create UpdateManager");
+                    Log("⚠️ Failed to create UpdateManager");
                     return new UpdateInfo
                     {
                         HasUpdate = false,
@@ -96,7 +122,7 @@ namespace Contract2512.Services
                     
                     if (updateTask == null)
                     {
-                        Debug.WriteLine("⚠️ CheckForUpdate method not found");
+                        Log("⚠️ CheckForUpdate method not found");
                         return new UpdateInfo
                         {
                             HasUpdate = false,
@@ -123,7 +149,7 @@ namespace Contract2512.Services
                             var version = versionProp?.GetValue(futureRelease);
                             var newVersion = version?.ToString() ?? "Unknown";
 
-                            Debug.WriteLine($"✅ Update found: {newVersion}");
+                            Log($"✅ Update found: {newVersion}");
 
                             return new UpdateInfo
                             {
@@ -152,7 +178,7 @@ namespace Contract2512.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Update error: {ex.Message}");
+                Log($"❌ Update error: {ex.Message}");
 
                 return new UpdateInfo
                 {
@@ -177,7 +203,7 @@ namespace Contract2512.Services
                 
                 if (updateManagerType == null)
                 {
-                    Debug.WriteLine("⚠️ UpdateManager type not found");
+                    Log("⚠️ UpdateManager type not found");
                     return false;
                 }
 
@@ -185,7 +211,7 @@ namespace Contract2512.Services
                 
                 if (mgr == null)
                 {
-                    Debug.WriteLine("⚠️ Failed to create UpdateManager");
+                    Log("⚠️ Failed to create UpdateManager");
                     return false;
                 }
 
@@ -245,7 +271,7 @@ namespace Contract2512.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Install error: {ex.Message}");
+                Log($"❌ Install error: {ex.Message}");
                 return false;
             }
         }
@@ -266,7 +292,7 @@ namespace Contract2512.Services
             }
             catch (Exception ex)
             {
-                Debug.WriteLine($"❌ Restart error: {ex.Message}");
+                Log($"❌ Restart error: {ex.Message}");
             }
         }
     }
