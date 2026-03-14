@@ -94,6 +94,16 @@ namespace Contract2512.Services
                     };
                 }
 
+                // Логируем все конструкторы GithubUpdateManager
+                Log("🔍 Available constructors for GithubUpdateManager:");
+                var constructors = githubUpdateManagerType.GetConstructors();
+                foreach (var ctor in constructors)
+                {
+                    var parameters = ctor.GetParameters();
+                    var paramStr = string.Join(", ", parameters.Select(p => $"{p.ParameterType.Name} {p.Name}"));
+                    Log($"   Constructor({paramStr})");
+                }
+
                 // Создаём GithubUpdateManager через рефлексию
                 // GithubUpdateManager принимает URL репозитория (например, "https://github.com/owner/repo")
                 var mgr = Activator.CreateInstance(githubUpdateManagerType, _updateUrl);
