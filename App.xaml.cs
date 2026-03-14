@@ -16,11 +16,18 @@ namespace Contract2512
         {
             base.OnStartup(e);
             
+            // ДИАГНОСТИКА: самый первый MessageBox
+            MessageBox.Show("OnStartup начался!", "Диагностика 0", MessageBoxButton.OK, MessageBoxImage.Information);
+            
             // Обрабатываем события Squirrel (установка, обновление, удаление)
             await HandleSquirrelEventsAsync();
             
+            MessageBox.Show("HandleSquirrelEventsAsync завершен", "Диагностика 0.5", MessageBoxButton.OK, MessageBoxImage.Information);
+            
             // Проверяем и устанавливаем npm пакеты для парсера (если нужно)
             await CheckAndInstallNodePackagesAsync();
+            
+            MessageBox.Show("CheckAndInstallNodePackagesAsync завершен", "Диагностика 0.7", MessageBoxButton.OK, MessageBoxImage.Information);
             
             // Проверяем наличие настроек подключения к БД
             if (!DbConnectionStringProvider.HasConnectionString())
@@ -271,16 +278,6 @@ namespace Contract2512
                 {
                     System.Diagnostics.Debug.WriteLine($"✅ Найдено обновление: {updateInfo.Version}");
                     
-                    // ВРЕМЕННО: показываем MessageBox для диагностики
-                    MessageBox.Show(
-                        $"Найдено обновление!\n\n" +
-                        $"Текущая версия: {updateInfo.CurrentVersion}\n" +
-                        $"Новая версия: {updateInfo.Version}",
-                        "Обновление найдено",
-                        MessageBoxButton.OK,
-                        MessageBoxImage.Information
-                    );
-                    
                     // Показываем окно обновления в UI потоке
                     Dispatcher.Invoke(() =>
                     {
@@ -290,17 +287,27 @@ namespace Contract2512
                 }
                 else
                 {
-                    System.Diagnostics.Debug.WriteLine($"ℹ️ Обновлений нет. Текущая версия: {updateInfo.CurrentVersion}");
-                    
-                    // ВРЕМЕННО: показываем MessageBox для диагностики
-                    string message = $"Обновлений нет.\n\nТекущая версия: {updateInfo.CurrentVersion}";
+                    // Если есть ошибка - просто логируем, не показываем пользователю
                     if (!string.IsNullOrEmpty(updateInfo.Error))
                     {
-                        System.Diagnostics.Debug.WriteLine($"❌ Ошибка: {updateInfo.Error}");
-                        message += $"\n\nОшибка: {updateInfo.Error}";
+                        System.Diagnostics.Debug.WriteLine($"❌ Ошибка проверки обновлений: {updateInfo.Error}");
+                        // НЕ показываем MessageBox с ошибкой - это техническая проблема
                     }
-                    
-                    MessageBox.Show(message, "Проверка обновлений", MessageBoxButton.OK, MessageBoxImage.Information);
+                    else
+                    {
+                        // Обновлений нет и нет ошибок - показываем информационное сообщение
+                        System.Diagnostics.Debug.WriteLine($"ℹ️ Обновлений нет. Текущая версия: {updateInfo.CurrentVersion}");
+                        
+                        Dispatcher.Invoke(() =>
+                        {
+                            MessageBox.Show(
+                                $"Обновлений нет.\n\nТекущая версия: {updateInfo.CurrentVersion}",
+                                "Проверка обновлений",
+                                MessageBoxButton.OK,
+                                MessageBoxImage.Information
+                            );
+                        });
+                    }
                 }
             }
             catch (Exception ex)

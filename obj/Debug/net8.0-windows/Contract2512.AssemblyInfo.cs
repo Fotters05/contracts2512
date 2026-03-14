@@ -12,11 +12,11 @@ using System.Reflection;
 
 [assembly: System.Reflection.AssemblyCompanyAttribute("Contract2512")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
-[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.1.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.1+ab9978abf1a5cebf0049647396c394bb0fa3df06")]
+[assembly: System.Reflection.AssemblyFileVersionAttribute("1.2.7.0")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.2.7+d86018e72bd6605d8a61358a8fc0fceba70ad7d6")]
 [assembly: System.Reflection.AssemblyProductAttribute("Contract2512")]
 [assembly: System.Reflection.AssemblyTitleAttribute("Contract2512")]
-[assembly: System.Reflection.AssemblyVersionAttribute("1.2.1.0")]
+[assembly: System.Reflection.AssemblyVersionAttribute("1.2.7.0")]
 [assembly: System.Runtime.Versioning.TargetPlatformAttribute("Windows7.0")]
 [assembly: System.Runtime.Versioning.SupportedOSPlatformAttribute("Windows7.0")]
 
