@@ -110,6 +110,19 @@ namespace Contract2512.Services
                 // Создаём GithubUpdateManager через рефлексию
                 Log($"🔧 Creating GithubUpdateManager with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
                 
+                // Получаем тип IFileDownloader
+                var fileDownloaderType = squirrelAssembly.GetType("Squirrel.IFileDownloader");
+                if (fileDownloaderType == null)
+                {
+                    Log("❌ IFileDownloader type not found");
+                    return new UpdateInfo
+                    {
+                        HasUpdate = false,
+                        Error = "IFileDownloader type not found in SquirrelLib",
+                        CurrentVersion = GetCurrentVersion()
+                    };
+                }
+                
                 // Получаем конструктор используя BindingFlags
                 Log($"🔧 Getting constructor with BindingFlags");
                 var constructor = githubUpdateManagerType.GetConstructor(
@@ -122,7 +135,7 @@ namespace Contract2512.Services
                         typeof(string),  // accessToken
                         typeof(string),  // applicationIdOverride
                         typeof(string),  // localAppDataDirectoryOverride
-                        squirrelAssembly.GetType("Squirrel.IFileDownloader")  // urlDownloader
+                        fileDownloaderType  // urlDownloader
                     },
                     null
                 );
@@ -248,6 +261,14 @@ namespace Contract2512.Services
                 // Constructor(String repoUrl, Boolean prerelease, String accessToken, String applicationIdOverride, String localAppDataDirectoryOverride, IFileDownloader urlDownloader)
                 Log($"🔧 Creating GithubUpdateManager for download with repoUrl={_repoUrl}, prerelease=false, accessToken={(_accessToken != null ? "***" : "null")}");
                 
+                // Получаем тип IFileDownloader
+                var fileDownloaderType = squirrelAssembly.GetType("Squirrel.IFileDownloader");
+                if (fileDownloaderType == null)
+                {
+                    Log("❌ IFileDownloader type not found");
+                    return false;
+                }
+                
                 // Получаем конструктор используя BindingFlags (тот же подход что и в CheckForUpdatesAsync)
                 Log($"🔧 Getting constructor with BindingFlags");
                 var constructor = githubUpdateManagerType.GetConstructor(
@@ -260,7 +281,7 @@ namespace Contract2512.Services
                         typeof(string),  // accessToken
                         typeof(string),  // applicationIdOverride
                         typeof(string),  // localAppDataDirectoryOverride
-                        squirrelAssembly.GetType("Squirrel.IFileDownloader")  // urlDownloader
+                        fileDownloaderType  // urlDownloader
                     },
                     null
                 );
