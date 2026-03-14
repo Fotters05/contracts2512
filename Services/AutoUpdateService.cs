@@ -80,28 +80,23 @@ namespace Contract2512.Services
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 Log($"✅ Assembly loaded: {squirrelAssembly.FullName}");
                 
-                // ДИАГНОСТИКА: Выводим ВСЕ типы в сборке
-                Log("📋 Available types in SquirrelLib:");
-                foreach (var type in squirrelAssembly.GetTypes())
-                {
-                    Log($"  - {type.FullName}");
-                }
+                // Используем GithubUpdateManager вместо UpdateManager
+                var githubUpdateManagerType = squirrelAssembly.GetType("Squirrel.GithubUpdateManager");
                 
-                var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
-                
-                if (updateManagerType == null)
+                if (githubUpdateManagerType == null)
                 {
-                    Log("⚠️ UpdateManager type not found");
+                    Log("⚠️ GithubUpdateManager type not found");
                     return new UpdateInfo
                     {
                         HasUpdate = false,
-                        Error = "UpdateManager type not found in SquirrelLib",
+                        Error = "GithubUpdateManager type not found in SquirrelLib",
                         CurrentVersion = GetCurrentVersion()
                     };
                 }
 
-                // Создаём UpdateManager через рефлексию
-                var mgr = Activator.CreateInstance(updateManagerType, _updateUrl);
+                // Создаём GithubUpdateManager через рефлексию
+                // GithubUpdateManager принимает URL репозитория (например, "https://github.com/owner/repo")
+                var mgr = Activator.CreateInstance(githubUpdateManagerType, _updateUrl);
                 
                 if (mgr == null)
                 {
@@ -117,7 +112,7 @@ namespace Contract2512.Services
                 try
                 {
                     // Вызываем CheckForUpdate через рефлексию
-                    var checkMethod = updateManagerType.GetMethod("CheckForUpdate");
+                    var checkMethod = githubUpdateManagerType.GetMethod("CheckForUpdate");
                     var updateTask = checkMethod?.Invoke(mgr, null) as Task<object>;
                     
                     if (updateTask == null)
@@ -199,15 +194,15 @@ namespace Contract2512.Services
                 var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
                 
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
-                var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
+                var githubUpdateManagerType = squirrelAssembly.GetType("Squirrel.GithubUpdateManager");
                 
-                if (updateManagerType == null)
+                if (githubUpdateManagerType == null)
                 {
-                    Log("⚠️ UpdateManager type not found");
+                    Log("⚠️ GithubUpdateManager type not found");
                     return false;
                 }
 
-                var mgr = Activator.CreateInstance(updateManagerType, _updateUrl);
+                var mgr = Activator.CreateInstance(githubUpdateManagerType, _updateUrl);
                 
                 if (mgr == null)
                 {
@@ -218,7 +213,7 @@ namespace Contract2512.Services
                 try
                 {
                     // CheckForUpdate
-                    var checkMethod = updateManagerType.GetMethod("CheckForUpdate");
+                    var checkMethod = githubUpdateManagerType.GetMethod("CheckForUpdate");
                     var updateTask = checkMethod?.Invoke(mgr, null) as Task<object>;
                     
                     if (updateTask == null)
@@ -234,7 +229,7 @@ namespace Contract2512.Services
                         return false;
 
                     // DownloadReleases
-                    var downloadMethod = updateManagerType.GetMethod("DownloadReleases");
+                    var downloadMethod = githubUpdateManagerType.GetMethod("DownloadReleases");
                     
                     if (progress != null)
                     {
@@ -253,7 +248,7 @@ namespace Contract2512.Services
                     }
 
                     // ApplyReleases
-                    var applyMethod = updateManagerType.GetMethod("ApplyReleases");
+                    var applyMethod = githubUpdateManagerType.GetMethod("ApplyReleases");
                     var applyTask = applyMethod?.Invoke(mgr, new object[] { update }) as Task;
                     
                     if (applyTask != null)
@@ -286,6 +281,8 @@ namespace Contract2512.Services
                 var dllPath = Path.Combine(assemblyDir, "SquirrelLib.dll");
                 
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
+                
+                // UpdateManager.RestartApp() - это статический метод
                 var updateManagerType = squirrelAssembly.GetType("Squirrel.UpdateManager");
                 var restartMethod = updateManagerType?.GetMethod("RestartApp", BindingFlags.Public | BindingFlags.Static);
                 restartMethod?.Invoke(null, null);
