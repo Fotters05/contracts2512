@@ -54,6 +54,13 @@ namespace Contract2512.Services
                 var squirrelAssembly = Assembly.LoadFrom(dllPath);
                 Debug.WriteLine($"✅ Assembly loaded: {squirrelAssembly.FullName}");
                 
+                // ДИАГНОСТИКА: Выводим все типы в сборке
+                Debug.WriteLine("📋 Available types in SquirrelLib:");
+                foreach (var type in squirrelAssembly.GetTypes().Take(20))
+                {
+                    Debug.WriteLine($"  - {type.FullName}");
+                }
+                
                 var updateManagerType = squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
                 
                 if (updateManagerType == null)
