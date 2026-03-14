@@ -45,6 +45,28 @@ jobs:
     - name: Build and Publish
       run: dotnet publish Contract2512.csproj -c Release -r win-x64 --self-contained false -p:PublishSingleFile=false -p:CopyLocalLockFileAssemblies=true
       
+    - name: Copy Clowd.Squirrel.dll manually
+      run: |
+        # Находим Clowd.Squirrel.dll в NuGet кэше
+        $squirrelDll = Get-ChildItem -Path "$env:USERPROFILE\.nuget\packages\clowd.squirrel\2.11.1\lib\net8.0\Clowd.Squirrel.dll" -ErrorAction SilentlyContinue
+        if ($squirrelDll) {
+          Write-Host "✅ Найден Clowd.Squirrel.dll: $($squirrelDll.FullName)" -ForegroundColor Green
+          Copy-Item $squirrelDll.FullName -Destination "bin/Release/net8.0-windows/win-x64/publish/" -Force
+          Write-Host "✅ Clowd.Squirrel.dll скопирован в publish папку" -ForegroundColor Green
+        } else {
+          Write-Host "❌ Clowd.Squirrel.dll НЕ найден в NuGet кэше!" -ForegroundColor Red
+          exit 1
+        }
+        
+        # Проверяем что файл скопирован
+        if (Test-Path "bin/Release/net8.0-windows/win-x64/publish/Clowd.Squirrel.dll") {
+          Write-Host "✅ ПОДТВЕРЖДЕНО: Clowd.Squirrel.dll присутствует в publish папке" -ForegroundColor Green
+        } else {
+          Write-Host "❌ ОШИБКА: Clowd.Squirrel.dll НЕ скопирован!" -ForegroundColor Red
+          exit 1
+        }
+      shell: pwsh
+      
     - name: Get version from tag
       id: get_version
       run: |
