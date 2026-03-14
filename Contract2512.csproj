@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+п»ї<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
@@ -7,12 +7,12 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
     
-    <!-- Версионирование для автообновлений -->
-    <Version>1.1.5</Version>
-    <AssemblyVersion>1.1.5.0</AssemblyVersion>
-    <FileVersion>1.1.5.0</FileVersion>
+    <!-- Version info for auto-update -->
+    <Version>1.1.4</Version>
+    <AssemblyVersion>1.1.4.0</AssemblyVersion>
+    <FileVersion>1.1.4.0</FileVersion>
     
-    <!-- Отключаем генерацию временных проектов WPF -->
+    <!-- Disable temporary WPF assembly generation -->
     <GenerateTemporaryTargetAssembly>false</GenerateTemporaryTargetAssembly>
   </PropertyGroup>
 
@@ -30,7 +30,7 @@
     <PackageReference Include="System.Configuration.ConfigurationManager" Version="9.0.0" />
     <PackageReference Include="WPF-UI" Version="4.1.0" />
     
-    <!-- Автообновления через Clowd.Squirrel (современная версия для .NET 8) -->
+    <!-- Auto-update via Clowd.Squirrel (compatible with .NET 8) -->
     <PackageReference Include="Clowd.Squirrel" Version="2.11.1" />
   </ItemGroup>
 
@@ -69,7 +69,7 @@
   </ItemGroup>
 
   <PropertyGroup>
-    <!-- Исключаем SQL файлы из анализа SQL Server -->
+    <!-- Exclude SQL files from SQL Server projects -->
     <EnableDefaultItems>true</EnableDefaultItems>
     <ApplicationIcon>progaico.ico</ApplicationIcon>
   </PropertyGroup>
