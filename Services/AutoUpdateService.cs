@@ -55,6 +55,7 @@ namespace Contract2512.Services
         {
             if (_squirrelAssembly == null)
             {
+                Debug.WriteLine("❌ Squirrel assembly not loaded");
                 return new UpdateInfo 
                 { 
                     HasUpdate = false, 
@@ -66,6 +67,7 @@ namespace Contract2512.Services
             try
             {
                 Debug.WriteLine($"🔍 Проверка обновлений по URL: {_updateUrl}");
+                Debug.WriteLine($"📌 Текущая версия приложения: {_currentVersion}");
                 
                 // Создаём UpdateManager через рефлексию
                 var updateManagerType = _squirrelAssembly.GetType("Clowd.Squirrel.UpdateManager");
@@ -74,11 +76,15 @@ namespace Contract2512.Services
                     throw new Exception("UpdateManager type not found");
                 }
 
+                Debug.WriteLine($"✅ UpdateManager type найден");
+                
                 var updateManager = Activator.CreateInstance(updateManagerType, _updateUrl);
                 if (updateManager == null)
                 {
                     throw new Exception("Failed to create UpdateManager instance");
                 }
+
+                Debug.WriteLine($"✅ UpdateManager instance создан");
 
                 try
                 {
@@ -89,6 +95,8 @@ namespace Contract2512.Services
                         throw new Exception("CheckForUpdate method not found");
                     }
 
+                    Debug.WriteLine($"🔄 Вызываем CheckForUpdate...");
+                    
                     var checkTask = checkMethod.Invoke(updateManager, null) as Task;
                     if (checkTask == null)
                     {
@@ -97,15 +105,21 @@ namespace Contract2512.Services
 
                     await checkTask;
                     
+                    Debug.WriteLine($"✅ CheckForUpdate завершен");
+                    
                     // Получаем результат через Result property
                     var resultProperty = checkTask.GetType().GetProperty("Result");
                     var updateInfo = resultProperty?.GetValue(checkTask);
 
                     if (updateInfo != null)
                     {
+                        Debug.WriteLine($"✅ UpdateInfo получен");
+                        
                         // Получаем ReleasesToApply
                         var releasesToApplyProp = updateInfo.GetType().GetProperty("ReleasesToApply");
                         var releasesToApply = releasesToApplyProp?.GetValue(updateInfo) as System.Collections.IList;
+
+                        Debug.WriteLine($"📦 ReleasesToApply count: {releasesToApply?.Count ?? 0}");
 
                         if (releasesToApply != null && releasesToApply.Count > 0)
                         {
@@ -128,7 +142,19 @@ namespace Contract2512.Services
                                     CurrentVersion = _currentVersion
                                 };
                             }
+                            else
+                            {
+                                Debug.WriteLine($"⚠️ FutureReleaseEntry is null");
+                            }
                         }
+                        else
+                        {
+                            Debug.WriteLine($"ℹ️ Нет релизов для применения");
+                        }
+                    }
+                    else
+                    {
+                        Debug.WriteLine($"⚠️ UpdateInfo is null");
                     }
 
                     Debug.WriteLine($"ℹ️ Обновлений не найдено. Текущая версия: {_currentVersion}");
@@ -146,7 +172,15 @@ namespace Contract2512.Services
             catch (Exception ex)
             {
                 Debug.WriteLine($"❌ Ошибка проверки обновлений: {ex.Message}");
-                Debug.WriteLine($"Stack trace: {ex.StackTrace}");
+                Debug.WriteLine($"❌ Exception type: {ex.GetType().Name}");
+                Debug.WriteLine($"❌ Stack trace: {ex.StackTrace}");
+                
+                if (ex.InnerException != null)
+                {
+                    Debug.WriteLine($"❌ Inner exception: {ex.InnerException.Message}");
+                    Debug.WriteLine($"❌ Inner stack trace: {ex.InnerException.StackTrace}");
+                }
+                
                 return new UpdateInfo { HasUpdate = false, Error = ex.Message, CurrentVersion = _currentVersion };
             }
         }

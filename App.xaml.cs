@@ -241,12 +241,32 @@ namespace Contract2512
                     // Для закрытых репозиториев используем токен
                     updateUrl = $"https://{githubToken}@github.com/{githubOwner}/{githubRepo}/releases/download";
                     System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (private repo) по URL: https://***@github.com/{githubOwner}/{githubRepo}/releases/download");
+                    MessageBox.Show(
+                        $"Checking for updates...\n\n" +
+                        $"Owner: {githubOwner}\n" +
+                        $"Repo: {githubRepo}\n" +
+                        $"URL: https://github.com/{githubOwner}/{githubRepo}/releases/download\n" +
+                        $"Token: {(string.IsNullOrEmpty(githubToken) ? "NOT SET" : "SET")}",
+                        "Update Check Debug",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
                 }
                 else
                 {
                     // Для публичных репозиториев токен не нужен
                     updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/download";
                     System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (public repo) по URL: {updateUrl}");
+                    MessageBox.Show(
+                        $"Checking for updates...\n\n" +
+                        $"Owner: {githubOwner}\n" +
+                        $"Repo: {githubRepo}\n" +
+                        $"URL: {updateUrl}\n" +
+                        $"Token: NOT SET (public repo)",
+                        "Update Check Debug",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Information
+                    );
                 }
                 
                 var updateService = new AutoUpdateService(updateUrl);
@@ -271,6 +291,21 @@ namespace Contract2512
                     {
                         System.Diagnostics.Debug.WriteLine($"❌ Ошибка: {updateInfo.Error}");
                     }
+                    
+                    // Показываем сообщение для отладки
+                    Dispatcher.Invoke(() =>
+                    {
+                        MessageBox.Show(
+                            $"Update Check Result:\n\n" +
+                            $"Has Update: {updateInfo.HasUpdate}\n" +
+                            $"Current Version: {updateInfo.CurrentVersion}\n" +
+                            $"New Version: {updateInfo.Version ?? "N/A"}\n" +
+                            $"Error: {updateInfo.Error ?? "None"}",
+                            "Update Check Result",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Information
+                        );
+                    });
                 }
             }
             catch (Exception ex)
