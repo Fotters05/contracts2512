@@ -72,40 +72,43 @@ jobs:
         }
       shell: pwsh
       
-    - name: Copy Clowd.Squirrel.dll from NuGet cache
+    - name: Copy Clowd.Squirrel.dll to publish folder
       run: |
-        Write-Host "🔍 Поиск Clowd.Squirrel.dll в NuGet кэше..." -ForegroundColor Cyan
+        Write-Host "🔍 Поиск Clowd.Squirrel.dll после publish..." -ForegroundColor Cyan
         
-        # Ищем DLL рекурсивно в папке clowd.squirrel
-        $nugetBase = "C:\Users\runneradmin\.nuget\packages\clowd.squirrel\2.11.1"
+        # Ищем DLL в bin/Release после publish
+        $searchPaths = @(
+          "bin/Release/net8.0-windows/win-x64",
+          "bin/Release/net8.0-windows",
+          "bin/Release"
+        )
         
-        if (Test-Path $nugetBase) {
-          Write-Host "✅ Папка NuGet найдена: $nugetBase" -ForegroundColor Green
-          
-          # Рекурсивный поиск DLL в этой папке
-          $found = Get-ChildItem -Path $nugetBase -Filter "Clowd.Squirrel.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
-          
-          if ($found) {
-            Write-Host "✅ DLL найден: $($found.FullName)" -ForegroundColor Green
-            
-            # Копируем в publish папку
+        $found = $null
+        foreach ($path in $searchPaths) {
+          if (Test-Path $path) {
+            Write-Host "Проверяю: $path" -ForegroundColor Yellow
+            $found = Get-ChildItem -Path $path -Filter "Clowd.Squirrel.dll" -Recurse -ErrorAction SilentlyContinue | Select-Object -First 1
+            if ($found) {
+              Write-Host "✅ DLL найден: $($found.FullName)" -ForegroundColor Green
+              break
+            }
+          }
+        }
+        
+        if ($found) {
+          # Копируем в publish папку если его там нет
+          $publishPath = "bin/Release/net8.0-windows/win-x64/publish/Clowd.Squirrel.dll"
+          if (-not (Test-Path $publishPath)) {
             Write-Host "📦 Копирование DLL в publish папку..." -ForegroundColor Cyan
             Copy-Item $found.FullName -Destination "bin/Release/net8.0-windows/win-x64/publish/" -Force
             Write-Host "✅ Clowd.Squirrel.dll скопирован" -ForegroundColor Green
-            
-            # Проверяем что файл скопирован
-            if (Test-Path "bin/Release/net8.0-windows/win-x64/publish/Clowd.Squirrel.dll") {
-              Write-Host "✅ ПОДТВЕРЖДЕНО: Clowd.Squirrel.dll присутствует в publish папке" -ForegroundColor Green
-            } else {
-              Write-Host "❌ ОШИБКА: Clowd.Squirrel.dll НЕ скопирован!" -ForegroundColor Red
-              exit 1
-            }
           } else {
-            Write-Host "❌ DLL не найден в $nugetBase" -ForegroundColor Red
-            exit 1
+            Write-Host "✅ Clowd.Squirrel.dll уже есть в publish папке" -ForegroundColor Green
           }
         } else {
-          Write-Host "❌ Папка NuGet не найдена: $nugetBase" -ForegroundColor Red
+          Write-Host "❌ КРИТИЧЕСКАЯ ОШИБКА: Clowd.Squirrel.dll не найден после publish!" -ForegroundColor Red
+          Write-Host "Содержимое bin/Release:" -ForegroundColor Yellow
+          Get-ChildItem -Path "bin/Release" -Recurse -Filter "*.dll" | Select-Object -First 20 | ForEach-Object { Write-Host "  $($_.FullName)" }
           exit 1
         }
       shell: pwsh
