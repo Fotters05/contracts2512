@@ -807,11 +807,11 @@ namespace Contract2512.Views
                         }
                     }
 
-                    if (TimeOptionComboBox.SelectedItem is TimeOption selectedTimeOption)
+                    if (!isContractDOP && TimeOptionComboBox.SelectedItem is TimeOption selectedTimeOption)
                     {
                         timeOptionKey = selectedTimeOption.OptionKey;
                     }
-                    else if (isPK || isPP || isContractDOP)
+                    else if (isPK || isPP)
                     {
                         // Если опция не выбрана, проверяем формат программы
                         if (ProgramComboBox.SelectedItem is LearningProgram selectedProgram)
@@ -844,11 +844,6 @@ namespace Contract2512.Views
                                     var defaultOption = GetPPTimeOptions().FirstOrDefault();
                                     timeOptionKey = defaultOption?.OptionKey;
                                 }
-                                else if (isContractDOP)
-                                {
-                                    var defaultOption = GetDOPTimeOptions().FirstOrDefault();
-                                    timeOptionKey = defaultOption?.OptionKey;
-                                }
                             }
                         }
                         else
@@ -862,11 +857,6 @@ namespace Contract2512.Views
                             else if (isPP)
                             {
                                 var defaultOption = GetPPTimeOptions().FirstOrDefault();
-                                timeOptionKey = defaultOption?.OptionKey;
-                            }
-                            else if (isContractDOP)
-                            {
-                                var defaultOption = GetDOPTimeOptions().FirstOrDefault();
                                 timeOptionKey = defaultOption?.OptionKey;
                             }
                         }

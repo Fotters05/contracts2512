@@ -266,8 +266,18 @@ namespace Contract2512.Views
                 
                 if (fullContract != null)
                 {
-                    // Проверяем TimeOptionKey (для ПК, ПП, ДОП)
-                    if (!string.IsNullOrEmpty(fullContract.TimeOptionKey))
+                    bool isDopContract = IsDopContractType(fullContract.ContractType?.Name);
+
+                    if (isDopContract && !string.IsNullOrEmpty(fullContract.StudyOptionKey))
+                    {
+                        var studyOption = GetStudyOptionByKey(fullContract.StudyOptionKey);
+                        if (studyOption != null)
+                        {
+                            hoursPerWeek = studyOption.HoursPerWeek;
+                            weeksDuration = studyOption.WeeksDuration;
+                        }
+                    }
+                    else if (!string.IsNullOrEmpty(fullContract.TimeOptionKey))
                     {
                         var timeOption = GetTimeOptionByKey(fullContract.TimeOptionKey, fullContract.ContractType?.Name);
                         if (timeOption != null)
@@ -276,7 +286,6 @@ namespace Contract2512.Views
                             weeksDuration = timeOption.WeeksDuration;
                         }
                     }
-                    // Проверяем StudyOptionKey (для старых договоров)
                     else if (!string.IsNullOrEmpty(fullContract.StudyOptionKey))
                     {
                         var studyOption = GetStudyOptionByKey(fullContract.StudyOptionKey);
@@ -294,6 +303,13 @@ namespace Contract2512.Views
             }
             
             return (hoursPerWeek, weeksDuration);
+        }
+
+        private static bool IsDopContractType(string? contractTypeName)
+        {
+            return !string.IsNullOrWhiteSpace(contractTypeName) &&
+                   (contractTypeName.Contains("ДОП", StringComparison.OrdinalIgnoreCase) ||
+                    contractTypeName.Contains("дополнительное образование", StringComparison.OrdinalIgnoreCase));
         }
 
         private TimeOptionInfo? GetTimeOptionByKey(string optionKey, string? contractTypeName)
