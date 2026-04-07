@@ -370,14 +370,33 @@ namespace Contract2512.Services
 
                 // Используем Update.exe --processStart для корректного перезапуска
                 // Update.exe сам дождется закрытия текущего процесса и запустит новую версию
-                var startInfo = new ProcessStartInfo
+                var rootExecutable = Path.Combine(parentDir, "Contract2512.exe");
+                ProcessStartInfo startInfo;
+
+                if (File.Exists(rootExecutable))
                 {
-                    FileName = updateExe,
-                    Arguments = "--processStartAndWait Contract2512.exe",
-                    UseShellExecute = false,
-                    CreateNoWindow = true,
-                    WorkingDirectory = parentDir
-                };
+                    Debug.WriteLine($"вњ… РљРѕСЂРЅРµРІРѕР№ exe РЅР°Р№РґРµРЅ: {rootExecutable}");
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = "cmd.exe",
+                        Arguments = $"/c timeout /t 2 /nobreak >nul & start \"\" \"{rootExecutable}\"",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = parentDir
+                    };
+                }
+                else
+                {
+                    Debug.WriteLine($"вљ пёЏ РљРѕСЂРЅРµРІРѕР№ exe РЅРµ РЅР°Р№РґРµРЅ, РёСЃРїРѕР»СЊР·СѓРµРј fallback С‡РµСЂРµР· Update.exe");
+                    startInfo = new ProcessStartInfo
+                    {
+                        FileName = updateExe,
+                        Arguments = "--processStart Contract2512.exe",
+                        UseShellExecute = false,
+                        CreateNoWindow = true,
+                        WorkingDirectory = parentDir
+                    };
+                }
 
                 Process.Start(startInfo);
                 Debug.WriteLine($"✅ Команда перезапуска отправлена");
