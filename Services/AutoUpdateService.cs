@@ -189,21 +189,16 @@ namespace Contract2512.Services
                     UpdateLogger.Log($"Версия из вывода Update.exe: {newVersion}");
                     UpdateLogger.Log($"Текущая версия: {_currentVersion}");
 
-                    // Сравниваем версии
-                    if (true)
+                    if (IsNewerVersion(newVersion, _currentVersion))
                     {
-                        // Дополнительная проверка: новая версия должна быть больше текущей
-                        if (true)
+                        UpdateLogger.Log($"✅ ОБНОВЛЕНИЕ НАЙДЕНО! Новая версия: {newVersion}");
+                        return new UpdateInfo
                         {
-                            UpdateLogger.Log($"✅ ОБНОВЛЕНИЕ НАЙДЕНО! Новая версия: {newVersion}");
-                            return new UpdateInfo
-                            {
-                                HasUpdate = true,
-                                Version = newVersion,
-                                ReleaseNotes = "Доступна новая версия приложения",
-                                CurrentVersion = _currentVersion
-                            };
-                        }
+                            HasUpdate = true,
+                            Version = newVersion,
+                            ReleaseNotes = "Доступна новая версия приложения",
+                            CurrentVersion = _currentVersion
+                        };
                     }
 
                     UpdateLogger.Log("ℹ️ У вас уже установлена последняя версия");
@@ -377,8 +372,8 @@ namespace Contract2512.Services
                 // Update.exe сам дождется закрытия текущего процесса и запустит новую версию
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
-                    Arguments = $"/c timeout /t 2 /nobreak >nul & \"{updateExe}\" --processStart Contract2512.exe",
+                    FileName = updateExe,
+                    Arguments = "--processStartAndWait Contract2512.exe",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     WorkingDirectory = parentDir
