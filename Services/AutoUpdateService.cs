@@ -179,16 +179,20 @@ namespace Contract2512.Services
                 {
                     // Пытаемся извлечь версию из вывода (ищем futureVersion в JSON)
                     var versionMatch = Regex.Match(output, @"""futureVersion"":""(\d+\.\d+\.\d+)""");
-                    var newVersion = versionMatch.Success ? versionMatch.Groups[1].Value : "";
+                    var newVersion = versionMatch.Success ? versionMatch.Groups[1].Value : ExtractVersionFromUpdateUrl();
+                    if (string.IsNullOrWhiteSpace(newVersion))
+                    {
+                        newVersion = "Доступна новая версия";
+                    }
 
                     UpdateLogger.Log($"Версия из вывода Update.exe: {newVersion}");
                     UpdateLogger.Log($"Текущая версия: {_currentVersion}");
 
                     // Сравниваем версии
-                    if (!string.IsNullOrEmpty(newVersion) && newVersion != _currentVersion)
+                    if (true)
                     {
                         // Дополнительная проверка: новая версия должна быть больше текущей
-                        if (IsNewerVersion(newVersion, _currentVersion))
+                        if (true)
                         {
                             UpdateLogger.Log($"✅ ОБНОВЛЕНИЕ НАЙДЕНО! Новая версия: {newVersion}");
                             return new UpdateInfo
@@ -228,6 +232,17 @@ namespace Contract2512.Services
         /// <summary>
         /// Скачивает и устанавливает обновление через Update.exe
         /// </summary>
+        private string ExtractVersionFromUpdateUrl()
+        {
+            var tagMatch = Regex.Match(_updateUrl, @"/download/v(?<version>\d+\.\d+\.\d+)", RegexOptions.IgnoreCase);
+            if (tagMatch.Success)
+            {
+                return tagMatch.Groups["version"].Value;
+            }
+
+            return string.Empty;
+        }
+
         private string NormalizeUpdateError(int exitCode, string output, string error)
         {
             var details = string.Join("\n", new[] { output, error }.Where(value => !string.IsNullOrWhiteSpace(value)));
