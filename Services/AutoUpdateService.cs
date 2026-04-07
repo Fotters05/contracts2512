@@ -129,12 +129,13 @@ namespace Contract2512.Services
                 // Запускаем Update.exe --checkForUpdate="URL"
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
+                    FileName = updateExe,
                     Arguments = $"--checkForUpdate=\"{_updateUrl}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(updateExe)
                 };
 
                 using var process = new Process { StartInfo = startInfo };
@@ -285,12 +286,13 @@ namespace Contract2512.Services
                 // Запускаем Update.exe --update="URL"
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = "cmd.exe",
+                    FileName = updateExe,
                     Arguments = $"--update=\"{_updateUrl}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
                     RedirectStandardError = true,
-                    CreateNoWindow = true
+                    CreateNoWindow = true,
+                    WorkingDirectory = Path.GetDirectoryName(updateExe)
                 };
 
                 using var process = new Process { StartInfo = startInfo };
