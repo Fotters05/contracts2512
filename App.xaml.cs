@@ -7,6 +7,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Text.Json;
+using System.Threading;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
@@ -18,6 +19,8 @@ namespace Contract2512
     /// </summary>
     public partial class App : Application
     {
+        private int _isUpdateCheckRunning;
+
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
@@ -65,7 +68,7 @@ namespace Contract2512
             // Небольшая задержка чтобы главное окно успело открыться
             await System.Threading.Tasks.Task.Delay(1000);
             
-            await CheckForUpdatesAsync();
+            await CheckForUpdatesAsync(showProgressWindow: false, showErrorsToUser: false);
         }
 
         /// <summary>
@@ -156,8 +159,14 @@ namespace Contract2512
         /// <summary>
         /// Проверяет наличие обновлений через Squirrel
         /// </summary>
-        private async System.Threading.Tasks.Task CheckForUpdatesAsync()
+        private async System.Threading.Tasks.Task CheckForUpdatesAsync(bool showProgressWindow = true, bool showErrorsToUser = true)
         {
+            if (Interlocked.Exchange(ref _isUpdateCheckRunning, 1) == 1)
+            {
+                System.Diagnostics.Debug.WriteLine("ℹ️ Проверка обновлений уже выполняется, повторный запуск пропущен");
+                return;
+            }
+
             try
             {
                 // Читаем настройки GitHub из .env
@@ -169,18 +178,56 @@ namespace Contract2512
                 System.Diagnostics.Debug.WriteLine($"🔍 URL: {updateUrl.Replace(githubToken ?? "", "***")}");
                 
                 var updateService = new AutoUpdateService(updateUrl);
-                
-                // Показываем окно проверки обновлений
-                Dispatcher.Invoke(() =>
+
+                if (showProgressWindow)
                 {
-                    var checkWindow = new CheckUpdateWindow(updateService);
-                    checkWindow.ShowDialog();
-                });
+                    Dispatcher.Invoke(() =>
+                    {
+                        var checkWindow = new CheckUpdateWindow(updateService);
+                        checkWindow.ShowDialog();
+                    });
+                    return;
+                }
+
+                var updateInfo = await updateService.CheckForUpdatesAsync();
+                if (updateInfo.HasUpdate)
+                {
+                    await Dispatcher.InvokeAsync(() =>
+                    {
+                        var updateWindow = new UpdateWindow(updateInfo, updateService);
+                        updateWindow.ShowDialog();
+                    });
+                }
+                else if (!string.IsNullOrWhiteSpace(updateInfo.Error))
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ Фоновая проверка обновлений завершилась ошибкой: {updateInfo.Error}");
+
+                    if (showErrorsToUser)
+                    {
+                        MessageBox.Show(
+                            $"Не удалось проверить обновления.\n{updateInfo.Error}",
+                            "Ошибка проверки обновлений",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                    }
+                }
             }
             catch (Exception ex)
             {
-                // Ошибки обновления не должны ломать приложение
                 System.Diagnostics.Debug.WriteLine($"❌ Ошибка проверки обновлений: {ex.Message}");
+
+                if (showErrorsToUser)
+                {
+                    MessageBox.Show(
+                        $"Не удалось проверить обновления.\n{ex.Message}",
+                        "Ошибка проверки обновлений",
+                        MessageBoxButton.OK,
+                        MessageBoxImage.Warning);
+                }
+            }
+            finally
+            {
+                Interlocked.Exchange(ref _isUpdateCheckRunning, 0);
             }
         }
 
