@@ -8,9 +8,9 @@
     <UseWPF>true</UseWPF>
     
     <!-- Version info for auto-update -->
-    <Version>1.8.9</Version>
-    <AssemblyVersion>1.8.9.0</AssemblyVersion>
-    <FileVersion>1.8.9.0</FileVersion>
+    <Version>1.9.1</Version>
+    <AssemblyVersion>1.9.1.0</AssemblyVersion>
+    <FileVersion>1.9.1.0</FileVersion>
     
     <!-- Disable temporary WPF assembly generation - CRITICAL for Squirrel -->
     <GenerateTemporaryTargetAssembly>false</GenerateTemporaryTargetAssembly>
