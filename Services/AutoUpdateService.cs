@@ -27,6 +27,12 @@ namespace Contract2512.Services
         /// </summary>
         private string GetCurrentVersion()
         {
+            var appFolderVersion = ExtractVersionFromAppDirectory();
+            if (!string.IsNullOrWhiteSpace(appFolderVersion))
+            {
+                return appFolderVersion;
+            }
+
             var assembly = Assembly.GetExecutingAssembly();
             var version = assembly.GetName().Version;
             return $"{version?.Major}.{version?.Minor}.{version?.Build}";
@@ -180,7 +186,13 @@ namespace Contract2512.Services
                 {
                     // Пытаемся извлечь версию из вывода (ищем futureVersion в JSON)
                     var versionMatch = Regex.Match(output, @"""futureVersion"":""(\d+\.\d+\.\d+)""");
-                    var newVersion = versionMatch.Success ? versionMatch.Groups[1].Value : ExtractVersionFromUpdateUrl();
+                    var newVersion = NormalizeVersion(versionMatch.Success ? versionMatch.Groups[1].Value : ExtractVersionFromUpdateUrl());
+                    var currentVersion = NormalizeVersion(_currentVersion);
+                    if (string.IsNullOrWhiteSpace(newVersion))
+                    {
+                        return new UpdateInfo { HasUpdate = false, CurrentVersion = _currentVersion };
+                    }
+
                     if (string.IsNullOrWhiteSpace(newVersion))
                     {
                         newVersion = "Доступна новая версия";
@@ -189,7 +201,12 @@ namespace Contract2512.Services
                     UpdateLogger.Log($"Версия из вывода Update.exe: {newVersion}");
                     UpdateLogger.Log($"Текущая версия: {_currentVersion}");
 
-                    if (IsNewerVersion(newVersion, _currentVersion))
+                    if (string.Equals(newVersion, currentVersion, StringComparison.OrdinalIgnoreCase))
+                    {
+                        return new UpdateInfo { HasUpdate = false, CurrentVersion = _currentVersion };
+                    }
+
+                    if (IsNewerVersion(newVersion, currentVersion))
                     {
                         UpdateLogger.Log($"✅ ОБНОВЛЕНИЕ НАЙДЕНО! Новая версия: {newVersion}");
                         return new UpdateInfo
@@ -237,6 +254,32 @@ namespace Contract2512.Services
             }
 
             return string.Empty;
+        }
+
+        private string ExtractVersionFromAppDirectory()
+        {
+            try
+            {
+                var appDir = AppDomain.CurrentDomain.BaseDirectory.TrimEnd('\\', '/');
+                var folderName = Path.GetFileName(appDir);
+                var match = Regex.Match(folderName, @"app-(?<version>\d+\.\d+\.\d+)", RegexOptions.IgnoreCase);
+
+                if (match.Success)
+                {
+                    return match.Groups["version"].Value;
+                }
+            }
+            catch
+            {
+            }
+
+            return string.Empty;
+        }
+
+        private string NormalizeVersion(string version)
+        {
+            var match = Regex.Match(version ?? string.Empty, @"(?<version>\d+\.\d+\.\d+)");
+            return match.Success ? match.Groups["version"].Value : string.Empty;
         }
 
         private string NormalizeUpdateError(int exitCode, string output, string error)
