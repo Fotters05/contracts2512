@@ -38,7 +38,7 @@ jobs:
       run: |
         @"
         GITHUB_OWNER=Fotters05
-        GITHUB_REPO=ContractTest
+        GITHUB_REPO=contracts2512
         "@ | Out-File -FilePath bin/Release/net8.0-windows/publish/.env -Encoding UTF8
       shell: pwsh
       
