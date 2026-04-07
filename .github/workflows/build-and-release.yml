@@ -39,6 +39,7 @@ jobs:
         @"
         GITHUB_OWNER=Fotters05
         GITHUB_REPO=contracts2512
+        GITHUB_TOKEN=${{ secrets.AUTO_UPDATE_TOKEN }}
         "@ | Out-File -FilePath bin/Release/net8.0-windows/publish/.env -Encoding UTF8
       shell: pwsh
       

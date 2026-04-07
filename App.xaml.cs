@@ -234,7 +234,9 @@ namespace Contract2512
         {
             if (!string.IsNullOrWhiteSpace(githubToken))
             {
-                return $"https://{githubToken}@github.com/{githubOwner}/{githubRepo}/releases/{releasePath}";
+                var encodedOwner = Uri.EscapeDataString(githubOwner);
+                var encodedToken = Uri.EscapeDataString(githubToken);
+                return $"https://{encodedOwner}:{encodedToken}@github.com/{githubOwner}/{githubRepo}/releases/{releasePath}";
             }
 
             return $"https://github.com/{githubOwner}/{githubRepo}/releases/{releasePath}";
