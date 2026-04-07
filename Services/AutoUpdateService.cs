@@ -129,7 +129,7 @@ namespace Contract2512.Services
                 // Запускаем Update.exe --checkForUpdate="URL"
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = updateExe,
+                    FileName = "cmd.exe",
                     Arguments = $"--checkForUpdate=\"{_updateUrl}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -270,7 +270,7 @@ namespace Contract2512.Services
                 // Запускаем Update.exe --update="URL"
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = updateExe,
+                    FileName = "cmd.exe",
                     Arguments = $"--update=\"{_updateUrl}\"",
                     UseShellExecute = false,
                     RedirectStandardOutput = true,
@@ -360,8 +360,8 @@ namespace Contract2512.Services
                 // Update.exe сам дождется закрытия текущего процесса и запустит новую версию
                 var startInfo = new ProcessStartInfo
                 {
-                    FileName = updateExe,
-                    Arguments = "--processStart Contract2512.exe",
+                    FileName = "cmd.exe",
+                    Arguments = $"/c timeout /t 2 /nobreak >nul & \"{updateExe}\" --processStart Contract2512.exe",
                     UseShellExecute = false,
                     CreateNoWindow = true,
                     WorkingDirectory = parentDir
@@ -372,7 +372,14 @@ namespace Contract2512.Services
 
                 // Закрываем текущее приложение
                 // Update.exe автоматически запустит новую версию после закрытия
-                Environment.Exit(0);
+                try
+                {
+                    System.Windows.Application.Current?.Shutdown();
+                }
+                finally
+                {
+                    Environment.Exit(0);
+                }
             }
             catch (Exception ex)
             {
@@ -381,6 +388,7 @@ namespace Contract2512.Services
                 // Fallback: просто закрываем приложение
                 try
                 {
+                    System.Windows.Application.Current?.Shutdown();
                     Environment.Exit(0);
                 }
                 catch { }
