@@ -88,6 +88,8 @@ public static class EnvConfigService
             {
                 CreateDefaultEnvFile(envPath);
             }
+
+            SyncPackagedSettings(baseDir, envPath);
             
             return envPath;
         }
@@ -142,6 +144,10 @@ public static class EnvConfigService
             defaultContent.AppendLine();
             defaultContent.AppendLine("# Connection string will be saved here automatically");
             defaultContent.AppendLine("# DB_CONNECTION_STRING=");
+            defaultContent.AppendLine();
+            defaultContent.AppendLine("# GitHub Auto-Update Settings");
+            defaultContent.AppendLine("GITHUB_OWNER=Fotters05");
+            defaultContent.AppendLine("GITHUB_REPO=contracts2512");
 
             Directory.CreateDirectory(Path.GetDirectoryName(path)!);
             File.WriteAllText(path, defaultContent.ToString(), Encoding.UTF8);
@@ -149,6 +155,58 @@ public static class EnvConfigService
         catch
         {
             // Ignore errors during default file creation
+        }
+    }
+
+    private static void SyncPackagedSettings(string baseDir, string envPath)
+    {
+        try
+        {
+            var packagedEnvPath = Path.Combine(baseDir, ".env");
+            if (!File.Exists(packagedEnvPath))
+            {
+                return;
+            }
+
+            var packaged = ReadEnvFile(packagedEnvPath);
+            if (packaged.Count == 0)
+            {
+                return;
+            }
+
+            var current = File.Exists(envPath)
+                ? ReadEnvFile(envPath)
+                : new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+            var changed = false;
+
+            foreach (var key in new[] { "GITHUB_OWNER", "GITHUB_REPO" })
+            {
+                if (packaged.TryGetValue(key, out var packagedValue) &&
+                    !string.IsNullOrWhiteSpace(packagedValue) &&
+                    (!current.TryGetValue(key, out var currentValue) || !string.Equals(currentValue, packagedValue, StringComparison.Ordinal)))
+                {
+                    current[key] = packagedValue;
+                    changed = true;
+                }
+            }
+
+            if (!current.ContainsKey("GITHUB_TOKEN") &&
+                packaged.TryGetValue("GITHUB_TOKEN", out var packagedToken) &&
+                !string.IsNullOrWhiteSpace(packagedToken))
+            {
+                current["GITHUB_TOKEN"] = packagedToken;
+                changed = true;
+            }
+
+            if (changed)
+            {
+                WriteEnvFile(envPath, current);
+            }
+        }
+        catch
+        {
+            // Ignore sync failures and continue with the current env file.
         }
     }
 

@@ -213,7 +213,7 @@ namespace Contract2512.Services
                 {
                     UpdateLogger.Log($"❌ Ошибка проверки обновлений (ExitCode = {process.ExitCode})");
                     UpdateLogger.Log($"Лог сохранен в: {UpdateLogger.GetLogFilePath()}");
-                    return new UpdateInfo { HasUpdate = false, Error = $"ExitCode: {process.ExitCode}\n{error}", CurrentVersion = _currentVersion };
+                    return new UpdateInfo { HasUpdate = false, Error = NormalizeUpdateError(process.ExitCode, output, error), CurrentVersion = _currentVersion };
                 }
             }
             catch (Exception ex)
@@ -221,13 +221,36 @@ namespace Contract2512.Services
                 UpdateLogger.Log($"❌ ИСКЛЮЧЕНИЕ: {ex.Message}");
                 UpdateLogger.Log($"Stack trace: {ex.StackTrace}");
                 UpdateLogger.Log($"Лог сохранен в: {UpdateLogger.GetLogFilePath()}");
-                return new UpdateInfo { HasUpdate = false, Error = ex.Message, CurrentVersion = _currentVersion };
+                return new UpdateInfo { HasUpdate = false, Error = NormalizeUpdateError(-1, string.Empty, ex.Message), CurrentVersion = _currentVersion };
             }
         }
 
         /// <summary>
         /// Скачивает и устанавливает обновление через Update.exe
         /// </summary>
+        private string NormalizeUpdateError(int exitCode, string output, string error)
+        {
+            var details = string.Join("\n", new[] { output, error }.Where(value => !string.IsNullOrWhiteSpace(value)));
+
+            if (details.Contains("404", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Не найден файл обновления RELEASES в GitHub Releases. Проверьте, что в репозитории опубликован релиз с файлами RELEASES и .nupkg, а настройки GITHUB_OWNER/GITHUB_REPO указывают на правильный репозиторий.";
+            }
+
+            if (details.Contains("401", StringComparison.OrdinalIgnoreCase) ||
+                details.Contains("403", StringComparison.OrdinalIgnoreCase))
+            {
+                return "Нет доступа к GitHub Releases. Если репозиторий приватный, укажите GITHUB_TOKEN в .env установленного приложения.";
+            }
+
+            if (exitCode > 1)
+            {
+                return $"Ошибка проверки обновлений (код {exitCode}). Подробности сохранены в логе: {UpdateLogger.GetLogFilePath()}";
+            }
+
+            return string.IsNullOrWhiteSpace(error) ? "Не удалось проверить обновления." : error.Trim();
+        }
+
         public async Task<bool> DownloadAndInstallUpdateAsync(IProgress<int>? progress = null)
         {
             try

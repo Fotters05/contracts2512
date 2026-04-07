@@ -3,7 +3,10 @@ using System.Data;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Reflection;
+using System.Text.Json;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
@@ -159,24 +162,9 @@ namespace Contract2512
             {
                 // Читаем настройки GitHub из .env
                 var githubOwner = EnvConfigService.Get("GITHUB_OWNER") ?? "Fotters05";
-                var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "ContractTest";
+                var githubRepo = EnvConfigService.Get("GITHUB_REPO") ?? "contracts2512";
                 var githubToken = EnvConfigService.Get("GITHUB_TOKEN");
-                
-                // Для приватных репозиториев нужно использовать GitHub API с токеном
-                // Формат: https://TOKEN@github.com/owner/repo/releases/latest/download
-                string updateUrl;
-                if (!string.IsNullOrEmpty(githubToken))
-                {
-                    // Используем токен для доступа к приватному репозиторию
-                    updateUrl = $"https://{githubToken}@github.com/{githubOwner}/{githubRepo}/releases/latest/download";
-                    System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (приватный репозиторий)");
-                }
-                else
-                {
-                    // Публичный репозиторий
-                    updateUrl = $"https://github.com/{githubOwner}/{githubRepo}/releases/latest/download";
-                    System.Diagnostics.Debug.WriteLine($"🔍 Проверка обновлений (публичный репозиторий)");
-                }
+                var updateUrl = await ResolveUpdateUrlAsync(githubOwner, githubRepo, githubToken);
                 
                 System.Diagnostics.Debug.WriteLine($"🔍 URL: {updateUrl.Replace(githubToken ?? "", "***")}");
                 
@@ -194,6 +182,62 @@ namespace Contract2512
                 // Ошибки обновления не должны ломать приложение
                 System.Diagnostics.Debug.WriteLine($"❌ Ошибка проверки обновлений: {ex.Message}");
             }
+        }
+
+        private static async System.Threading.Tasks.Task<string> ResolveUpdateUrlAsync(string githubOwner, string githubRepo, string? githubToken)
+        {
+            var fallbackUrl = BuildDownloadUrl(githubOwner, githubRepo, "latest/download", githubToken);
+
+            try
+            {
+                using var httpClient = new HttpClient();
+                httpClient.DefaultRequestHeaders.UserAgent.ParseAdd("Contract2512-Updater");
+
+                if (!string.IsNullOrWhiteSpace(githubToken))
+                {
+                    httpClient.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", githubToken);
+                    System.Diagnostics.Debug.WriteLine("🔍 Проверка обновлений (приватный или защищенный репозиторий)");
+                }
+                else
+                {
+                    System.Diagnostics.Debug.WriteLine("🔍 Проверка обновлений (публичный репозиторий)");
+                }
+
+                using var response = await httpClient.GetAsync($"https://api.github.com/repos/{githubOwner}/{githubRepo}/releases/latest");
+                if (!response.IsSuccessStatusCode)
+                {
+                    System.Diagnostics.Debug.WriteLine($"⚠️ GitHub API вернул {(int)response.StatusCode}, используем latest/download");
+                    return fallbackUrl;
+                }
+
+                await using var stream = await response.Content.ReadAsStreamAsync();
+                using var document = await JsonDocument.ParseAsync(stream);
+
+                if (document.RootElement.TryGetProperty("tag_name", out var tagNameElement))
+                {
+                    var tagName = tagNameElement.GetString();
+                    if (!string.IsNullOrWhiteSpace(tagName))
+                    {
+                        return BuildDownloadUrl(githubOwner, githubRepo, $"download/{tagName}", githubToken);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"⚠️ Не удалось получить latest release через API: {ex.Message}");
+            }
+
+            return fallbackUrl;
+        }
+
+        private static string BuildDownloadUrl(string githubOwner, string githubRepo, string releasePath, string? githubToken)
+        {
+            if (!string.IsNullOrWhiteSpace(githubToken))
+            {
+                return $"https://{githubToken}@github.com/{githubOwner}/{githubRepo}/releases/{releasePath}";
+            }
+
+            return $"https://github.com/{githubOwner}/{githubRepo}/releases/{releasePath}";
         }
     }
 }
