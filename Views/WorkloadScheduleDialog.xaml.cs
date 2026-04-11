@@ -111,12 +111,12 @@ namespace Contract2512.Views
             
             if (SaturdayCheckBox.IsChecked == true && !string.IsNullOrWhiteSpace(SaturdayTimeTextBox.Text))
             {
-                Schedule["РЎСѓР±Р±РѕС‚Р°"] = ParseTimeSlots(SaturdayTimeTextBox.Text);
+                Schedule["Суббота"] = ParseTimeSlots(SaturdayTimeTextBox.Text);
             }
 
             if (SundayCheckBox.IsChecked == true && !string.IsNullOrWhiteSpace(SundayTimeTextBox.Text))
             {
-                Schedule["Р’РѕСЃРєСЂРµСЃРµРЅСЊРµ"] = ParseTimeSlots(SundayTimeTextBox.Text);
+                Schedule["Воскресенье"] = ParseTimeSlots(SundayTimeTextBox.Text);
             }
 
             DialogResult = true;
