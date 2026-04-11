@@ -250,6 +250,42 @@
                         </Grid>
 
                         <!-- Валидация -->
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="SaturdayCheckBox"
+                                      Content="Суббота"
+                                      Grid.Column="0"
+                                      Foreground="{StaticResource TextPrimary}"
+                                      VerticalAlignment="Center"
+                                      Checked="DayCheckBox_Changed"
+                                      Unchecked="DayCheckBox_Changed"/>
+                            <TextBox x:Name="SaturdayTimeTextBox"
+                                     Grid.Column="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsEnabled="False"/>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="120"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <CheckBox x:Name="SundayCheckBox"
+                                      Content="Воскресенье"
+                                      Grid.Column="0"
+                                      Foreground="{StaticResource TextPrimary}"
+                                      VerticalAlignment="Center"
+                                      Checked="DayCheckBox_Changed"
+                                      Unchecked="DayCheckBox_Changed"/>
+                            <TextBox x:Name="SundayTimeTextBox"
+                                     Grid.Column="1"
+                                     Style="{StaticResource DarkTextBoxStyle}"
+                                     IsEnabled="False"/>
+                        </Grid>
+
                         <TextBlock x:Name="ValidationTextBlock"
                                    FontSize="13"
                                    Foreground="#EF4444"

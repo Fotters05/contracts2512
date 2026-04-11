@@ -139,7 +139,7 @@ CREATE TABLE person (
     gender_id SMALLINT NOT NULL REFERENCES gender(id),
     place_of_birth VARCHAR(500),
     citizenship VARCHAR(200) NOT NULL,
-    snils VARCHAR(11) NOT NULL CHECK (snils ~ '^[0-9]{11}$'),
+    snils VARCHAR(11) CHECK (snils IS NULL OR snils ~ '^[0-9]{11}$'),
     inn VARCHAR(12) CHECK (inn IS NULL OR inn ~ '^[0-9]{10}([0-9]{2})?$'),
     workplace VARCHAR(500),
     position VARCHAR(200),

@@ -883,7 +883,27 @@ namespace Contract2512.Views
                 }
             }
 
+            AppendScheduleSlots(result, schedule, "РЎСѓР±Р±РѕС‚Р°", DayOfWeek.Saturday);
+            AppendScheduleSlots(result, schedule, "Р’РѕСЃРєСЂРµСЃРµРЅСЊРµ", DayOfWeek.Sunday);
+
             return result;
+        }
+
+        private static void AppendScheduleSlots(
+            List<ScheduleSlotDefinition> result,
+            Dictionary<string, List<TimeSlot>> schedule,
+            string dayName,
+            DayOfWeek dayOfWeek)
+        {
+            if (!schedule.TryGetValue(dayName, out var timeSlots))
+            {
+                return;
+            }
+
+            foreach (var timeSlot in timeSlots.OrderBy(slot => slot.StartTime))
+            {
+                result.Add(new ScheduleSlotDefinition(dayName, dayOfWeek, timeSlot));
+            }
         }
 
         private static List<LessonOccurrence> BuildLessonDates(

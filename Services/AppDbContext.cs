@@ -28,6 +28,15 @@ namespace Contract2512.Services
         public DbSet<WorkloadScheduleEntry> WorkloadScheduleEntries { get; set; }
         public DbSet<HolidayCalendarDay> HolidayCalendarDays { get; set; }
 
+        public void EnsureSchemaCompatibility()
+        {
+            Database.ExecuteSqlRaw(
+                """
+                ALTER TABLE IF EXISTS public.person
+                ALTER COLUMN snils DROP NOT NULL;
+                """);
+        }
+
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             if (!optionsBuilder.IsConfigured)
