@@ -5,6 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:ui="http://schemas.lepo.co/wpfui/2022/xaml"
         xmlns:local="clr-namespace:Contract2512"
+        xmlns:views="clr-namespace:Contract2512.Views"
         mc:Ignorable="d"
         Title="Система управления договорами"
         WindowStartupLocation="CenterScreen"
@@ -419,6 +420,14 @@
                             Style="{StaticResource MenuItemStyle}"
                             MouseLeftButtonDown="BtnPrograms_Click">
                         <TextBlock Text="📚  Программы"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
+
+                    <Border x:Name="BtnAiCourseDrafts"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnAiCourseDrafts_Click">
+                        <TextBlock Text="🧠  Формирование новых курсов"
                                    FontSize="16"
                                    Foreground="{StaticResource TextPrimary}"/>
                     </Border>
@@ -840,6 +849,47 @@
                             <DataGridTextColumn Header="Путь к файлу" Binding="{Binding FilePath}" Width="2*"/>
                         </DataGrid.Columns>
                     </DataGrid>
+                </Border>
+            </Grid>
+
+            <!-- Формирование новых курсов -->
+            <Grid x:Name="AiCourseDraftsPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Background="{StaticResource DataGridBackground}"
+                        CornerRadius="12"
+                        BorderBrush="#475569"
+                        BorderThickness="1"
+                        Padding="20"
+                        Margin="0,0,0,16"
+                        Effect="{StaticResource CardShadow}">
+                    <StackPanel>
+                        <TextBlock Text="Формирование новых курсов"
+                                   FontSize="28"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextPrimary}"
+                                   Margin="0,0,0,8"/>
+                        <TextBlock Text="Здесь должен отображаться модуль интеграции с ai_service: проверка health, генерация draft, загрузка по draft_id и экспорт DOCX."
+                                   FontSize="16"
+                                   TextWrapping="Wrap"
+                                   Foreground="{StaticResource TextSecondary}"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Background="{StaticResource DataGridBackground}"
+                        CornerRadius="12"
+                        BorderBrush="#475569"
+                        BorderThickness="1"
+                        Padding="12"
+                        Effect="{StaticResource CardShadow}">
+                    <ContentControl x:Name="AiCourseDraftHost"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"/>
                 </Border>
             </Grid>
 

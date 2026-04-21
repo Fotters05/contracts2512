@@ -11,6 +11,7 @@ using System.Threading;
 using System.Windows;
 using Contract2512.Services;
 using Contract2512.Views;
+using System.Windows.Threading;
 
 namespace Contract2512
 {
@@ -24,6 +25,7 @@ namespace Contract2512
         protected override async void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
+            RegisterUnhandledExceptionLogging();
             
             // Обрабатываем события Squirrel через рефлексию
             HandleSquirrelEvents();
@@ -58,6 +60,45 @@ namespace Contract2512
             // Открываем главное окно сразу
             var mainWindow = new MainWindow();
             mainWindow.Show();
+        }
+
+        private void RegisterUnhandledExceptionLogging()
+        {
+            DispatcherUnhandledException += OnDispatcherUnhandledException;
+            AppDomain.CurrentDomain.UnhandledException += OnCurrentDomainUnhandledException;
+            TaskScheduler.UnobservedTaskException += OnUnobservedTaskException;
+        }
+
+        private void OnDispatcherUnhandledException(object sender, DispatcherUnhandledExceptionEventArgs e)
+        {
+            LogUnhandledException("DispatcherUnhandledException", e.Exception);
+        }
+
+        private void OnCurrentDomainUnhandledException(object sender, UnhandledExceptionEventArgs e)
+        {
+            if (e.ExceptionObject is Exception exception)
+            {
+                LogUnhandledException("AppDomainUnhandledException", exception);
+            }
+        }
+
+        private void OnUnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)
+        {
+            LogUnhandledException("UnobservedTaskException", e.Exception);
+        }
+
+        private static void LogUnhandledException(string source, Exception exception)
+        {
+            try
+            {
+                var logPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "startup-error.log");
+                var content = $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {source}{Environment.NewLine}{exception}{Environment.NewLine}{new string('-', 80)}{Environment.NewLine}";
+                File.AppendAllText(logPath, content);
+            }
+            catch
+            {
+                // Ignore logging failures.
+            }
         }
 
         /// <summary>

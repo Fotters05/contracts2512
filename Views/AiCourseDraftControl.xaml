@@ -1,0 +1,295 @@
+<UserControl x:Class="Contract2512.Views.AiCourseDraftControl"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             mc:Ignorable="d"
+             d:DesignHeight="900"
+             d:DesignWidth="1400"
+             Loaded="UserControl_Loaded">
+    <UserControl.Resources>
+        <SolidColorBrush x:Key="PanelBackground" Color="#1E293B"/>
+        <SolidColorBrush x:Key="PanelBorder" Color="#475569"/>
+        <SolidColorBrush x:Key="InputBackground" Color="#0F172A"/>
+        <SolidColorBrush x:Key="PrimaryText" Color="#F8FAFC"/>
+        <SolidColorBrush x:Key="SecondaryText" Color="#CBD5E1"/>
+        <SolidColorBrush x:Key="AccentBrush" Color="#6366F1"/>
+        <SolidColorBrush x:Key="SuccessBrush" Color="#22C55E"/>
+        <SolidColorBrush x:Key="WarningBrush" Color="#F97316"/>
+
+        <DropShadowEffect x:Key="CardShadow"
+                          Color="#000000"
+                          Opacity="0.25"
+                          BlurRadius="16"
+                          ShadowDepth="4"/>
+
+        <Style x:Key="CardStyle" TargetType="Border">
+            <Setter Property="Background" Value="{StaticResource PanelBackground}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PanelBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="12"/>
+            <Setter Property="Padding" Value="20"/>
+            <Setter Property="Effect" Value="{StaticResource CardShadow}"/>
+        </Style>
+
+        <Style x:Key="LabelStyle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource SecondaryText}"/>
+            <Setter Property="FontSize" Value="13"/>
+            <Setter Property="Margin" Value="0,0,0,6"/>
+        </Style>
+
+        <Style x:Key="InputStyle" TargetType="TextBox">
+            <Setter Property="Background" Value="{StaticResource InputBackground}"/>
+            <Setter Property="Foreground" Value="{StaticResource PrimaryText}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource PanelBorder}"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="Padding" Value="10,8"/>
+            <Setter Property="FontSize" Value="14"/>
+            <Setter Property="TextWrapping" Value="Wrap"/>
+        </Style>
+
+        <Style x:Key="PrimaryButtonStyle" TargetType="Button">
+            <Setter Property="Background" Value="{StaticResource AccentBrush}"/>
+            <Setter Property="Foreground" Value="White"/>
+            <Setter Property="BorderThickness" Value="0"/>
+            <Setter Property="Padding" Value="16,10"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
+        </Style>
+
+        <Style x:Key="SecondaryButtonStyle" TargetType="Button" BasedOn="{StaticResource PrimaryButtonStyle}">
+            <Setter Property="Background" Value="#334155"/>
+        </Style>
+
+        <Style x:Key="EndpointChipStyle" TargetType="Border">
+            <Setter Property="Background" Value="#0F172A"/>
+            <Setter Property="BorderBrush" Value="#334155"/>
+            <Setter Property="BorderThickness" Value="1"/>
+            <Setter Property="CornerRadius" Value="999"/>
+            <Setter Property="Padding" Value="10,6"/>
+            <Setter Property="Margin" Value="0,0,10,10"/>
+        </Style>
+    </UserControl.Resources>
+
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+
+        <Border Grid.Row="0"
+                Style="{StaticResource CardStyle}"
+                Margin="0,0,0,16">
+            <StackPanel>
+                <TextBlock Text="Интеграция с ai_service"
+                           FontSize="28"
+                           FontWeight="SemiBold"
+                           Foreground="{StaticResource PrimaryText}"
+                           Margin="0,0,0,8"/>
+                <TextBlock Text="Во вкладке доступны прямые действия по API: проверка сервиса, генерация черновика курса, загрузка черновика по draft_id и экспорт DOCX."
+                           FontSize="15"
+                           TextWrapping="Wrap"
+                           Foreground="{StaticResource SecondaryText}"
+                           Margin="0,0,0,14"/>
+                <WrapPanel>
+                    <Border Style="{StaticResource EndpointChipStyle}">
+                        <TextBlock Text="GET /api/health"
+                                   Foreground="{StaticResource PrimaryText}"/>
+                    </Border>
+                    <Border Style="{StaticResource EndpointChipStyle}">
+                        <TextBlock Text="POST /api/course-drafts/generate"
+                                   Foreground="{StaticResource PrimaryText}"/>
+                    </Border>
+                    <Border Style="{StaticResource EndpointChipStyle}">
+                        <TextBlock Text="GET /api/course-drafts/{draft_id}"
+                                   Foreground="{StaticResource PrimaryText}"/>
+                    </Border>
+                    <Border Style="{StaticResource EndpointChipStyle}">
+                        <TextBlock Text="POST /api/course-drafts/{draft_id}/export-docx"
+                                   Foreground="{StaticResource PrimaryText}"/>
+                    </Border>
+                </WrapPanel>
+                <TextBlock x:Name="BaseUrlTextBlock"
+                           Foreground="{StaticResource SecondaryText}"/>
+            </StackPanel>
+        </Border>
+
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="5*"/>
+                <ColumnDefinition Width="4*"/>
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0"
+                          Margin="0,0,16,0"
+                          VerticalScrollBarVisibility="Auto"
+                          HorizontalScrollBarVisibility="Disabled">
+                <StackPanel>
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="1. Проверка сервиса"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryText}"
+                                       Margin="0,0,0,6"/>
+                            <TextBlock Text="GET /api/health"
+                                       Foreground="{StaticResource SecondaryText}"
+                                       Margin="0,0,0,14"/>
+                            <Button x:Name="CheckHealthButton"
+                                    Content="Проверить ai_service"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="CheckHealthButton_Click"
+                                    Width="190"/>
+                            <TextBlock Text="Краткий статус"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,6,0,6"/>
+                            <TextBlock x:Name="HealthSummaryTextBlock"
+                                       Text="Статус еще не проверялся."
+                                       Foreground="{StaticResource PrimaryText}"
+                                       TextWrapping="Wrap"
+                                       Margin="0,0,0,12"/>
+                            <TextBlock Text="Ответ /api/health"
+                                       Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="HealthResponseTextBox"
+                                     Style="{StaticResource InputStyle}"
+                                     IsReadOnly="True"
+                                     AcceptsReturn="True"
+                                     Height="140"
+                                     FontFamily="Consolas"/>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}" Margin="0,0,0,16">
+                        <StackPanel>
+                            <TextBlock Text="2. Генерация черновика"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryText}"
+                                       Margin="0,0,0,6"/>
+                            <TextBlock Text="POST /api/course-drafts/generate"
+                                       Foreground="{StaticResource SecondaryText}"
+                                       Margin="0,0,0,14"/>
+                            <TextBlock Text="JSON тела запроса"
+                                       Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="GenerateRequestTextBox"
+                                     Style="{StaticResource InputStyle}"
+                                     AcceptsReturn="True"
+                                     VerticalScrollBarVisibility="Auto"
+                                     HorizontalScrollBarVisibility="Auto"
+                                     Height="420"
+                                     FontFamily="Consolas"
+                                     TextWrapping="NoWrap"/>
+                            <WrapPanel Margin="0,14,0,0">
+                                <Button x:Name="LoadExampleButton"
+                                        Content="Подставить пример"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="LoadExampleButton_Click"/>
+                                <Button x:Name="GenerateDraftButton"
+                                        Content="Сгенерировать черновик"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Click="GenerateDraftButton_Click"/>
+                            </WrapPanel>
+                        </StackPanel>
+                    </Border>
+
+                    <Border Style="{StaticResource CardStyle}">
+                        <StackPanel>
+                            <TextBlock Text="3. Работа с draft_id"
+                                       FontSize="20"
+                                       FontWeight="SemiBold"
+                                       Foreground="{StaticResource PrimaryText}"
+                                       Margin="0,0,0,12"/>
+                            <TextBlock Text="draft_id"
+                                       Style="{StaticResource LabelStyle}"/>
+                            <TextBox x:Name="DraftIdTextBox"
+                                     Style="{StaticResource InputStyle}"
+                                     Margin="0,0,0,14"/>
+                            <WrapPanel>
+                                <Button x:Name="LoadDraftButton"
+                                        Content="GET /api/course-drafts/{draft_id}"
+                                        Style="{StaticResource SecondaryButtonStyle}"
+                                        Click="LoadDraftButton_Click"/>
+                                <Button x:Name="ExportDraftButton"
+                                        Content="POST /api/course-drafts/{draft_id}/export-docx"
+                                        Style="{StaticResource PrimaryButtonStyle}"
+                                        Click="ExportDraftButton_Click"/>
+                            </WrapPanel>
+                            <TextBlock Text="Путь к последнему DOCX"
+                                       Style="{StaticResource LabelStyle}"
+                                       Margin="0,4,0,6"/>
+                            <TextBox x:Name="DocumentPathTextBox"
+                                     Style="{StaticResource InputStyle}"
+                                     IsReadOnly="True"
+                                     Margin="0,0,0,14"/>
+                            <Button x:Name="OpenDocxButton"
+                                    Content="Открыть DOCX"
+                                    Style="{StaticResource SecondaryButtonStyle}"
+                                    Click="OpenDocxButton_Click"
+                                    Width="140"/>
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+            </ScrollViewer>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Текущее состояние"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryText}"
+                                   Margin="0,0,0,12"/>
+                        <TextBlock x:Name="AiStatusTextBlock"
+                                   Text="Экран готов к работе с ai_service."
+                                   Foreground="{StaticResource PrimaryText}"
+                                   TextWrapping="Wrap"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="1"
+                        Style="{StaticResource CardStyle}"
+                        Margin="0,0,0,16">
+                    <StackPanel>
+                        <TextBlock Text="Краткая сводка по черновику"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryText}"
+                                   Margin="0,0,0,12"/>
+                        <TextBox x:Name="DraftSummaryTextBox"
+                                 Style="{StaticResource InputStyle}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 Height="190"
+                                 FontFamily="Consolas"/>
+                    </StackPanel>
+                </Border>
+
+                <Border Grid.Row="2"
+                        Style="{StaticResource CardStyle}">
+                    <StackPanel>
+                        <TextBlock Text="Последний ответ API"
+                                   FontSize="20"
+                                   FontWeight="SemiBold"
+                                   Foreground="{StaticResource PrimaryText}"
+                                   Margin="0,0,0,12"/>
+                        <TextBox x:Name="LastResponseTextBox"
+                                 Style="{StaticResource InputStyle}"
+                                 IsReadOnly="True"
+                                 AcceptsReturn="True"
+                                 VerticalScrollBarVisibility="Auto"
+                                 HorizontalScrollBarVisibility="Auto"
+                                 FontFamily="Consolas"
+                                 TextWrapping="NoWrap"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+        </Grid>
+    </Grid>
+</UserControl>

@@ -3,6 +3,7 @@ using System.IO;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Windows;
+using System.Windows.Controls;
 using Contract2512.Models;
 using Contract2512.Services;
 using Contract2512.Views;
@@ -87,6 +88,7 @@ namespace Contract2512
             BtnPersons.Tag = null;
             BtnContracts.Tag = null;
             BtnPrograms.Tag = null;
+            BtnAiCourseDrafts.Tag = null;
             BtnContractTypes.Tag = null;
             BtnOrganizations.Tag = null;
             BtnWorkload.Tag = null;
@@ -104,6 +106,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Visible;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
@@ -115,6 +118,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Visible;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
@@ -126,9 +130,28 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Visible;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
+        }
+
+        private void BtnAiCourseDrafts_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnAiCourseDrafts);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Visible;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
+            EnsureAiCourseDraftControlLoaded();
+
+            if (AiCourseDraftHost.Content is AiCourseDraftControl aiCourseDraftControl)
+            {
+                aiCourseDraftControl.NotifyPanelShown();
+            }
         }
 
         private void BtnContractTypes_Click(object sender, RoutedEventArgs e)
@@ -137,6 +160,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Visible;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
@@ -149,6 +173,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Visible;
             WorkloadPanel.Visibility = Visibility.Collapsed;
@@ -161,6 +186,7 @@ namespace Contract2512
             PersonsPanel.Visibility = Visibility.Collapsed;
             ContractsPanel.Visibility = Visibility.Collapsed;
             ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Visible;
@@ -1238,8 +1264,52 @@ namespace Contract2512
                 _autoRefreshTimer = null;
                 System.Diagnostics.Debug.WriteLine("Автообновление остановлено");
             }
+
+            if (AiCourseDraftHost.Content is AiCourseDraftControl aiCourseDraftControl)
+            {
+                aiCourseDraftControl.Shutdown();
+            }
             
             base.OnClosing(e);
+        }
+
+        private void EnsureAiCourseDraftControlLoaded()
+        {
+            if (AiCourseDraftHost.Content is AiCourseDraftControl)
+            {
+                return;
+            }
+
+            try
+            {
+                var control = new AiCourseDraftControl
+                {
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch
+                };
+
+                AiCourseDraftHost.Content = control;
+            }
+            catch (Exception ex)
+            {
+                var errorText = new System.Windows.Controls.TextBox
+                {
+                    Text =
+                        "Не удалось загрузить вкладку 'Формирование новых курсов'." + Environment.NewLine +
+                        Environment.NewLine +
+                        ex.ToString(),
+                    IsReadOnly = true,
+                    TextWrapping = TextWrapping.Wrap,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59)),
+                    Foreground = System.Windows.Media.Brushes.White,
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(24),
+                };
+
+                AiCourseDraftHost.Content = errorText;
+            }
         }
 
         private void PersonsDataGrid_SelectionChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
