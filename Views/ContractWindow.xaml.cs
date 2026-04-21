@@ -497,53 +497,20 @@ namespace Contract2512.Views
             if (contractType == null || string.IsNullOrWhiteSpace(contractType.Name))
                 return;
 
-            // Извлекаем ключ из названия типа договора (например, "Договор ДОП физ лиц" -> "ДОП")
-            string key = ExtractKeyFromContractTypeName(contractType.Name);
-            
-            if (string.IsNullOrWhiteSpace(key))
-                return;
+            string prefix = GetContractNumberPrefix(contractType.Name);
 
-            // Используем дату из DatePicker или текущую дату
-            DateTime contractDate = ContractDatePicker.SelectedDate ?? DateTime.Today;
-            string dateStr = contractDate.ToString("dd.MM.yy");
+            if (string.IsNullOrWhiteSpace(prefix))
+                return;
 
             using (var db = new AppDbContext())
             {
-                // Находим все договоры с таким же ключом (формат: "ДОП-01 04.12.25")
                 var existingContracts = db.Contracts
-                    .Where(c => c.ContractNumber.StartsWith(key + "-"))
+                    .Where(c => c.ContractNumber.StartsWith(prefix))
                     .Select(c => c.ContractNumber)
                     .ToList();
 
-                // Определяем следующий номер среди всех договоров с таким ключом (независимо от даты)
-                int nextNumber = 1;
-                if (existingContracts.Any())
-                {
-                    // Извлекаем номера из всех существующих договоров с таким ключом
-                    // Формат: "ДОП-01 04.12.25" -> извлекаем "01"
-                    // Ищем паттерн "КЛЮЧ-XX" (любая дата после)
-                    string escapedKey = System.Text.RegularExpressions.Regex.Escape(key);
-                    var numbers = existingContracts
-                        .Select(cn => 
-                        {
-                            // Ищем паттерн "КЛЮЧ-XX" (любые цифры после дефиса)
-                            var match = System.Text.RegularExpressions.Regex.Match(cn, $@"^{escapedKey}-(\d{{2}})\s+");
-                            if (match.Success && match.Groups.Count > 1 && int.TryParse(match.Groups[1].Value, out int num))
-                                return num;
-                            return 0;
-                        })
-                        .Where(n => n > 0)
-                        .ToList();
-
-                    if (numbers.Any())
-                    {
-                        nextNumber = numbers.Max() + 1;
-                    }
-                }
-
-                // Формируем номер договора в формате: "ДОП-01 04.12.25"
-                // Это ПРЕДВАРИТЕЛЬНЫЙ номер для отображения
-                ContractNumberTextBox.Text = $"{key}-{nextNumber:D2} {dateStr}";
+                int nextNumber = GetNextContractSequence(existingContracts, prefix);
+                ContractNumberTextBox.Text = BuildContractNumber(contractType.Name, prefix, nextNumber);
             }
         }
 
@@ -555,46 +522,73 @@ namespace Contract2512.Views
             if (contractType == null || string.IsNullOrWhiteSpace(contractType.Name))
                 return null;
 
-            // Извлекаем ключ из названия типа договора
-            string key = ExtractKeyFromContractTypeName(contractType.Name);
-            
-            if (string.IsNullOrWhiteSpace(key))
+            string prefix = GetContractNumberPrefix(contractType.Name);
+
+            if (string.IsNullOrWhiteSpace(prefix))
                 return null;
 
-            // Используем дату из DatePicker или текущую дату
-            DateTime contractDate = ContractDatePicker.SelectedDate ?? DateTime.Today;
-            string dateStr = contractDate.ToString("dd.MM.yy");
-
-            // Находим все договоры с таким же ключом (свежий запрос к БД!)
             var existingContracts = db.Contracts
-                .Where(c => c.ContractNumber.StartsWith(key + "-"))
+                .Where(c => c.ContractNumber.StartsWith(prefix))
                 .Select(c => c.ContractNumber)
                 .ToList();
 
-            // Определяем следующий номер
-            int nextNumber = 1;
-            if (existingContracts.Any())
-            {
-                string escapedKey = System.Text.RegularExpressions.Regex.Escape(key);
-                var numbers = existingContracts
-                    .Select(cn => 
-                    {
-                        var match = System.Text.RegularExpressions.Regex.Match(cn, $@"^{escapedKey}-(\d{{2}})\s+");
-                        if (match.Success && match.Groups.Count > 1 && int.TryParse(match.Groups[1].Value, out int num))
-                            return num;
-                        return 0;
-                    })
-                    .Where(n => n > 0)
-                    .ToList();
+            int nextNumber = GetNextContractSequence(existingContracts, prefix);
+            return BuildContractNumber(contractType.Name, prefix, nextNumber);
+        }
 
-                if (numbers.Any())
-                {
-                    nextNumber = numbers.Max() + 1;
-                }
+        private int GetNextContractSequence(List<string> existingContracts, string prefix)
+        {
+            if (existingContracts == null || existingContracts.Count == 0)
+            {
+                return 1;
             }
 
-            // Формируем финальный номер договора
-            return $"{key}-{nextNumber:D2} {dateStr}";
+            string escapedPrefix = System.Text.RegularExpressions.Regex.Escape(prefix);
+            var numbers = existingContracts
+                .Select(contractNumber =>
+                {
+                    var match = System.Text.RegularExpressions.Regex.Match(contractNumber, $@"^{escapedPrefix}(\d+)");
+                    if (match.Success && match.Groups.Count > 1 && int.TryParse(match.Groups[1].Value, out int number))
+                    {
+                        return number;
+                    }
+
+                    return 0;
+                })
+                .Where(number => number > 0)
+                .ToList();
+
+            return numbers.Any() ? numbers.Max() + 1 : 1;
+        }
+
+        private string BuildContractNumber(string contractTypeName, string prefix, int sequenceNumber)
+        {
+            if (IsDopContractTypeName(contractTypeName))
+            {
+                return $"{prefix}{sequenceNumber:D2}";
+            }
+
+            DateTime contractDate = ContractDatePicker.SelectedDate ?? DateTime.Today;
+            string dateStr = contractDate.ToString("dd.MM.yy");
+            return $"{prefix}{sequenceNumber:D2} {dateStr}";
+        }
+
+        private string GetContractNumberPrefix(string contractTypeName)
+        {
+            if (IsDopContractTypeName(contractTypeName))
+            {
+                return "26-ЦИО-";
+            }
+
+            string key = ExtractKeyFromContractTypeName(contractTypeName);
+            return string.IsNullOrWhiteSpace(key) ? string.Empty : $"{key}-";
+        }
+
+        private bool IsDopContractTypeName(string contractTypeName)
+        {
+            return !string.IsNullOrWhiteSpace(contractTypeName) &&
+                   (contractTypeName.Contains("ДОП", StringComparison.OrdinalIgnoreCase) ||
+                    contractTypeName.Contains("дополнительное образование", StringComparison.OrdinalIgnoreCase));
         }
 
         private string ExtractKeyFromContractTypeName(string contractTypeName)

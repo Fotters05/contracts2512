@@ -58,6 +58,8 @@ namespace Contract2512.Views
                 else if (checkBox == WednesdayCheckBox) timeTextBox = WednesdayTimeTextBox;
                 else if (checkBox == ThursdayCheckBox) timeTextBox = ThursdayTimeTextBox;
                 else if (checkBox == FridayCheckBox) timeTextBox = FridayTimeTextBox;
+                else if (checkBox == SaturdayCheckBox) timeTextBox = SaturdayTimeTextBox;
+                else if (checkBox == SundayCheckBox) timeTextBox = SundayTimeTextBox;
                 
                 if (timeTextBox != null)
                 {
@@ -107,6 +109,16 @@ namespace Contract2512.Views
                 Schedule["Пятница"] = ParseTimeSlots(FridayTimeTextBox.Text);
             }
             
+            if (SaturdayCheckBox.IsChecked == true && !string.IsNullOrWhiteSpace(SaturdayTimeTextBox.Text))
+            {
+                Schedule["Суббота"] = ParseTimeSlots(SaturdayTimeTextBox.Text);
+            }
+
+            if (SundayCheckBox.IsChecked == true && !string.IsNullOrWhiteSpace(SundayTimeTextBox.Text))
+            {
+                Schedule["Воскресенье"] = ParseTimeSlots(SundayTimeTextBox.Text);
+            }
+
             DialogResult = true;
             Close();
         }
@@ -126,7 +138,9 @@ namespace Contract2512.Views
                                  TuesdayCheckBox.IsChecked == true ||
                                  WednesdayCheckBox.IsChecked == true ||
                                  ThursdayCheckBox.IsChecked == true ||
-                                 FridayCheckBox.IsChecked == true;
+                                 FridayCheckBox.IsChecked == true ||
+                                 SaturdayCheckBox.IsChecked == true ||
+                                 SundayCheckBox.IsChecked == true;
             
             if (!anyDaySelected)
             {
@@ -193,6 +207,28 @@ namespace Contract2512.Views
             }
             
             // Для индивидуального формата проверяем соответствие часам в неделю
+            if (SaturdayCheckBox.IsChecked == true && !string.IsNullOrWhiteSpace(SaturdayTimeTextBox.Text))
+            {
+                var slots = ParseTimeSlots(SaturdayTimeTextBox.Text);
+                if (slots == null)
+                {
+                    ShowValidationError("РќРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ РІСЂРµРјРµРЅРё РґР»СЏ СЃСѓР±Р±РѕС‚С‹. РСЃРїРѕР»СЊР·СѓР№С‚Рµ С„РѕСЂРјР°С‚: 10:00-10:45, 11:00-11:45");
+                    return false;
+                }
+                totalHours += slots.Count;
+            }
+
+            if (SundayCheckBox.IsChecked == true && !string.IsNullOrWhiteSpace(SundayTimeTextBox.Text))
+            {
+                var slots = ParseTimeSlots(SundayTimeTextBox.Text);
+                if (slots == null)
+                {
+                    ShowValidationError("РќРµРІРµСЂРЅС‹Р№ С„РѕСЂРјР°С‚ РІСЂРµРјРµРЅРё РґР»СЏ РІРѕСЃРєСЂРµСЃРµРЅСЊСЏ. РСЃРїРѕР»СЊР·СѓР№С‚Рµ С„РѕСЂРјР°С‚: 10:00-10:45, 11:00-11:45");
+                    return false;
+                }
+                totalHours += slots.Count;
+            }
+
             if (!_isGroupMode && totalHours != _hoursPerWeek)
             {
                 ShowValidationError($"Для индивидуального формата количество часов в неделю должно быть {_hoursPerWeek}. Сейчас указано: {totalHours}");

@@ -54,6 +54,16 @@ namespace Contract2512
                 }
             }
 
+            try
+            {
+                using var db = new AppDbContext();
+                db.EnsureSchemaCompatibility();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"⚠️ Не удалось применить правки совместимости схемы БД: {ex.Message}");
+            }
+
             // Проверяем обновления и показываем главное окно
             CheckForUpdatesInBackground();
             
