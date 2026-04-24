@@ -1,4 +1,5 @@
 using System;
+using System.IO;
 using System.Net.Http;
 using System.Text;
 using System.Text.Json;
@@ -57,6 +58,45 @@ public sealed class AiCourseDraftClient : IDisposable
 
     public Task<AiDocumentExportResponse> ExportDocxAsync(string draftId, CancellationToken cancellationToken = default)
         => SendAsync<AiDocumentExportResponse>(HttpMethod.Post, $"api/course-drafts/{Uri.EscapeDataString(draftId)}/export-docx", null, cancellationToken);
+
+    public async Task<AiStandardResolveResponse> ResolveStandardPdfAsync(string pdfPath, string fgosCode, CancellationToken cancellationToken = default)
+    {
+        if (string.IsNullOrWhiteSpace(pdfPath) || !File.Exists(pdfPath))
+        {
+            throw new FileNotFoundException("PDF-файл ФГОС не найден.", pdfPath);
+        }
+
+        if (string.IsNullOrWhiteSpace(fgosCode))
+        {
+            throw new InvalidOperationException("Укажите код ФГОС.");
+        }
+
+        using var request = new HttpRequestMessage(HttpMethod.Post, "api/standards/resolve-pdf");
+        using var content = new MultipartFormDataContent();
+        await using var stream = File.OpenRead(pdfPath);
+        using var fileContent = new StreamContent(stream);
+        content.Add(fileContent, "fgos_pdf", Path.GetFileName(pdfPath));
+        content.Add(new StringContent(fgosCode.Trim()), "fgos_code");
+        request.Content = content;
+
+        using var response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+        var raw = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
+
+        if (!response.IsSuccessStatusCode)
+        {
+            var errorMessage = ExtractErrorMessage(raw);
+            throw new InvalidOperationException(
+                $"AI service returned {(int)response.StatusCode} ({response.ReasonPhrase}). {errorMessage}".Trim());
+        }
+
+        var result = JsonSerializer.Deserialize<AiStandardResolveResponse>(raw, _jsonOptions);
+        if (result == null)
+        {
+            throw new InvalidOperationException("AI service returned an empty response.");
+        }
+
+        return result;
+    }
 
     public string SerializeDraft(AiGenerateDraftResponse response)
     {

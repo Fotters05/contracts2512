@@ -303,3 +303,79 @@ public sealed class AiModuleSeedRow
 
     public string Summary { get; set; } = string.Empty;
 }
+
+public sealed class AiStandardResolveResponse
+{
+    [JsonPropertyName("supported")]
+    public bool Supported { get; set; }
+
+    [JsonPropertyName("detail")]
+    public string Detail { get; set; } = string.Empty;
+
+    [JsonPropertyName("fgos_code")]
+    public string FgosCode { get; set; } = string.Empty;
+
+    [JsonPropertyName("standard_profile_id")]
+    public string? StandardProfileId { get; set; }
+
+    [JsonPropertyName("fgos_title")]
+    public string? FgosTitle { get; set; }
+
+    [JsonPropertyName("resolved_track_id")]
+    public string? ResolvedTrackId { get; set; }
+
+    [JsonPropertyName("qualification_title")]
+    public string? QualificationTitle { get; set; }
+
+    [JsonPropertyName("supported_tracks")]
+    public List<AiStandardTrackOption> SupportedTracks { get; set; } = new();
+
+    [JsonPropertyName("detected_competencies")]
+    public List<string> DetectedCompetencies { get; set; } = new();
+}
+
+public sealed class AiStandardTrackOption
+{
+    [JsonPropertyName("track_id")]
+    public string TrackId { get; set; } = string.Empty;
+
+    [JsonPropertyName("qualification_title")]
+    public string QualificationTitle { get; set; } = string.Empty;
+
+    public override string ToString()
+    {
+        return string.IsNullOrWhiteSpace(QualificationTitle)
+            ? TrackId
+            : $"{TrackId} - {QualificationTitle}";
+    }
+}
+
+public sealed class AiStandardProfileCatalogEntry
+{
+    [JsonPropertyName("profile_id")]
+    public string ProfileId { get; set; } = string.Empty;
+
+    [JsonPropertyName("fgos_code")]
+    public string? FgosCode { get; set; }
+
+    [JsonPropertyName("title")]
+    public string? Title { get; set; }
+
+    [JsonPropertyName("track_id")]
+    public string? TrackId { get; set; }
+
+    [JsonPropertyName("qualification_title")]
+    public string? QualificationTitle { get; set; }
+
+    public string DisplayName
+    {
+        get
+        {
+            var code = string.IsNullOrWhiteSpace(FgosCode) ? "без кода" : FgosCode;
+            var title = string.IsNullOrWhiteSpace(Title) ? ProfileId : Title;
+            return $"{code} - {title} ({ProfileId})";
+        }
+    }
+
+    public override string ToString() => DisplayName;
+}
