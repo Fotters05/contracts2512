@@ -458,6 +458,15 @@
                                    FontSize="16"
                                    Foreground="{StaticResource TextPrimary}"/>
                     </Border>
+
+                    <!-- Приказы -->
+                    <Border x:Name="BtnOrders"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnOrders_Click">
+                        <TextBlock Text="🗂  Приказы"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
                 </StackPanel>
 
                 <!-- Тех поддержка -->
@@ -888,6 +897,25 @@
                         Padding="12"
                         Effect="{StaticResource CardShadow}">
                     <ContentControl x:Name="AiCourseDraftHost"
+                                    HorizontalContentAlignment="Stretch"
+                                    VerticalContentAlignment="Stretch"/>
+                </Border>
+            </Grid>
+
+            <!-- Приказы -->
+            <Grid x:Name="OrdersPanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Border Grid.Row="0"
+                        Background="{StaticResource DataGridBackground}"
+                        CornerRadius="12"
+                        BorderBrush="#475569"
+                        BorderThickness="1"
+                        Padding="12"
+                        Effect="{StaticResource CardShadow}">
+                    <ContentControl x:Name="OrdersHost"
                                     HorizontalContentAlignment="Stretch"
                                     VerticalContentAlignment="Stretch"/>
                 </Border>

@@ -19,7 +19,7 @@ namespace Contract2512.Views
 
         private void InitializeComponent()
         {
-            Title = "Добавить преподавателя";
+            Title = "Р”РѕР±Р°РІРёС‚СЊ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ";
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             Width = 400;
             Height = 200;
@@ -46,7 +46,7 @@ namespace Contract2512.Views
 
             titleBar.Children.Add(new System.Windows.Controls.TextBlock
             {
-                Text = "Добавить преподавателя",
+                Text = "Р”РѕР±Р°РІРёС‚СЊ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ",
                 Foreground = System.Windows.Media.Brushes.White,
                 VerticalAlignment = VerticalAlignment.Center,
                 Margin = new Thickness(12, 0, 0, 0)
@@ -71,7 +71,7 @@ namespace Contract2512.Views
 
             contentGrid.Children.Add(new System.Windows.Controls.TextBlock
             {
-                Text = "ФИО преподавателя:",
+                Text = "Р¤РРћ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ:",
                 FontSize = 14,
                 Foreground = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(209, 213, 219)),
                 Margin = new Thickness(0, 0, 0, 5)
@@ -99,13 +99,13 @@ namespace Contract2512.Views
                 Margin = new Thickness(0, 15, 0, 0)
             };
 
-            var okButton = CreateDialogButton("Добавить");
+            var okButton = CreateDialogButton("Р”РѕР±Р°РІРёС‚СЊ");
             okButton.Margin = new Thickness(0, 0, 10, 0);
             okButton.Click += (_, _) =>
             {
                 if (string.IsNullOrWhiteSpace(textBox.Text))
                 {
-                    MessageBox.Show("Введите ФИО преподавателя.", "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
+                    MessageBox.Show("Р’РІРµРґРёС‚Рµ Р¤РРћ РїСЂРµРїРѕРґР°РІР°С‚РµР»СЏ.", "Р’РЅРёРјР°РЅРёРµ", MessageBoxButton.OK, MessageBoxImage.Warning);
                     return;
                 }
 
@@ -114,7 +114,7 @@ namespace Contract2512.Views
                 Close();
             };
 
-            var cancelButton = CreateDialogButton("Отмена");
+            var cancelButton = CreateDialogButton("РћС‚РјРµРЅР°");
             cancelButton.Click += (_, _) =>
             {
                 DialogResult = false;

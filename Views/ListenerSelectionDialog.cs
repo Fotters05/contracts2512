@@ -34,46 +34,13 @@ namespace Contract2512.Views
             Title = _isGroupMode ? "Выбор слушателей группы" : "Выбор слушателя";
             Width = 700;
             Height = 620;
+            MinWidth = 640;
+            MinHeight = 520;
             WindowStartupLocation = WindowStartupLocation.CenterOwner;
             ExtendsContentIntoTitleBar = true;
 
-            var root = new Grid();
-            root.Background = new System.Windows.Media.LinearGradientBrush(
-                System.Windows.Media.Color.FromRgb(30, 27, 75),
-                System.Windows.Media.Color.FromRgb(15, 23, 42),
-                new Point(0, 0),
-                new Point(1, 1));
-
-            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(32) });
-            root.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
-
-            var titleBar = new Grid();
-            titleBar.MouseDown += (_, e) =>
-            {
-                if (e.ChangedButton == System.Windows.Input.MouseButton.Left)
-                {
-                    DragMove();
-                }
-            };
-
-            titleBar.Children.Add(new System.Windows.Controls.TextBlock
-            {
-                Text = Title,
-                Foreground = System.Windows.Media.Brushes.White,
-                VerticalAlignment = VerticalAlignment.Center,
-                Margin = new Thickness(12, 0, 0, 0)
-            });
-            Grid.SetRow(titleBar, 0);
-            root.Children.Add(titleBar);
-
-            var contentBorder = new Border
-            {
-                Margin = new Thickness(20),
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59)) { Opacity = 0.32 },
-                CornerRadius = new CornerRadius(12),
-                BorderBrush = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(71, 85, 105)),
-                BorderThickness = new Thickness(1)
-            };
+            var root = DialogThemeHelper.CreateWindowRoot(this, Title, showMaximizeButton: false);
+            var contentBorder = DialogThemeHelper.CreateContentBorder();
             Grid.SetRow(contentBorder, 1);
             root.Children.Add(contentBorder);
 
@@ -82,7 +49,7 @@ namespace Contract2512.Views
             contentGrid.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
             contentGrid.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
 
-            contentGrid.Children.Add(new System.Windows.Controls.TextBlock
+            contentGrid.Children.Add(new TextBlock
             {
                 Text = _isGroupMode
                     ? "Отметьте всех слушателей, для которых нужно сформировать отдельные документы."
@@ -143,7 +110,7 @@ namespace Contract2512.Views
             Grid.SetRow(buttonPanel, 2);
             contentGrid.Children.Add(buttonPanel);
 
-            var okButton = CreateDialogButton("Выбрать");
+            var okButton = DialogThemeHelper.CreateDialogButton("Выбрать", accent: true);
             okButton.Margin = new Thickness(0, 0, 10, 0);
             okButton.Click += (_, _) =>
             {
@@ -165,7 +132,7 @@ namespace Contract2512.Views
                 Close();
             };
 
-            var cancelButton = CreateDialogButton("Отмена");
+            var cancelButton = DialogThemeHelper.CreateDialogButton("Отмена");
             cancelButton.Click += (_, _) =>
             {
                 DialogResult = false;
@@ -177,21 +144,6 @@ namespace Contract2512.Views
 
             contentBorder.Child = contentGrid;
             Content = root;
-        }
-
-        private static System.Windows.Controls.Button CreateDialogButton(string text)
-        {
-            return new System.Windows.Controls.Button
-            {
-                Content = text,
-                Padding = new Thickness(16, 10, 16, 10),
-                Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(75, 85, 99)) { Opacity = 0.3 },
-                Foreground = System.Windows.Media.Brushes.White,
-                BorderThickness = new Thickness(0),
-                Cursor = System.Windows.Input.Cursors.Hand,
-                FontWeight = FontWeights.SemiBold,
-                FontSize = 14
-            };
         }
 
         private sealed class SelectableContractItem

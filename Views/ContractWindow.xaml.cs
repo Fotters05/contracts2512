@@ -981,6 +981,12 @@ namespace Contract2512.Views
                         throw new InvalidOperationException("Не удалось загрузить сохраненный договор");
                     }
 
+                    UpsertListenerApplication(
+                        db,
+                        savedContract,
+                        OrderDocumentService.AdmissionKey,
+                        savedContract.ContractDate);
+
                     // Создаем Word документ
                     CreateContractDocument(savedContract, db);
                     
@@ -1044,6 +1050,41 @@ namespace Contract2512.Views
                 
                 MessageBox.Show(errorMessage, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private static void UpsertListenerApplication(
+            AppDbContext db,
+            Contract contract,
+            string applicationTypeKey,
+            DateTime applicationDate)
+        {
+            var existing = db.ListenerApplications
+                .FirstOrDefault(a =>
+                    a.ContractId == contract.Id &&
+                    a.ApplicationTypeKey == applicationTypeKey);
+
+            if (existing == null)
+            {
+                db.ListenerApplications.Add(new ListenerApplication
+                {
+                    ApplicationTypeKey = applicationTypeKey,
+                    ContractId = contract.Id,
+                    ListenerId = contract.ListenerId,
+                    ProgramId = contract.ProgramId,
+                    ApplicationDate = applicationDate.Date,
+                    CreatedAt = DateTime.Now,
+                    UpdatedAt = DateTime.Now
+                });
+            }
+            else
+            {
+                existing.ListenerId = contract.ListenerId;
+                existing.ProgramId = contract.ProgramId;
+                existing.ApplicationDate = applicationDate.Date;
+                existing.UpdatedAt = DateTime.Now;
+            }
+
+            db.SaveChanges();
         }
 
         public static string GenerateContractDocumentForView(Contract contract, AppDbContext db)

@@ -9,6 +9,9 @@
 DROP TABLE IF EXISTS workload_schedule_entry CASCADE;
 DROP TABLE IF EXISTS workload_document CASCADE;
 DROP TABLE IF EXISTS workload_batch CASCADE;
+DROP TABLE IF EXISTS listener_application CASCADE;
+DROP TABLE IF EXISTS order_document CASCADE;
+DROP TABLE IF EXISTS order_template CASCADE;
 DROP TABLE IF EXISTS contract CASCADE;
 DROP TABLE IF EXISTS passport CASCADE;
 DROP TABLE IF EXISTS education CASCADE;
@@ -95,6 +98,24 @@ INSERT INTO contract_type (id, name, file_path) VALUES
 (3, 'Договор ДОП юридических лиц (трёхсторонний)', 'C:\Dogovora\Договор ДОП юр лиц.docx'),
 (4, 'Договор ПП физических лиц (двухсторонний)', 'C:\Dogovora\Договор ПП физ лиц.docx'),
 (5, 'Договор ПП юридических лиц (двухсторонний)', 'C:\Dogovora\Договор ПП юр лиц.docx');
+
+-- Order Template (Шаблоны приказов)
+CREATE TABLE order_template (
+    id SERIAL PRIMARY KEY,
+    order_type_key VARCHAR(100) NOT NULL UNIQUE,
+    name VARCHAR(255) NOT NULL,
+    file_path VARCHAR(1000) NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+INSERT INTO order_template (order_type_key, name, file_path) VALUES
+('admission', 'О зачислении', 'C:\Dogovora\Приказы\Пример приказа о зачислении.docx'),
+('admission_group', 'О зачислении группа', 'C:\Dogovora\Приказы\Пример приказа о зачислении группа.docx'),
+('expulsion', 'Об отчислении', 'C:\Dogovora\Приказы\Пример приказа об отчислении.docx'),
+('commission_composition', 'На состав комиссии', 'C:\Dogovora\Приказы\Пример приказа на состав комиссии.docx'),
+('final_attestation_admission', 'О допуске итоговой аттестации', 'C:\Dogovora\Приказы\Пример приказа о допуске итоговой аттестации.docx'),
+('commission_meeting_protocol', 'О заседании комиссии', 'C:\Dogovora\Приказы\Пример протокола заседании комиссии.docx'),
+('statement', 'Ведомости', 'C:\Dogovora\Приказы\Пример ведомости.docx');
 
 -- ============================================
 -- MAIN TABLES
@@ -252,6 +273,37 @@ CREATE TABLE contract (
 );
 
 -- Holiday Calendar (Календарь праздников)
+-- Order Document (Сформированные приказы)
+CREATE TABLE order_document (
+    id BIGSERIAL PRIMARY KEY,
+    order_type_key VARCHAR(100) NOT NULL,
+    order_name VARCHAR(255) NOT NULL,
+    program_id BIGINT REFERENCES learning_program(id),
+    contract_id BIGINT REFERENCES contract(id),
+    listener_id BIGINT REFERENCES person(id),
+    teacher_id BIGINT REFERENCES teacher(id),
+    document_number VARCHAR(100),
+    file_name VARCHAR(500) NOT NULL,
+    file_path VARCHAR(1000) NOT NULL,
+    metadata_json TEXT,
+    generated_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
+CREATE TABLE listener_application (
+    id BIGSERIAL PRIMARY KEY,
+    application_type_key VARCHAR(100) NOT NULL,
+    contract_id BIGINT NOT NULL REFERENCES contract(id) ON DELETE CASCADE,
+    listener_id BIGINT NOT NULL REFERENCES person(id),
+    program_id BIGINT NOT NULL REFERENCES learning_program(id),
+    order_document_id BIGINT REFERENCES order_document(id) ON DELETE SET NULL,
+    application_number VARCHAR(100),
+    application_date DATE NOT NULL,
+    notes TEXT,
+    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+);
+
 CREATE TABLE holiday_calendar_day (
     id BIGSERIAL PRIMARY KEY,
     holiday_date DATE NOT NULL,
@@ -314,6 +366,15 @@ CREATE INDEX idx_contract_payer ON contract(payer_id);
 CREATE INDEX idx_contract_listener ON contract(listener_id);
 CREATE INDEX idx_contract_program ON contract(program_id);
 CREATE INDEX idx_program_module_program ON program_module(program_id);
+CREATE INDEX idx_order_document_program ON order_document(program_id);
+CREATE INDEX idx_order_document_listener ON order_document(listener_id);
+CREATE INDEX idx_order_document_teacher ON order_document(teacher_id);
+CREATE INDEX idx_order_document_type ON order_document(order_type_key);
+CREATE INDEX idx_listener_application_listener ON listener_application(listener_id);
+CREATE INDEX idx_listener_application_program ON listener_application(program_id);
+CREATE INDEX idx_listener_application_order_document ON listener_application(order_document_id);
+CREATE UNIQUE INDEX ux_listener_application_contract_type
+    ON listener_application(contract_id, application_type_key);
 CREATE INDEX idx_workload_document_program ON workload_document(program_id);
 CREATE INDEX idx_workload_schedule_document ON workload_schedule_entry(workload_document_id);
 

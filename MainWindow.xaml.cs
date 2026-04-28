@@ -9,45 +9,85 @@ using Contract2512.Services;
 using Contract2512.Views;
 using Wpf.Ui.Controls;
 using System.ComponentModel;
+using System.Threading.Tasks;
 
 namespace Contract2512
 {
     public partial class MainWindow : FluentWindow
     {
-        private System.Collections.ObjectModel.ObservableCollection<Contract> _allContracts;
-        private System.Windows.Threading.DispatcherTimer _autoRefreshTimer;
+        private enum MainSection
+        {
+            Persons,
+            Contracts,
+            Programs,
+            AiCourseDrafts,
+            ContractTypes,
+            Organizations,
+            Workload,
+            Orders
+        }
+
+        private readonly record struct ViewSnapshot(int Count, long MaxId, DateTime? LastChangedAt, int Checksum = 0);
+
+        private static readonly TimeSpan AutoRefreshInterval = TimeSpan.FromSeconds(30);
+
+        private System.Collections.ObjectModel.ObservableCollection<Contract>? _allContracts;
+        private System.Windows.Threading.DispatcherTimer? _autoRefreshTimer;
         private bool _dbConfigMissingNotified;
+        private bool _isAutoRefreshInProgress;
+        private bool _personsLoaded;
+        private bool _contractsLoaded;
+        private bool _programsLoaded;
+        private bool _contractTypesLoaded;
+        private bool _organizationsLoaded;
+        private bool _workloadLoaded;
+        private bool _ordersLoaded;
+        private ViewSnapshot? _personsSnapshot;
+        private ViewSnapshot? _contractsSnapshot;
+        private ViewSnapshot? _programsSnapshot;
+        private ViewSnapshot? _organizationsSnapshot;
+        private ViewSnapshot? _workloadSnapshot;
 
         public MainWindow()
         {
             InitializeComponent();
-            LoadData();
             SetupNavigation();
             SetupDataGridClips();
+            LoadActiveSection(forceReload: true);
             SetupAutoRefresh();
         }
 
         private void SetupAutoRefresh()
         {
-            // Создаем таймер для автообновления данных каждые 5 секунд
             _autoRefreshTimer = new System.Windows.Threading.DispatcherTimer();
-            _autoRefreshTimer.Interval = TimeSpan.FromSeconds(5);
+            _autoRefreshTimer.Interval = AutoRefreshInterval;
             _autoRefreshTimer.Tick += AutoRefreshTimer_Tick;
             _autoRefreshTimer.Start();
             
-            System.Diagnostics.Debug.WriteLine("Автообновление данных запущено (каждые 5 секунд)");
+            System.Diagnostics.Debug.WriteLine($"Автообновление данных запущено (каждые {AutoRefreshInterval.TotalSeconds:0} секунд)");
         }
 
-        private void AutoRefreshTimer_Tick(object sender, EventArgs e)
+        private async void AutoRefreshTimer_Tick(object? sender, EventArgs e)
         {
+            if (_isAutoRefreshInProgress || !IsDbConfigured())
+            {
+                return;
+            }
+
             try
             {
-                LoadData();
-                System.Diagnostics.Debug.WriteLine($"Данные автоматически обновлены: {DateTime.Now:HH:mm:ss}");
+                _isAutoRefreshInProgress = true;
+                _autoRefreshTimer?.Stop();
+                await RefreshActiveSectionIfChangedAsync();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Ошибка при автообновлении: {ex.Message}");
+            }
+            finally
+            {
+                _isAutoRefreshInProgress = false;
+                _autoRefreshTimer?.Start();
             }
         }
 
@@ -92,6 +132,7 @@ namespace Contract2512
             BtnContractTypes.Tag = null;
             BtnOrganizations.Tag = null;
             BtnWorkload.Tag = null;
+            BtnOrders.Tag = null;
             
             // Устанавливаем выделение выбранной кнопки
             if (selectedButton != null)
@@ -110,6 +151,8 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.Persons);
         }
 
         private void BtnContracts_Click(object sender, RoutedEventArgs e)
@@ -122,6 +165,8 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.Contracts);
         }
 
         private void BtnPrograms_Click(object sender, RoutedEventArgs e)
@@ -134,6 +179,8 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.Programs);
         }
 
         private void BtnAiCourseDrafts_Click(object sender, RoutedEventArgs e)
@@ -146,6 +193,7 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Collapsed;
             EnsureAiCourseDraftControlLoaded();
 
             if (AiCourseDraftHost.Content is AiCourseDraftControl aiCourseDraftControl)
@@ -164,7 +212,8 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Visible;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
-            LoadContractTypes();
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.ContractTypes);
         }
 
         private void BtnOrganizations_Click(object sender, RoutedEventArgs e)
@@ -177,7 +226,8 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Visible;
             WorkloadPanel.Visibility = Visibility.Collapsed;
-            LoadOrganizations();
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.Organizations);
         }
 
         private void BtnWorkload_Click(object sender, RoutedEventArgs e)
@@ -190,7 +240,27 @@ namespace Contract2512
             ContractTypesPanel.Visibility = Visibility.Collapsed;
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Visible;
-            LoadWorkloadDocuments();
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.Workload);
+        }
+
+        private void BtnOrders_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnOrders);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Visible;
+            EnsureSectionLoaded(MainSection.Orders);
+
+            if (OrdersHost.Content is OrdersControl ordersControl)
+            {
+                ordersControl.NotifyPanelShown();
+            }
         }
 
         private void BtnSupport_Click(object sender, RoutedEventArgs e)
@@ -215,7 +285,8 @@ namespace Contract2512
                     try
                     {
                         _dbConfigMissingNotified = false;
-                        LoadData();
+                        ResetLoadedState();
+                        LoadActiveSection(forceReload: true);
                     }
                     catch (Exception ex)
                     {
@@ -329,74 +400,496 @@ namespace Contract2512
 
         private void LoadData()
         {
+            LoadActiveSection(forceReload: true);
+        }
+
+        private void ResetLoadedState()
+        {
+            _personsLoaded = false;
+            _contractsLoaded = false;
+            _programsLoaded = false;
+            _contractTypesLoaded = false;
+            _organizationsLoaded = false;
+            _workloadLoaded = false;
+            _ordersLoaded = false;
+            _personsSnapshot = null;
+            _contractsSnapshot = null;
+            _programsSnapshot = null;
+            _organizationsSnapshot = null;
+            _workloadSnapshot = null;
+        }
+
+        private MainSection GetActiveSection()
+        {
+            if (ContractsPanel.Visibility == Visibility.Visible)
+                return MainSection.Contracts;
+            if (ProgramsPanel.Visibility == Visibility.Visible)
+                return MainSection.Programs;
+            if (AiCourseDraftsPanel.Visibility == Visibility.Visible)
+                return MainSection.AiCourseDrafts;
+            if (ContractTypesPanel.Visibility == Visibility.Visible)
+                return MainSection.ContractTypes;
+            if (OrganizationsPanel.Visibility == Visibility.Visible)
+                return MainSection.Organizations;
+            if (WorkloadPanel.Visibility == Visibility.Visible)
+                return MainSection.Workload;
+            if (OrdersPanel.Visibility == Visibility.Visible)
+                return MainSection.Orders;
+            return MainSection.Persons;
+        }
+
+        private void EnsureSectionLoaded(MainSection section)
+        {
+            if (IsSectionLoaded(section))
+            {
+                return;
+            }
+
+            LoadSection(section, forceReload: true);
+        }
+
+        private bool IsSectionLoaded(MainSection section)
+        {
+            return section switch
+            {
+                MainSection.Persons => _personsLoaded,
+                MainSection.Contracts => _contractsLoaded,
+                MainSection.Programs => _programsLoaded,
+                MainSection.ContractTypes => _contractTypesLoaded,
+                MainSection.Organizations => _organizationsLoaded,
+                MainSection.Workload => _workloadLoaded,
+                MainSection.Orders => _ordersLoaded,
+                _ => true,
+            };
+        }
+
+        private void LoadActiveSection(bool forceReload)
+        {
             if (!IsDbConfigured())
             {
                 NotifyDbConfigMissingOnce();
                 return;
             }
 
-            LoadPersons();
-            LoadContracts();
-            LoadPrograms();
-            LoadWorkloadDocuments();
+            LoadSection(GetActiveSection(), forceReload);
         }
 
-        private void LoadPersons()
+        private void LoadSection(MainSection section, bool forceReload)
+        {
+            if (!forceReload && IsSectionLoaded(section))
+            {
+                return;
+            }
+
+            switch (section)
+            {
+                case MainSection.Persons:
+                    LoadPersons();
+                    break;
+                case MainSection.Contracts:
+                    LoadContracts();
+                    break;
+                case MainSection.Programs:
+                    LoadPrograms();
+                    break;
+                case MainSection.ContractTypes:
+                    LoadContractTypes();
+                    break;
+                case MainSection.Organizations:
+                    LoadOrganizations();
+                    break;
+                case MainSection.Workload:
+                    LoadWorkloadDocuments();
+                    break;
+                case MainSection.Orders:
+                    EnsureOrdersControlLoaded();
+                    _ordersLoaded = true;
+                    break;
+            }
+        }
+
+        private async Task RefreshActiveSectionIfChangedAsync()
+        {
+            switch (GetActiveSection())
+            {
+                case MainSection.Persons when _personsLoaded:
+                    await RefreshPersonsIfChangedAsync();
+                    break;
+                case MainSection.Contracts when _contractsLoaded:
+                    await RefreshContractsIfChangedAsync();
+                    break;
+                case MainSection.Programs when _programsLoaded:
+                    await RefreshProgramsIfChangedAsync();
+                    break;
+                case MainSection.Organizations when _organizationsLoaded:
+                    await RefreshOrganizationsIfChangedAsync();
+                    break;
+                case MainSection.Workload when _workloadLoaded:
+                    await RefreshWorkloadIfChangedAsync();
+                    break;
+            }
+        }
+
+        private async Task RefreshPersonsIfChangedAsync()
+        {
+            var snapshot = await Task.Run(GetPersonsSnapshot);
+            if (_personsSnapshot == snapshot)
+            {
+                return;
+            }
+
+            var persons = await Task.Run(FetchPersons);
+            await Dispatcher.InvokeAsync(() => BindPersons(persons, snapshot));
+        }
+
+        private async Task RefreshContractsIfChangedAsync()
+        {
+            var snapshot = await Task.Run(GetContractsSnapshot);
+            if (_contractsSnapshot == snapshot)
+            {
+                return;
+            }
+
+            var contracts = await Task.Run(FetchContracts);
+            await Dispatcher.InvokeAsync(() => BindContracts(contracts, snapshot));
+        }
+
+        private async Task RefreshProgramsIfChangedAsync()
+        {
+            var snapshot = await Task.Run(GetProgramsSnapshot);
+            if (_programsSnapshot == snapshot)
+            {
+                return;
+            }
+
+            var programs = await Task.Run(FetchProgramViewModels);
+            await Dispatcher.InvokeAsync(() => BindPrograms(programs, snapshot));
+        }
+
+        private async Task RefreshOrganizationsIfChangedAsync()
+        {
+            var snapshot = await Task.Run(GetOrganizationsSnapshot);
+            if (_organizationsSnapshot == snapshot)
+            {
+                return;
+            }
+
+            var organizations = await Task.Run(FetchOrganizations);
+            await Dispatcher.InvokeAsync(() => BindOrganizations(organizations, snapshot));
+        }
+
+        private async Task RefreshWorkloadIfChangedAsync()
+        {
+            var snapshot = await Task.Run(GetWorkloadSnapshot);
+            if (_workloadSnapshot == snapshot)
+            {
+                return;
+            }
+
+            var workloadDocuments = await Task.Run(FetchWorkloadDocuments);
+            await Dispatcher.InvokeAsync(() => BindWorkloadDocuments(workloadDocuments, snapshot));
+        }
+
+        private static void HandleLoadError(string title, Exception ex, bool showErrors)
+        {
+            if (showErrors)
+            {
+                System.Windows.MessageBox.Show(
+                    $"{title}: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+                return;
+            }
+
+            System.Diagnostics.Debug.WriteLine($"{title}: {ex.Message}");
+        }
+
+        private static List<Person> FetchPersons()
+        {
+            using var db = new AppDbContext();
+            return db.Persons
+                .AsNoTracking()
+                .Include(p => p.Gender)
+                .Include(p => p.Contacts)
+                .ToList();
+        }
+
+        private static List<Contract> FetchContracts()
+        {
+            using var db = new AppDbContext();
+            return db.Contracts
+                .AsNoTracking()
+                .Include(c => c.ContractType)
+                .Include(c => c.Program)
+                .Include(c => c.Payer)
+                    .ThenInclude(p => p.Contacts)
+                .Include(c => c.Listener)
+                    .ThenInclude(p => p.Contacts)
+                .ToList();
+        }
+
+        private List<ProgramViewModel> FetchProgramViewModels()
+        {
+            using var db = new AppDbContext();
+            var programViewNames = db.ProgramViews
+                .AsNoTracking()
+                .ToDictionary(pv => pv.Id, pv => pv.Name ?? string.Empty);
+
+            return db.LearningPrograms
+                .AsNoTracking()
+                .ToList()
+                .Select(p => new ProgramViewModel
+                {
+                    Id = p.Id,
+                    Name = p.Name ?? string.Empty,
+                    Format = p.Format ?? string.Empty,
+                    Hours = p.Hours,
+                    LessonsCount = p.LessonsCount,
+                    Price = p.Price,
+                    ImagePath = GetImagePath(p.Image),
+                    ProgramViewName = programViewNames.TryGetValue(p.ProgramViewId, out var name) ? name : string.Empty
+                })
+                .ToList();
+        }
+
+        private static List<WorkloadDocument> FetchWorkloadDocuments()
+        {
+            using var db = new AppDbContext();
+            return db.WorkloadDocuments
+                .AsNoTracking()
+                .Include(w => w.Program)
+                .Include(w => w.Listener)
+                .Include(w => w.Teacher)
+                .OrderByDescending(w => w.GeneratedAt)
+                .ToList();
+        }
+
+        private static List<Organization> FetchOrganizations()
+        {
+            using var db = new AppDbContext();
+            return db.Organizations
+                .AsNoTracking()
+                .ToList();
+        }
+
+        private void BindPersons(List<Person> persons, ViewSnapshot snapshot)
+        {
+            PersonsDataGrid.ItemsSource = persons;
+            _personsSnapshot = snapshot;
+            _personsLoaded = true;
+        }
+
+        private void BindContracts(List<Contract> contracts, ViewSnapshot snapshot)
+        {
+            _allContracts = new System.Collections.ObjectModel.ObservableCollection<Contract>(contracts);
+            ApplyContractFilter();
+            _contractsSnapshot = snapshot;
+            _contractsLoaded = true;
+        }
+
+        private void BindPrograms(List<ProgramViewModel> programViewModels, ViewSnapshot snapshot)
+        {
+            ProgramsItemsControl.ItemsSource = programViewModels;
+            _programsSnapshot = snapshot;
+            _programsLoaded = true;
+        }
+
+        private void BindOrganizations(List<Organization> organizations, ViewSnapshot snapshot)
+        {
+            OrganizationsDataGrid.ItemsSource = organizations;
+            _organizationsSnapshot = snapshot;
+            _organizationsLoaded = true;
+        }
+
+        private void BindWorkloadDocuments(List<WorkloadDocument> workloadDocuments, ViewSnapshot snapshot)
+        {
+            WorkloadDocumentsDataGrid.ItemsSource = workloadDocuments;
+            _workloadSnapshot = snapshot;
+            _workloadLoaded = true;
+        }
+
+        private static ViewSnapshot GetPersonsSnapshot()
+        {
+            using var db = new AppDbContext();
+            var persons = db.Persons.AsNoTracking();
+            var count = persons.Count();
+            if (count == 0)
+            {
+                return default;
+            }
+
+            return new ViewSnapshot(
+                count,
+                persons.Max(p => p.Id),
+                persons.Max(p => p.UpdatedAt ?? p.CreatedAt));
+        }
+
+        private static ViewSnapshot GetContractsSnapshot()
+        {
+            using var db = new AppDbContext();
+            var rows = db.Contracts
+                .AsNoTracking()
+                .Select(c => new
+                {
+                    c.Id,
+                    c.ContractNumber,
+                    c.ContractDate,
+                    c.ContractTypeId,
+                    c.ProgramId,
+                    c.StartDate,
+                    c.EndDate,
+                    c.IsGroup,
+                    c.PayerId,
+                    c.ListenerId,
+                    c.SignerId,
+                    c.ItogDocumentOptionKey,
+                    c.TimeOptionKey,
+                    c.StudyOptionKey,
+                    c.PaymentOptionKey,
+                    c.CreatedAt
+                })
+                .OrderBy(c => c.Id)
+                .ToList();
+
+            if (rows.Count == 0)
+            {
+                return default;
+            }
+
+            var checksum = new HashCode();
+            foreach (var row in rows)
+            {
+                checksum.Add(row.Id);
+                checksum.Add(row.ContractNumber);
+                checksum.Add(row.ContractDate);
+                checksum.Add(row.ContractTypeId);
+                checksum.Add(row.ProgramId);
+                checksum.Add(row.StartDate);
+                checksum.Add(row.EndDate);
+                checksum.Add(row.IsGroup);
+                checksum.Add(row.PayerId);
+                checksum.Add(row.ListenerId);
+                checksum.Add(row.SignerId);
+                checksum.Add(row.ItogDocumentOptionKey);
+                checksum.Add(row.TimeOptionKey);
+                checksum.Add(row.StudyOptionKey);
+                checksum.Add(row.PaymentOptionKey);
+            }
+
+            return new ViewSnapshot(
+                rows.Count,
+                rows[^1].Id,
+                rows.Max(c => c.CreatedAt),
+                checksum.ToHashCode());
+        }
+
+        private static ViewSnapshot GetProgramsSnapshot()
+        {
+            using var db = new AppDbContext();
+            var rows = db.LearningPrograms
+                .AsNoTracking()
+                .Select(p => new
+                {
+                    p.Id,
+                    p.Name,
+                    p.Format,
+                    p.ProgramViewId,
+                    p.Hours,
+                    p.LessonsCount,
+                    p.Price,
+                    p.Image,
+                    p.SourceUrl,
+                    p.CreatedAt
+                })
+                .OrderBy(p => p.Id)
+                .ToList();
+
+            if (rows.Count == 0)
+            {
+                return default;
+            }
+
+            var checksum = new HashCode();
+            foreach (var row in rows)
+            {
+                checksum.Add(row.Id);
+                checksum.Add(row.Name);
+                checksum.Add(row.Format);
+                checksum.Add(row.ProgramViewId);
+                checksum.Add(row.Hours);
+                checksum.Add(row.LessonsCount);
+                checksum.Add(row.Price);
+                checksum.Add(row.Image);
+                checksum.Add(row.SourceUrl);
+            }
+
+            return new ViewSnapshot(
+                rows.Count,
+                rows[^1].Id,
+                rows.Max(p => p.CreatedAt),
+                checksum.ToHashCode());
+        }
+
+        private static ViewSnapshot GetOrganizationsSnapshot()
+        {
+            using var db = new AppDbContext();
+            var organizations = db.Organizations.AsNoTracking();
+            var count = organizations.Count();
+            if (count == 0)
+            {
+                return default;
+            }
+
+            return new ViewSnapshot(
+                count,
+                organizations.Max(o => o.Id),
+                organizations.Max(o => o.UpdatedAt ?? o.CreatedAt));
+        }
+
+        private static ViewSnapshot GetWorkloadSnapshot()
+        {
+            using var db = new AppDbContext();
+            var workloadDocuments = db.WorkloadDocuments.AsNoTracking();
+            var count = workloadDocuments.Count();
+            if (count == 0)
+            {
+                return default;
+            }
+
+            return new ViewSnapshot(
+                count,
+                workloadDocuments.Max(w => w.Id),
+                workloadDocuments.Max(w => w.GeneratedAt));
+        }
+
+        private void LoadPersons(bool showErrors = true)
         {
             if (!IsDbConfigured())
                 return;
 
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    var persons = db.Persons
-                        .Include(p => p.Gender)
-                        .Include(p => p.Contacts)
-                        .ToList();
-                    PersonsDataGrid.ItemsSource = persons;
-                }
+                BindPersons(FetchPersons(), GetPersonsSnapshot());
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    $"Ошибка при загрузке данных: {ex.Message}",
-                    "Ошибка",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
+                HandleLoadError("Ошибка при загрузке данных", ex, showErrors);
             }
         }
 
-        private void LoadContracts()
+        private void LoadContracts(bool showErrors = true)
         {
             if (!IsDbConfigured())
                 return;
 
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    var contracts = db.Contracts
-                        .Include(c => c.ContractType)
-                        .Include(c => c.Program)
-                        .Include(c => c.Payer)
-                            .ThenInclude(p => p.Contacts)
-                        .Include(c => c.Listener)
-                            .ThenInclude(p => p.Contacts)
-                        .ToList();
-                    
-                    // Сохраняем все договоры для фильтрации
-                    _allContracts = new System.Collections.ObjectModel.ObservableCollection<Contract>(contracts);
-                    ApplyContractFilter();
-                }
+                BindContracts(FetchContracts(), GetContractsSnapshot());
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    $"Ошибка при загрузке договоров: {ex.Message}",
-                    "Ошибка",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
+                HandleLoadError("Ошибка при загрузке договоров", ex, showErrors);
             }
         }
 
@@ -645,44 +1138,18 @@ namespace Contract2512
             }
         }
 
-        private void LoadPrograms()
+        private void LoadPrograms(bool showErrors = true)
         {
             if (!IsDbConfigured())
                 return;
 
             try
             {
-                using (var db = new AppDbContext())
-            {
-                var programs = db.LearningPrograms.ToList();
-                var programViewModels = programs.Select(p =>
-                {
-                    // Загружаем вид программы
-                    var programView = db.ProgramViews.Find(p.ProgramViewId);
-
-                    return new ProgramViewModel
-                    {
-                        Id = p.Id,
-                            Name = p.Name ?? "",
-                            Format = p.Format ?? "",
-                        Hours = p.Hours,
-                        LessonsCount = p.LessonsCount,
-                        Price = p.Price,
-                        ImagePath = GetImagePath(p.Image),
-                        ProgramViewName = programView?.Name ?? ""
-                    };
-                }).ToList();
-
-                ProgramsItemsControl.ItemsSource = programViewModels;
-            }
+                BindPrograms(FetchProgramViewModels(), GetProgramsSnapshot());
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    $"Ошибка при загрузке программ: {ex.Message}",
-                    "Ошибка",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
+                HandleLoadError("Ошибка при загрузке программ", ex, showErrors);
             }
         }
 
@@ -953,8 +1420,9 @@ namespace Contract2512
             {
                 using (var db = new AppDbContext())
                 {
-                    var contractTypes = db.ContractTypes.ToList();
+                    var contractTypes = db.ContractTypes.AsNoTracking().ToList();
                     ContractTypesDataGrid.ItemsSource = contractTypes;
+                    _contractTypesLoaded = true;
                 }
             }
             catch (Exception ex)
@@ -1122,55 +1590,33 @@ namespace Contract2512
             }
         }
 
-        private void LoadWorkloadDocuments()
+        private void LoadWorkloadDocuments(bool showErrors = true)
         {
             if (!IsDbConfigured())
                 return;
 
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    var workloadDocuments = db.WorkloadDocuments
-                        .AsNoTracking()
-                        .Include(w => w.Program)
-                        .Include(w => w.Listener)
-                        .Include(w => w.Teacher)
-                        .OrderByDescending(w => w.GeneratedAt)
-                        .ToList();
-
-                    WorkloadDocumentsDataGrid.ItemsSource = workloadDocuments;
-                }
+                BindWorkloadDocuments(FetchWorkloadDocuments(), GetWorkloadSnapshot());
             }
             catch (Exception ex)
             {
-                System.Diagnostics.Debug.WriteLine($"Ошибка при загрузке учебной нагрузки: {ex.Message}");
+                HandleLoadError("Ошибка при загрузке учебной нагрузки", ex, showErrors);
             }
         }
 
-        private void LoadOrganizations()
+        private void LoadOrganizations(bool showErrors = true)
         {
             if (!IsDbConfigured())
                 return;
 
             try
             {
-                using (var db = new AppDbContext())
-                {
-                    var organizations = db.Organizations
-                        .AsNoTracking()
-                        .ToList();
-                    
-                    OrganizationsDataGrid.ItemsSource = organizations;
-                }
+                BindOrganizations(FetchOrganizations(), GetOrganizationsSnapshot());
             }
             catch (Exception ex)
             {
-                System.Windows.MessageBox.Show(
-                    $"Ошибка при загрузке организаций: {ex.Message}",
-                    "Ошибка",
-                    System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
+                HandleLoadError("Ошибка при загрузке организаций", ex, showErrors);
             }
         }
 
@@ -1309,6 +1755,45 @@ namespace Contract2512
                 };
 
                 AiCourseDraftHost.Content = errorText;
+            }
+        }
+
+        private void EnsureOrdersControlLoaded()
+        {
+            if (OrdersHost.Content is OrdersControl)
+            {
+                return;
+            }
+
+            try
+            {
+                var control = new OrdersControl
+                {
+                    HorizontalAlignment = HorizontalAlignment.Stretch,
+                    VerticalAlignment = VerticalAlignment.Stretch
+                };
+
+                OrdersHost.Content = control;
+            }
+            catch (Exception ex)
+            {
+                var errorText = new System.Windows.Controls.TextBox
+                {
+                    Text =
+                        "Не удалось загрузить вкладку 'Приказы'." + Environment.NewLine +
+                        Environment.NewLine +
+                        ex.ToString(),
+                    IsReadOnly = true,
+                    TextWrapping = TextWrapping.Wrap,
+                    VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                    Background = new System.Windows.Media.SolidColorBrush(System.Windows.Media.Color.FromRgb(30, 41, 59)),
+                    Foreground = System.Windows.Media.Brushes.White,
+                    BorderThickness = new Thickness(0),
+                    Padding = new Thickness(24),
+                };
+
+                OrdersHost.Content = errorText;
             }
         }
 
