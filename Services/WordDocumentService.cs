@@ -98,6 +98,8 @@ namespace Contract2512.Services
             }
 
             // Обрабатываем оставшиеся параграфы
+            ExpandParagraphsForMultiLineReplacements(element, replacements);
+
             var remainingParagraphs = element.Descendants<Paragraph>().ToList();
             foreach (var paragraph in remainingParagraphs)
             {
@@ -149,8 +151,9 @@ namespace Contract2512.Services
             string fullText = string.Join("", textElements.Select(t => t.Text));
             if (string.IsNullOrEmpty(fullText)) return;
 
-            // Проверяем каждый плейсхолдер
-            foreach (var replacement in replacements)
+            // Сначала обрабатываем более длинные ключи, чтобы составные маркеры
+            // вроде "{{FIO_commission}}; {{Post}}" не разбивались на части.
+            foreach (var replacement in replacements.OrderByDescending(item => item.Key.Length))
             {
                 if (!fullText.Contains(replacement.Key)) continue;
 
@@ -223,6 +226,116 @@ namespace Contract2512.Services
                     fullText = string.Join("", textElements.Select(t => t.Text));
                     placeholderIndex = fullText.IndexOf(replacement.Key);
                 }
+            }
+
+            ConvertEmbeddedLineBreaks(paragraph);
+        }
+
+        private void ExpandParagraphsForMultiLineReplacements(OpenXmlElement element, Dictionary<string, string> replacements)
+        {
+            var paragraphs = element.Descendants<Paragraph>().ToList();
+            foreach (var paragraph in paragraphs)
+            {
+                var paragraphText = string.Join("", paragraph.Descendants<Text>().Select(text => text.Text));
+                if (string.IsNullOrEmpty(paragraphText))
+                {
+                    continue;
+                }
+
+                var multiLineReplacement = replacements
+                    .OrderByDescending(item => item.Key.Length)
+                    .FirstOrDefault(item =>
+                        !string.IsNullOrWhiteSpace(item.Value) &&
+                        ContainsLineBreak(item.Value) &&
+                        paragraphText.Contains(item.Key));
+
+                if (string.IsNullOrEmpty(multiLineReplacement.Key))
+                {
+                    continue;
+                }
+
+                var lines = SplitLines(multiLineReplacement.Value!);
+                if (lines.Count <= 1)
+                {
+                    continue;
+                }
+
+                foreach (var line in lines)
+                {
+                    var paragraphClone = (Paragraph)paragraph.CloneNode(true);
+                    ReplaceInParagraph(
+                        paragraphClone,
+                        new Dictionary<string, string>
+                        {
+                            [multiLineReplacement.Key] = line
+                        });
+                    paragraph.InsertBeforeSelf(paragraphClone);
+                }
+
+                paragraph.Remove();
+            }
+        }
+
+        private static bool ContainsLineBreak(string value)
+        {
+            return value.Contains('\n') || value.Contains('\r');
+        }
+
+        private static List<string> SplitLines(string value)
+        {
+            return value
+                .Replace("\r\n", "\n")
+                .Replace('\r', '\n')
+                .Split('\n')
+                .ToList();
+        }
+
+        private static void ConvertEmbeddedLineBreaks(Paragraph paragraph)
+        {
+            var textElements = paragraph
+                .Descendants<Text>()
+                .Where(text => !string.IsNullOrEmpty(text.Text) &&
+                               (text.Text.Contains('\n') || text.Text.Contains('\r')))
+                .ToList();
+
+            foreach (var textElement in textElements)
+            {
+                if (textElement.Parent is not Run run)
+                {
+                    continue;
+                }
+
+                var normalizedText = textElement.Text
+                    .Replace("\r\n", "\n")
+                    .Replace('\r', '\n');
+
+                if (!normalizedText.Contains('\n'))
+                {
+                    continue;
+                }
+
+                var parts = normalizedText.Split('\n');
+                for (var i = 0; i < parts.Length; i++)
+                {
+                    if (i > 0)
+                    {
+                        run.InsertBefore(new Break(), textElement);
+                    }
+
+                    if (parts[i].Length == 0)
+                    {
+                        continue;
+                    }
+
+                    var newText = new Text(parts[i])
+                    {
+                        Space = SpaceProcessingModeValues.Preserve
+                    };
+
+                    run.InsertBefore(newText, textElement);
+                }
+
+                textElement.Remove();
             }
         }
 

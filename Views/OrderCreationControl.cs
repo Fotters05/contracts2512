@@ -422,10 +422,9 @@ namespace Contract2512.Views
                             placeholders["{{FIO_Predsedatel}}"] = Normalize(chairmanFioTextBox.Text);
                             placeholders["{{Post_Predsedatel}}"] = Normalize(chairmanPostTextBox.Text);
                             var members = GetCommissionMembers(commissionMembers);
-                            placeholders["{{CommissionMembers}}"] = string.Join(
-                                Environment.NewLine,
-                                members.Select((m, i) => $"{i + 1}. {m.Fio}; {m.Post}")
-                            );
+                            var formattedMembers = FormatCommissionMembers(members);
+                            placeholders["{{FIO_commission}}; {{Post}}"] = formattedMembers;
+                            placeholders["{{CommissionMembers}}"] = formattedMembers;
                             placeholders["{{FIO_secret}}"] = Normalize(secretaryFioTextBox.Text);
                             placeholders["{{Post_secret}}"] = Normalize(secretaryPostTextBox.Text);
 
@@ -610,6 +609,7 @@ namespace Contract2512.Views
                             placeholders["{{FIO_Predsedatel_Inicial}}"] = ToInitials(Normalize(chairmanFioTextBox.Text));
                             placeholders["{{Post_Predsedatel}}"] = Normalize(chairmanPostTextBox.Text);
                             var members = GetCommissionMembers(commissionMembers);
+                            placeholders["{{FIO_commission}}; {{Post}}"] = FormatCommissionMembers(members);
                             placeholders["{{FIO_commission}}"] = JoinCommissionMembers(members, member => member.Fio);
                             placeholders["{{FIO_commission_Inicial}}"] = JoinCommissionMembers(members, member => ToInitials(member.Fio));
                             placeholders["{{Post}}"] = JoinCommissionMembers(members, member => member.Post);
@@ -1136,6 +1136,14 @@ namespace Contract2512.Views
         private static string Normalize(string? value)
         {
             return value?.Trim() ?? string.Empty;
+        }
+
+        private static string NormalizeInlineText(string? value)
+        {
+            return string.Join(
+                " ",
+                (value ?? string.Empty)
+                    .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
         }
 
         private static string ToInitials(string fullName)
@@ -1812,8 +1820,8 @@ namespace Contract2512.Views
 
             foreach (var row in rows)
             {
-                var fio = Normalize(row.FioTextBox.Text);
-                var post = Normalize(row.PostTextBox.Text);
+                var fio = NormalizeInlineText(row.FioTextBox.Text);
+                var post = NormalizeInlineText(row.PostTextBox.Text);
 
                 if (string.IsNullOrWhiteSpace(fio) && string.IsNullOrWhiteSpace(post))
                 {
@@ -1834,6 +1842,13 @@ namespace Contract2512.Views
             }
 
             return members;
+        }
+
+        private static string FormatCommissionMembers(IEnumerable<CommissionMemberData> members)
+        {
+            return string.Join(
+                Environment.NewLine,
+                members.Select((member, index) => $"{index + 1}. {member.Fio}; {member.Post}"));
         }
 
         private static string JoinCommissionMembers(IEnumerable<CommissionMemberData> members, Func<CommissionMemberData, string> selector)
