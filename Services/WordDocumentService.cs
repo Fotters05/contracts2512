@@ -53,6 +53,17 @@ namespace Contract2512.Services
                     ReplaceInElement(footerPart.Footer, replacements);
                 }
 
+                PromoteRenderedPageBreaks(mainPart.Document);
+                foreach (HeaderPart headerPart in mainPart.HeaderParts)
+                {
+                    PromoteRenderedPageBreaks(headerPart.Header);
+                }
+
+                foreach (FooterPart footerPart in mainPart.FooterParts)
+                {
+                    PromoteRenderedPageBreaks(footerPart.Footer);
+                }
+
                 mainPart.Document.Save();
             }
         }
@@ -104,20 +115,6 @@ namespace Contract2512.Services
             foreach (var paragraph in remainingParagraphs)
             {
                 ReplaceInParagraph(paragraph, replacements);
-            }
-
-            // Удаляем параграфы, которые стали пустыми после замены
-            var paragraphsAfterReplace = element.Descendants<Paragraph>().ToList();
-            foreach (var paragraph in paragraphsAfterReplace)
-            {
-                var runs = paragraph.Elements<Run>().ToList();
-                string paragraphText = string.Join("", runs.SelectMany(r => r.Elements<Text>()).Select(t => t.Text));
-                
-                // Если параграф пустой или содержит только пробелы/переносы строк, удаляем его
-                if (string.IsNullOrWhiteSpace(paragraphText))
-                {
-                    paragraph.Remove();
-                }
             }
 
             // Обрабатываем таблицы
@@ -336,6 +333,33 @@ namespace Contract2512.Services
                 }
 
                 textElement.Remove();
+            }
+        }
+
+        private static void PromoteRenderedPageBreaks(OpenXmlElement? element)
+        {
+            if (element == null)
+            {
+                return;
+            }
+
+            foreach (var run in element.Descendants<Run>().ToList())
+            {
+                var renderedBreaks = run.Elements<LastRenderedPageBreak>().ToList();
+                if (renderedBreaks.Count == 0)
+                {
+                    continue;
+                }
+
+                foreach (var renderedBreak in renderedBreaks)
+                {
+                    if (!run.Elements<Break>().Any(existingBreak => existingBreak.Type?.Value == BreakValues.Page))
+                    {
+                        run.InsertBefore(new Break { Type = BreakValues.Page }, renderedBreak);
+                    }
+
+                    renderedBreak.Remove();
+                }
             }
         }
 

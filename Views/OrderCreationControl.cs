@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Windows;
 using System.Windows.Controls;
+using System.Windows.Controls.Primitives;
 using System.Windows.Media;
 using Contract2512.Models;
 using Contract2512.Services;
@@ -44,10 +45,7 @@ namespace Contract2512.Views
             Grid.SetRow(headerCard, 0);
             root.Children.Add(headerCard);
 
-            var tabControl = new TabControl
-            {
-                Margin = new Thickness(0, 0, 0, 16)
-            };
+            var tabControl = CreateOrdersTabControl();
             Grid.SetRow(tabControl, 1);
             root.Children.Add(tabControl);
 
@@ -668,6 +666,7 @@ namespace Contract2512.Views
             var statementDatePicker = CreateDatePicker();
             var statementNumberTextBox = CreateTextBox();
             var dateTimeTextBox = CreateTextBox("Например: 27.04.2026 10:00");
+            var gradeTextBox = CreateTextBox();
 
             programComboBox.SelectionChanged += (_, _) =>
             {
@@ -713,6 +712,7 @@ namespace Contract2512.Views
                     CreateField("Дата ведомости", statementDatePicker),
                     CreateField("Номер ведомости", statementNumberTextBox),
                     CreateField("Дата и время", dateTimeTextBox),
+                    CreateField("Результат/оценка", gradeTextBox),
                     CreateActionButton("Сформировать ведомость", () =>
                     {
                         if (programComboBox.SelectedItem is not LearningProgram program)
@@ -745,6 +745,7 @@ namespace Contract2512.Views
                             var placeholders = new Dictionary<string, string>
                             {
                                 ["{{Date_Time}}"] = Normalize(dateTimeTextBox.Text),
+                                ["{{Grade}}"] = Normalize(gradeTextBox.Text),
                                 ["{{year}}"] = date.ToString("yyyy"),
                                 ["{{even_number}}"] = Normalize(statementNumberTextBox.Text),
                                 ["{{Type_program}}"] = GetProgramTypeName(program),
@@ -756,7 +757,8 @@ namespace Contract2512.Views
                             var rowValues = selectedContracts.Select((contract, index) => new Dictionary<string, string>
                             {
                                 ["{{num}}"] = (index + 1).ToString(),
-                                ["{{FIO_Slushatel}}"] = contract.Listener?.FullName ?? string.Empty
+                                ["{{FIO_Slushatel}}"] = contract.Listener?.FullName ?? string.Empty,
+                                ["{{Grade}}"] = Normalize(gradeTextBox.Text)
                             }).ToList();
 
                             var request = new OrderGenerationRequest
@@ -1550,6 +1552,149 @@ namespace Contract2512.Views
             };
         }
 
+        private static TabControl CreateOrdersTabControl()
+        {
+            var tabControl = new TabControl
+            {
+                Margin = new Thickness(0, 0, 0, 16),
+                Background = Brushes.Transparent,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(71, 85, 105)),
+                BorderThickness = new Thickness(0),
+                Foreground = Brushes.White,
+                Padding = new Thickness(0)
+            };
+
+            tabControl.ItemContainerStyle = CreateOrdersTabItemStyle();
+            tabControl.Template = CreateOrdersTabControlTemplate();
+            tabControl.Loaded += (_, _) => UpdateOrdersTabItemWidths(tabControl);
+            tabControl.SizeChanged += (_, _) => UpdateOrdersTabItemWidths(tabControl);
+            return tabControl;
+        }
+
+        private static Style CreateOrdersTabItemStyle()
+        {
+            var style = new Style(typeof(TabItem));
+
+            style.Setters.Add(new Setter(Control.BackgroundProperty, Brushes.Transparent));
+            style.Setters.Add(new Setter(Control.ForegroundProperty, Brushes.White));
+            style.Setters.Add(new Setter(Control.BorderThicknessProperty, new Thickness(0)));
+            style.Setters.Add(new Setter(Control.PaddingProperty, new Thickness(16, 10, 16, 10)));
+            style.Setters.Add(new Setter(Control.MarginProperty, new Thickness(0, 0, 6, 10)));
+            style.Setters.Add(new Setter(FrameworkElement.MinHeightProperty, 52.0));
+            style.Setters.Add(new Setter(Control.FontSizeProperty, 14.0));
+            style.Setters.Add(new Setter(Control.FontWeightProperty, FontWeights.SemiBold));
+            style.Setters.Add(new Setter(Control.TemplateProperty, CreateOrdersTabItemTemplate()));
+
+            return style;
+        }
+
+        private static ControlTemplate CreateOrdersTabItemTemplate()
+        {
+            var template = new ControlTemplate(typeof(TabItem));
+
+            var border = new FrameworkElementFactory(typeof(Border));
+            border.Name = "TabBorder";
+            border.SetValue(Border.BackgroundProperty, new SolidColorBrush(Color.FromArgb(46, 99, 102, 241)));
+            border.SetValue(Border.CornerRadiusProperty, new CornerRadius(10));
+            border.SetValue(Border.PaddingProperty, new TemplateBindingExtension(Control.PaddingProperty));
+            border.SetValue(FrameworkElement.MinHeightProperty, new TemplateBindingExtension(FrameworkElement.MinHeightProperty));
+            border.SetValue(Border.SnapsToDevicePixelsProperty, true);
+
+            var headerText = new FrameworkElementFactory(typeof(TextBlock));
+            headerText.SetValue(TextBlock.TextProperty, new TemplateBindingExtension(HeaderedContentControl.HeaderProperty));
+            headerText.SetValue(TextBlock.TextAlignmentProperty, TextAlignment.Center);
+            headerText.SetValue(TextBlock.TextWrappingProperty, TextWrapping.Wrap);
+            headerText.SetValue(TextBlock.VerticalAlignmentProperty, VerticalAlignment.Center);
+            headerText.SetValue(TextBlock.HorizontalAlignmentProperty, HorizontalAlignment.Center);
+
+            border.AppendChild(headerText);
+            template.VisualTree = border;
+
+            var selectedTrigger = new Trigger
+            {
+                Property = TabItem.IsSelectedProperty,
+                Value = true
+            };
+            selectedTrigger.Setters.Add(new Setter(
+                Border.BackgroundProperty,
+                new SolidColorBrush(Color.FromRgb(76, 70, 229)),
+                "TabBorder"));
+            template.Triggers.Add(selectedTrigger);
+
+            var hoverTrigger = new MultiTrigger();
+            hoverTrigger.Conditions.Add(new Condition(UIElement.IsMouseOverProperty, true));
+            hoverTrigger.Conditions.Add(new Condition(TabItem.IsSelectedProperty, false));
+            hoverTrigger.Setters.Add(new Setter(
+                Border.BackgroundProperty,
+                new SolidColorBrush(Color.FromArgb(80, 87, 84, 227)),
+                "TabBorder"));
+            template.Triggers.Add(hoverTrigger);
+
+            var disabledTrigger = new Trigger
+            {
+                Property = UIElement.IsEnabledProperty,
+                Value = false
+            };
+            disabledTrigger.Setters.Add(new Setter(UIElement.OpacityProperty, 0.45));
+            template.Triggers.Add(disabledTrigger);
+
+            return template;
+        }
+
+        private static ControlTemplate CreateOrdersTabControlTemplate()
+        {
+            var template = new ControlTemplate(typeof(TabControl));
+
+            var root = new FrameworkElementFactory(typeof(DockPanel));
+
+            var headerBorder = new FrameworkElementFactory(typeof(Border));
+            headerBorder.SetValue(DockPanel.DockProperty, Dock.Top);
+            headerBorder.SetValue(Border.BackgroundProperty, new SolidColorBrush(Color.FromArgb(28, 30, 41, 59)));
+            headerBorder.SetValue(Border.BorderBrushProperty, new SolidColorBrush(Color.FromRgb(71, 85, 105)));
+            headerBorder.SetValue(Border.BorderThicknessProperty, new Thickness(1));
+            headerBorder.SetValue(Border.CornerRadiusProperty, new CornerRadius(12));
+            headerBorder.SetValue(Border.PaddingProperty, new Thickness(12, 12, 12, 0));
+            headerBorder.SetValue(UIElement.ClipToBoundsProperty, true);
+
+            var headerPanel = new FrameworkElementFactory(typeof(System.Windows.Controls.Primitives.TabPanel));
+            headerPanel.Name = "HeaderPanel";
+            headerPanel.SetValue(Panel.IsItemsHostProperty, true);
+            headerPanel.SetValue(Panel.BackgroundProperty, Brushes.Transparent);
+            headerPanel.SetValue(FrameworkElement.MarginProperty, new Thickness(0));
+
+            headerBorder.AppendChild(headerPanel);
+
+            var contentPresenter = new FrameworkElementFactory(typeof(ContentPresenter));
+            contentPresenter.Name = "PART_SelectedContentHost";
+            contentPresenter.SetValue(ContentPresenter.ContentSourceProperty, "SelectedContent");
+            contentPresenter.SetValue(ContentPresenter.MarginProperty, new Thickness(0));
+
+            root.AppendChild(headerBorder);
+            root.AppendChild(contentPresenter);
+
+            template.VisualTree = root;
+            return template;
+        }
+
+        private static void UpdateOrdersTabItemWidths(TabControl tabControl)
+        {
+            if (tabControl.Items.Count == 0 || tabControl.ActualWidth <= 0)
+            {
+                return;
+            }
+
+            const double headerHorizontalPadding = 24;
+            const double itemRightSpacing = 6;
+            var availableWidth = tabControl.ActualWidth - headerHorizontalPadding - (tabControl.Items.Count * itemRightSpacing);
+            var itemWidth = Math.Max(120, Math.Floor(availableWidth / tabControl.Items.Count));
+
+            foreach (var item in tabControl.Items.OfType<TabItem>())
+            {
+                item.Width = itemWidth;
+            }
+        }
+
+
         private static ScrollViewer CreateScrollableForm(params UIElement[] children)
         {
             var panel = new StackPanel();
@@ -1945,10 +2090,67 @@ namespace Contract2512.Views
             var datePicker = new DatePicker
             {
                 SelectedDate = DateTime.Today,
-                MinHeight = 34
+                MinHeight = 34,
+                Background = new SolidColorBrush(Color.FromArgb(102, 30, 41, 59)),
+                Foreground = Brushes.White,
+                BorderBrush = new SolidColorBrush(Color.FromRgb(71, 85, 105)),
+                BorderThickness = new Thickness(1)
             };
             datePicker.SetResourceReference(StyleProperty, "DarkDatePickerStyle");
+            datePicker.Loaded += (_, _) => ApplyOrdersDatePickerTheme(datePicker);
+            datePicker.CalendarOpened += (_, _) => ApplyOrdersDatePickerTheme(datePicker);
             return datePicker;
+        }
+
+        private static void ApplyOrdersDatePickerTheme(DatePicker datePicker)
+        {
+            var backgroundBrush = new SolidColorBrush(Color.FromArgb(102, 30, 41, 59));
+            var borderBrush = new SolidColorBrush(Color.FromRgb(71, 85, 105));
+
+            datePicker.Background = backgroundBrush;
+            datePicker.Foreground = Brushes.White;
+            datePicker.BorderBrush = borderBrush;
+
+            if (FindVisualChild<DatePickerTextBox>(datePicker) is DatePickerTextBox textBox)
+            {
+                textBox.Background = backgroundBrush;
+                textBox.Foreground = Brushes.White;
+                textBox.BorderBrush = borderBrush;
+                textBox.CaretBrush = Brushes.White;
+                textBox.Padding = new Thickness(10, 4, 10, 4);
+            }
+
+            if (FindVisualChild<Button>(datePicker) is Button button)
+            {
+                button.Background = Brushes.Transparent;
+                button.Foreground = Brushes.White;
+                button.BorderBrush = Brushes.Transparent;
+            }
+        }
+
+        private static T? FindVisualChild<T>(DependencyObject? parent) where T : DependencyObject
+        {
+            if (parent == null)
+            {
+                return null;
+            }
+
+            for (var index = 0; index < VisualTreeHelper.GetChildrenCount(parent); index++)
+            {
+                var child = VisualTreeHelper.GetChild(parent, index);
+                if (child is T typedChild)
+                {
+                    return typedChild;
+                }
+
+                var nestedChild = FindVisualChild<T>(child);
+                if (nestedChild != null)
+                {
+                    return nestedChild;
+                }
+            }
+
+            return null;
         }
 
         private static DataGrid CreateDocumentsGrid()
