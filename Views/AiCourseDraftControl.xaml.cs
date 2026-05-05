@@ -327,7 +327,6 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         ServiceHealthTextBlock.Foreground = Brushes.LightGreen;
         SetHealthLine(TemplateHealthTextBlock, "Шаблон DOCX", health.TemplateExists);
         SetHealthLine(OllamaHealthTextBlock, "Ollama", health.OllamaAvailable);
-        SetHealthLine(DatabaseHealthTextBlock, "База данных", health.DbAvailable);
     }
 
     private void ApplyUnavailableHealthState(string message)
@@ -339,7 +338,6 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         TemplateHealthTextBlock.Foreground = Brushes.Gainsboro;
         OllamaHealthTextBlock.Text = "Ollama: неизвестно";
         OllamaHealthTextBlock.Foreground = Brushes.Gainsboro;
-        DatabaseHealthTextBlock.Text = "База данных: неизвестно";
         DatabaseHealthTextBlock.Foreground = Brushes.Gainsboro;
     }
 

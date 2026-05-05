@@ -7,7 +7,7 @@
         xmlns:local="clr-namespace:Contract2512"
         xmlns:views="clr-namespace:Contract2512.Views"
         mc:Ignorable="d"
-        Title="Система управления договорами"
+        Title="Contract2512"
         WindowStartupLocation="CenterScreen"
         Height="700"
         Width="1400"
@@ -319,7 +319,7 @@
             
             <!-- Заголовок окна (невидимый, но для перетаскивания) -->
             <TextBlock Grid.Column="0" 
-                      Text="Система управления договорами"
+                      Text="Contracts2512"
                       Foreground="Transparent"
                       VerticalAlignment="Center"
                       Margin="12,0"/>
@@ -389,7 +389,7 @@
         </Grid.RowDefinitions>
 
                 <TextBlock Grid.Row="0"
-                           Text="Система управления договорами"
+                           Text="Contracts2512"
                            FontSize="20"
                            Foreground="White"
                            FontWeight="SemiBold"
@@ -427,7 +427,7 @@
                     <Border x:Name="BtnAiCourseDrafts"
                             Style="{StaticResource MenuItemStyle}"
                             MouseLeftButtonDown="BtnAiCourseDrafts_Click">
-                        <TextBlock Text="🧠  Формирование новых курсов"
+                        <TextBlock Text="🧠  Новые курсы"
                                    FontSize="16"
                                    Foreground="{StaticResource TextPrimary}"/>
                     </Border>
@@ -882,10 +882,6 @@
                                    FontWeight="SemiBold"
                                    Foreground="{StaticResource TextPrimary}"
                                    Margin="0,0,0,8"/>
-                        <TextBlock Text="Здесь должен отображаться модуль интеграции с ai_service: проверка health, генерация draft, загрузка по draft_id и экспорт DOCX."
-                                   FontSize="16"
-                                   TextWrapping="Wrap"
-                                   Foreground="{StaticResource TextSecondary}"/>
                     </StackPanel>
                 </Border>
 
