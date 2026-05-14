@@ -14,6 +14,8 @@ namespace Contract2512.Services
 {
     public sealed class OrderDocumentService
     {
+        private const string OrderDocumentsDirectoryKey = "ORDER_DOCUMENTS_DIR";
+
         public const string AdmissionKey = "admission";
         public const string AdmissionGroupKey = "admission_group";
         public const string ExpulsionKey = "expulsion";
@@ -70,41 +72,8 @@ namespace Contract2512.Services
         public string GenerateDocument(OrderGenerationRequest request)
         {
             using var db = new AppDbContext();
-
-            var templatePath = ResolveTemplatePath(db, request.OrderTypeKey);
-            if (string.IsNullOrWhiteSpace(templatePath) || !File.Exists(templatePath))
-            {
-                throw new FileNotFoundException($"Шаблон приказа не найден: {templatePath}");
-            }
-
-            var outputDirectory = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                "Приказы");
-
-            Directory.CreateDirectory(outputDirectory);
-
             var timestamp = DateTime.Now;
-            var outputFileName = BuildOutputFileName(request, timestamp);
-            var outputPath = Path.Combine(outputDirectory, outputFileName);
-
-            File.Copy(templatePath, outputPath, true);
-
-            if (request.TableRows.Count > 0)
-            {
-                ExpandTableRows(outputPath, request.TableRows);
-            }
-
-            _wordDocumentService.ReplacePlaceholders(outputPath, outputPath, request.Placeholders);
-
-            try
-            {
-                var pdfPath = Path.ChangeExtension(outputPath, ".pdf");
-                _wordDocumentService.ConvertToPdf(outputPath, pdfPath);
-            }
-            catch
-            {
-                // PDF is optional.
-            }
+            var outputPath = CreateDocumentFile(db, request, timestamp);
 
             var document = new OrderDocument
             {
@@ -117,7 +86,11 @@ namespace Contract2512.Services
                 DocumentNumber = request.DocumentNumber,
                 FileName = Path.GetFileName(outputPath),
                 FilePath = outputPath,
-                MetadataJson = request.Metadata is null ? null : JsonSerializer.Serialize(request.Metadata),
+                MetadataJson = JsonSerializer.Serialize(new StoredOrderGenerationData
+                {
+                    Version = 1,
+                    Request = request
+                }),
                 GeneratedAt = timestamp,
                 CreatedAt = timestamp
             };
@@ -138,7 +111,12 @@ namespace Contract2512.Services
         public bool TryResolveDocumentPath(OrderDocument document, out string documentPath)
         {
             documentPath = ResolveDocumentPath(document);
-            return !string.IsNullOrWhiteSpace(documentPath) && File.Exists(documentPath);
+            if (!string.IsNullOrWhiteSpace(documentPath) && File.Exists(documentPath))
+            {
+                return true;
+            }
+
+            return TryRegenerateDocument(document, out documentPath);
         }
 
         public string ResolveDocumentPath(OrderDocument document)
@@ -161,6 +139,81 @@ namespace Contract2512.Services
 
         public static IReadOnlyDictionary<string, string> GetDefaultTemplates() => DefaultTemplatePaths;
 
+        private string CreateDocumentFile(AppDbContext db, OrderGenerationRequest request, DateTime timestamp)
+        {
+            var templatePath = ResolveTemplatePath(db, request.OrderTypeKey);
+            if (string.IsNullOrWhiteSpace(templatePath) || !File.Exists(templatePath))
+            {
+                throw new FileNotFoundException($"Шаблон приказа не найден: {templatePath}");
+            }
+
+            var outputDirectory = GetOrderDocumentsDirectory();
+
+            Directory.CreateDirectory(outputDirectory);
+
+            var outputFileName = BuildOutputFileName(request, timestamp);
+            var outputPath = Path.Combine(outputDirectory, outputFileName);
+
+            File.Copy(templatePath, outputPath, true);
+
+            if (request.TableRows.Count > 0)
+            {
+                ExpandTableRows(outputPath, request.TableRows);
+            }
+
+            _wordDocumentService.ReplacePlaceholders(outputPath, outputPath, request.Placeholders);
+
+            try
+            {
+                var pdfPath = Path.ChangeExtension(outputPath, ".pdf");
+                _wordDocumentService.ConvertToPdf(outputPath, pdfPath);
+            }
+            catch
+            {
+                // PDF is optional.
+            }
+
+            return outputPath;
+        }
+
+        private bool TryRegenerateDocument(OrderDocument document, out string documentPath)
+        {
+            documentPath = string.Empty;
+
+            var request = TryReadStoredRequest(document);
+            if (request is null)
+            {
+                return false;
+            }
+
+            using var db = new AppDbContext();
+            documentPath = CreateDocumentFile(db, request, document.GeneratedAt);
+            return File.Exists(documentPath);
+        }
+
+        private static OrderGenerationRequest? TryReadStoredRequest(OrderDocument document)
+        {
+            if (string.IsNullOrWhiteSpace(document.MetadataJson))
+            {
+                return null;
+            }
+
+            try
+            {
+                var stored = JsonSerializer.Deserialize<StoredOrderGenerationData>(document.MetadataJson);
+                if (stored?.Request is not null)
+                {
+                    return stored.Request;
+                }
+
+                return JsonSerializer.Deserialize<OrderGenerationRequest>(document.MetadataJson);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
         private static IEnumerable<string> GetDocumentPathCandidates(OrderDocument document)
         {
             if (!string.IsNullOrWhiteSpace(document.FilePath))
@@ -177,6 +230,8 @@ namespace Contract2512.Services
                 yield break;
             }
 
+            yield return Path.Combine(GetOrderDocumentsDirectory(), fileName);
+
             yield return Path.Combine(
                 Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
                 "Приказы",
@@ -188,6 +243,19 @@ namespace Contract2512.Services
 
             yield return Path.Combine(AppContext.BaseDirectory, "Приказы", fileName);
             yield return Path.Combine(@"C:\Dogovora\Приказы", fileName);
+        }
+
+        private static string GetOrderDocumentsDirectory()
+        {
+            var configuredDirectory = EnvConfigService.Get(OrderDocumentsDirectoryKey);
+            if (!string.IsNullOrWhiteSpace(configuredDirectory))
+            {
+                return configuredDirectory;
+            }
+
+            return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "Приказы");
         }
 
         private static string ResolveTemplatePath(AppDbContext db, string orderTypeKey)
@@ -442,5 +510,11 @@ namespace Contract2512.Services
         public DateTime ApplicationDate { get; init; }
         public string? ApplicationNumber { get; init; }
         public string? Notes { get; init; }
+    }
+
+    public sealed class StoredOrderGenerationData
+    {
+        public int Version { get; init; }
+        public OrderGenerationRequest? Request { get; init; }
     }
 }
