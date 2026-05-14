@@ -4,6 +4,9 @@
 
 # Переменные окружения (содержат пароли БД)
 .env
+.env.*
+!.env.example
+*.local
 
 ################################################################################
 # VISUAL STUDIO / C# / .NET
@@ -158,6 +161,49 @@ bin/Debug/net8.0-windows/*.html
 
 # Kiro AI assistant
 .kiro/
+
+################################################################################
+# PYTHON / AI SERVICE
+################################################################################
+
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.venv/
+venv/
+env/
+
+# Generated AI drafts and exported documents
+ai_service/storage/drafts/
+ai_service/storage/output/
+ai_service/storage/uploads/
+ai_service/storage/tmp/
+ai_service/storage/temp/
+
+################################################################################
+# GENERATED DOCUMENTS / LOCAL OUTPUT
+################################################################################
+
+TestResults/
+*.trx
+*.coverage
+*.coveragexml
+*.binlog
+*.drawio.bkp
+*.pdf
+*.docx.tmp
+*.xlsx.tmp
+
+# Local generated document folders
+**/Приказы/
+**/Договоры/
+**/Заявления/
+**/Личные карточки/
 
 ################################################################################
 # OS
