@@ -41,7 +41,7 @@ namespace Contract2512.Views
             Grid.SetRow(headerCard, 0);
             root.Children.Add(headerCard);
 
-            var historyCard = CreateCard("История приказов", _documentsGrid);
+            var historyCard = CreateStretchCard("История приказов", _documentsGrid);
             Grid.SetRow(historyCard, 1);
             root.Children.Add(historyCard);
 
@@ -96,7 +96,7 @@ namespace Contract2512.Views
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(document.FilePath) || !File.Exists(document.FilePath))
+            if (!_orderService.TryResolveDocumentPath(document, out var documentPath))
             {
                 ShowWarning("Файл не найден. Возможно, он был удалён или перемещён.");
                 return;
@@ -104,7 +104,7 @@ namespace Contract2512.Views
 
             try
             {
-                _orderService.OpenDocument(document.FilePath);
+                _orderService.OpenDocument(documentPath);
             }
             catch (Exception ex)
             {
@@ -137,6 +137,40 @@ namespace Contract2512.Views
                 CornerRadius = new CornerRadius(12),
                 Margin = new Thickness(0, 0, 0, 16),
                 Padding = new Thickness(20),
+                Child = panel
+            };
+        }
+
+        private static Border CreateStretchCard(string title, UIElement child)
+        {
+            var panel = new Grid();
+            panel.RowDefinitions.Add(new RowDefinition { Height = GridLength.Auto });
+            panel.RowDefinitions.Add(new RowDefinition { Height = new GridLength(1, GridUnitType.Star) });
+
+            var titleBlock = new TextBlock
+            {
+                Text = title,
+                FontSize = 24,
+                FontWeight = FontWeights.SemiBold,
+                Foreground = Brushes.White,
+                Margin = new Thickness(0, 0, 0, 12)
+            };
+
+            Grid.SetRow(titleBlock, 0);
+            panel.Children.Add(titleBlock);
+
+            Grid.SetRow(child, 1);
+            panel.Children.Add(child);
+
+            return new Border
+            {
+                Background = new SolidColorBrush(Color.FromArgb(76, 30, 41, 59)),
+                BorderBrush = new SolidColorBrush(Color.FromRgb(71, 85, 105)),
+                BorderThickness = new Thickness(1),
+                CornerRadius = new CornerRadius(12),
+                Margin = new Thickness(0, 0, 0, 16),
+                Padding = new Thickness(20),
+                VerticalAlignment = VerticalAlignment.Stretch,
                 Child = panel
             };
         }
@@ -178,7 +212,13 @@ namespace Contract2512.Views
                 CanUserDeleteRows = false,
                 IsReadOnly = true,
                 SelectionMode = DataGridSelectionMode.Single,
-                MinHeight = 420
+                MinHeight = 0,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                EnableColumnVirtualization = true,
+                EnableRowVirtualization = true
             };
 
             grid.SetResourceReference(StyleProperty, "DarkDataGridStyle");

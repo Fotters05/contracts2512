@@ -135,12 +135,60 @@ namespace Contract2512.Services
             _wordDocumentService.OpenDocument(filePath);
         }
 
+        public bool TryResolveDocumentPath(OrderDocument document, out string documentPath)
+        {
+            documentPath = ResolveDocumentPath(document);
+            return !string.IsNullOrWhiteSpace(documentPath) && File.Exists(documentPath);
+        }
+
+        public string ResolveDocumentPath(OrderDocument document)
+        {
+            foreach (var candidate in GetDocumentPathCandidates(document))
+            {
+                if (File.Exists(candidate))
+                {
+                    return candidate;
+                }
+            }
+
+            return document.FilePath ?? string.Empty;
+        }
+
         public static string GetOrderName(string orderTypeKey)
         {
             return OrderNames.TryGetValue(orderTypeKey, out var name) ? name : orderTypeKey;
         }
 
         public static IReadOnlyDictionary<string, string> GetDefaultTemplates() => DefaultTemplatePaths;
+
+        private static IEnumerable<string> GetDocumentPathCandidates(OrderDocument document)
+        {
+            if (!string.IsNullOrWhiteSpace(document.FilePath))
+            {
+                yield return document.FilePath;
+            }
+
+            var fileName = !string.IsNullOrWhiteSpace(document.FileName)
+                ? Path.GetFileName(document.FileName)
+                : Path.GetFileName(document.FilePath);
+
+            if (string.IsNullOrWhiteSpace(fileName))
+            {
+                yield break;
+            }
+
+            yield return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                "Приказы",
+                fileName);
+
+            yield return Path.Combine(
+                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
+                fileName);
+
+            yield return Path.Combine(AppContext.BaseDirectory, "Приказы", fileName);
+            yield return Path.Combine(@"C:\Dogovora\Приказы", fileName);
+        }
 
         private static string ResolveTemplatePath(AppDbContext db, string orderTypeKey)
         {

@@ -918,7 +918,7 @@ namespace Contract2512.Views
                 return;
             }
 
-            if (string.IsNullOrWhiteSpace(document.FilePath) || !File.Exists(document.FilePath))
+            if (!_orderService.TryResolveDocumentPath(document, out var documentPath))
             {
                 ShowWarning("Файл не найден. Возможно, он был удалён или перемещён.");
                 return;
@@ -926,7 +926,7 @@ namespace Contract2512.Views
 
             try
             {
-                _orderService.OpenDocument(document.FilePath);
+                _orderService.OpenDocument(documentPath);
             }
             catch (Exception ex)
             {
@@ -2161,7 +2161,13 @@ namespace Contract2512.Views
                 CanUserAddRows = false,
                 CanUserDeleteRows = false,
                 IsReadOnly = true,
-                SelectionMode = DataGridSelectionMode.Single
+                SelectionMode = DataGridSelectionMode.Single,
+                HorizontalAlignment = HorizontalAlignment.Stretch,
+                VerticalAlignment = VerticalAlignment.Stretch,
+                HorizontalScrollBarVisibility = ScrollBarVisibility.Auto,
+                VerticalScrollBarVisibility = ScrollBarVisibility.Auto,
+                EnableColumnVirtualization = true,
+                EnableRowVirtualization = true
             };
 
             grid.SetResourceReference(StyleProperty, "DarkDataGridStyle");
