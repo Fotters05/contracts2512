@@ -38,6 +38,18 @@ namespace Contract2512.Services
                 ALTER TABLE IF EXISTS public.person
                 ALTER COLUMN snils DROP NOT NULL;
 
+                SELECT setval(pg_get_serial_sequence('public.contacts', 'id'), COALESCE((SELECT MAX(id) FROM public.contacts), 0) + 1, false)
+                WHERE pg_get_serial_sequence('public.contacts', 'id') IS NOT NULL;
+
+                SELECT setval(pg_get_serial_sequence('public.person', 'id'), COALESCE((SELECT MAX(id) FROM public.person), 0) + 1, false)
+                WHERE pg_get_serial_sequence('public.person', 'id') IS NOT NULL;
+
+                SELECT setval(pg_get_serial_sequence('public.passport', 'id'), COALESCE((SELECT MAX(id) FROM public.passport), 0) + 1, false)
+                WHERE pg_get_serial_sequence('public.passport', 'id') IS NOT NULL;
+
+                SELECT setval(pg_get_serial_sequence('public.education', 'id'), COALESCE((SELECT MAX(id) FROM public.education), 0) + 1, false)
+                WHERE pg_get_serial_sequence('public.education', 'id') IS NOT NULL;
+
                 CREATE TABLE IF NOT EXISTS public.order_template (
                     id SERIAL PRIMARY KEY,
                     order_type_key VARCHAR(100) NOT NULL UNIQUE,

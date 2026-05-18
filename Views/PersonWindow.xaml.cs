@@ -3,6 +3,7 @@ using System.Linq;
 using System.Windows;
 using Contract2512.Models;
 using Contract2512.Services;
+using Microsoft.EntityFrameworkCore;
 using Wpf.Ui.Controls;
 using MessageBox = System.Windows.MessageBox;
 using MessageBoxButton = System.Windows.MessageBoxButton;
@@ -131,7 +132,6 @@ namespace Contract2512.Views
             if (!string.IsNullOrWhiteSpace(SnilsTextBox.Text))
             {
                 string snils = SnilsTextBox.Text.Replace("-", "").Replace(" ", "").Trim();
-                
                 if (snils.Length != 11)
                 {
                     MessageBox.Show(
@@ -162,6 +162,8 @@ namespace Contract2512.Views
             {
                 using (var db = new AppDbContext())
                 {
+                    using var transaction = db.Database.BeginTransaction();
+
                     if (_isEditMode && _person != null)
                     {
                         // Обновление существующего лица
@@ -181,6 +183,7 @@ namespace Contract2512.Views
                         db.SaveChanges();
                     }
                     MessageBox.Show("Данные успешно сохранены!", "Успех", MessageBoxButton.OK, MessageBoxImage.Information);
+                    transaction.Commit();
                     DialogResult = true;
                     Close();
                 }
@@ -203,6 +206,11 @@ namespace Contract2512.Views
             }
         }
 
+        private static string NormalizeSnils(string snils)
+        {
+            return string.Concat(snils.Where(char.IsDigit));
+        }
+
         private void UpdatePersonData(Person person, AppDbContext db)
         {
             // Устанавливаем CreatedAt только для новых записей
@@ -218,7 +226,7 @@ namespace Contract2512.Views
             person.GenderId = GenderComboBox.SelectedItem != null ? ((Gender)GenderComboBox.SelectedItem).Id : null;
             person.PlaceOfBirth = string.IsNullOrWhiteSpace(PlaceOfBirthTextBox.Text) ? null : PlaceOfBirthTextBox.Text;
             person.Citizenship = string.IsNullOrWhiteSpace(CitizenshipTextBox.Text) ? null : CitizenshipTextBox.Text;
-            person.Snils = string.IsNullOrWhiteSpace(SnilsTextBox.Text) ? null : SnilsTextBox.Text;
+            person.Snils = string.IsNullOrWhiteSpace(SnilsTextBox.Text) ? null : NormalizeSnils(SnilsTextBox.Text);
             person.Inn = string.IsNullOrWhiteSpace(InnTextBox.Text) ? null : InnTextBox.Text;
             person.Workplace = string.IsNullOrWhiteSpace(WorkplaceTextBox.Text) ? null : WorkplaceTextBox.Text;
             person.UpdatedAt = DateTime.Now;
