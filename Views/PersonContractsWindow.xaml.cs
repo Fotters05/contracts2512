@@ -48,6 +48,7 @@ namespace Contract2512.Views
                     // Находим все договоры, где человек является либо заказчиком, либо слушателем
                     var contracts = db.Contracts
                         .Where(c => c.PayerId == _person.Id || c.ListenerId == _person.Id)
+                        .Where(c => !c.IsArchived)
                         .ToList();
 
                     // Загружаем связанные данные и определяем роль

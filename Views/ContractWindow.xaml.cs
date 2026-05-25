@@ -67,7 +67,10 @@ namespace Contract2512.Views
                 ProgramComboBox.ItemsSource = _allPrograms;
 
                 // Загружаем физических лиц без отслеживания и сохраняем полный список
-                _allPersons = db.Persons.AsNoTracking().ToList();
+                _allPersons = db.Persons
+                    .AsNoTracking()
+                    .Where(p => !p.IsArchived)
+                    .ToList();
                 
                 // Создаем и сохраняем полные списки ViewModel для слушателей
                 _allListenerPersons = _allPersons.Select(p => new PersonViewModel
@@ -165,10 +168,7 @@ namespace Contract2512.Views
             if (ContractTypeComboBox.SelectedItem is ContractType contractType)
             {
                 _selectedContractType = contractType;
-                
-                // Автоматически генерируем номер договора
-                GenerateContractNumber(contractType);
-                
+
                 // Показываем/скрываем поля в зависимости от типа договора
                 UpdateFieldsVisibility(contractType);
                 
@@ -213,6 +213,7 @@ namespace Contract2512.Views
                     // Загружаем всех физических лиц
                     var individualPersons = db.Persons
                         .AsNoTracking()
+                        .Where(p => !p.IsArchived)
                         .ToList();
                     
                     // Создаем список PersonViewModel для отображения ФИО
@@ -470,26 +471,7 @@ namespace Contract2512.Views
 
         private void ContractDatePicker_SelectedDateChanged(object sender, System.Windows.Controls.SelectionChangedEventArgs e)
         {
-            // Перегенерируем номер договора при изменении даты, если тип договора выбран
-            if (ContractTypeComboBox.SelectedItem is ContractType contractType)
-            {
-                // Проверяем, что текущий номер был сгенерирован автоматически (имеет правильный формат)
-                string currentNumber = ContractNumberTextBox.Text;
-                if (!string.IsNullOrWhiteSpace(currentNumber))
-                {
-                    string key = ExtractKeyFromContractTypeName(contractType.Name);
-                    if (!string.IsNullOrWhiteSpace(key) && currentNumber.StartsWith(key + "-"))
-                    {
-                        // Номер был сгенерирован автоматически, перегенерируем с новой датой
-                        GenerateContractNumber(contractType);
-                    }
-                }
-                else
-                {
-                    // Если номер пустой, генерируем новый
-                    GenerateContractNumber(contractType);
-                }
-            }
+            // Номер договора вводится вручную и не зависит от даты договора.
         }
 
         private void GenerateContractNumber(ContractType contractType)
@@ -657,15 +639,11 @@ namespace Contract2512.Views
                        (contractType.Name.Contains("ДОП") ||
                         contractType.Name.Contains("дополнительное образование"));
 
-            // Автоматически генерируем номер договора, если он не заполнен
-            if (string.IsNullOrWhiteSpace(ContractNumberTextBox.Text))
+            string finalContractNumber = ContractNumberTextBox.Text.Trim();
+            if (string.IsNullOrWhiteSpace(finalContractNumber))
             {
-                GenerateContractNumber(contractType);
-            }
-
-            if (string.IsNullOrWhiteSpace(ContractNumberTextBox.Text))
-            {
-                MessageBox.Show("Не удалось сгенерировать номер договора. Выберите тип договора или введите номер вручную!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                MessageBox.Show("Введите номер договора!", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                ContractNumberTextBox.Focus();
                 return;
             }
 
@@ -741,39 +719,18 @@ namespace Contract2512.Views
             {
                 using (var db = new AppDbContext())
                 {
-                    // Генерируем финальный уникальный номер договора прямо перед сохранением
-                    string finalContractNumber = null;
-                    int retryCount = 0;
-                    const int maxRetries = 20;
-                    
-                    while (retryCount < maxRetries)
+                    if (db.Contracts.Any(c => c.ContractNumber == finalContractNumber))
                     {
-                        // Генерируем номер на основе свежих данных из БД
-                        finalContractNumber = GenerateFinalContractNumber(contractType, db);
-                        
-                        // Проверяем уникальность
-                        bool exists = db.Contracts.Any(c => c.ContractNumber == finalContractNumber);
-                        
-                        if (!exists)
-                        {
-                            // Номер свободен!
-                            break;
-                        }
-                        
-                        retryCount++;
-                        System.Diagnostics.Debug.WriteLine($"Номер {finalContractNumber} занят, попытка {retryCount}/{maxRetries}");
-                        
-                        // Небольшая задержка перед следующей попыткой
-                        System.Threading.Thread.Sleep(50);
-                    }
-                    
-                    if (retryCount >= maxRetries)
-                    {
-                        MessageBox.Show("Не удалось сгенерировать уникальный номер договора после нескольких попыток. Попробуйте еще раз.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Warning);
+                        MessageBox.Show(
+                            $"Договор с номером \"{finalContractNumber}\" уже существует. Введите другой номер.",
+                            "Ошибка",
+                            MessageBoxButton.OK,
+                            MessageBoxImage.Warning);
+                        ContractNumberTextBox.Focus();
                         return;
                     }
                     
-                    System.Diagnostics.Debug.WriteLine($"Финальный номер договора: {finalContractNumber}");
+                    System.Diagnostics.Debug.WriteLine($"Номер договора введен вручную: {finalContractNumber}");
 
                     // Сохраняем выбранные опции
                     string itogDocumentOptionKey = null;

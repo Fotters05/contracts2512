@@ -80,6 +80,12 @@ namespace Contract2512.Models
         [Column("payment_option_key")]
         [MaxLength(50)]
         public string? PaymentOptionKey { get; set; }
+
+        [Column("is_archived")]
+        public bool IsArchived { get; set; } = false;
+
+        [Column("archived_at")]
+        public DateTime? ArchivedAt { get; set; }
     }
 }
 

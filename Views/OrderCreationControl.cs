@@ -868,7 +868,7 @@ namespace Contract2512.Views
                 .Include(c => c.Program)
                     .ThenInclude(p => p!.ProgramView)
                 .Include(c => c.ContractType)
-                .Where(c => c.ProgramId == programId)
+                .Where(c => c.ProgramId == programId && !c.IsArchived)
                 .OrderByDescending(c => c.ContractDate)
                 .ToList()
                 .Where(c => c.Listener != null)
@@ -1252,6 +1252,15 @@ namespace Contract2512.Views
 
             lastName = lastName.Trim();
 
+            if (lastName.EndsWith("ова", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ева", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ёва", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ина", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ына", StringComparison.OrdinalIgnoreCase))
+            {
+                return lastName[..^1] + "ой";
+            }
+
             if (lastName.EndsWith("ов") || lastName.EndsWith("ев") ||
                 lastName.EndsWith("ин") || lastName.EndsWith("ын"))
             {
@@ -1371,6 +1380,16 @@ namespace Contract2512.Views
 
         private static string ConvertLastNameToDative(string lastName)
         {
+            var normalizedLastName = (lastName ?? string.Empty).Trim();
+            if (normalizedLastName.EndsWith("ова", StringComparison.OrdinalIgnoreCase) ||
+                normalizedLastName.EndsWith("ева", StringComparison.OrdinalIgnoreCase) ||
+                normalizedLastName.EndsWith("ёва", StringComparison.OrdinalIgnoreCase) ||
+                normalizedLastName.EndsWith("ина", StringComparison.OrdinalIgnoreCase) ||
+                normalizedLastName.EndsWith("ына", StringComparison.OrdinalIgnoreCase))
+            {
+                return normalizedLastName[..^1] + "ой";
+            }
+
             if (string.IsNullOrWhiteSpace(lastName))
             {
                 return string.Empty;
@@ -1753,6 +1772,7 @@ namespace Contract2512.Views
 
         private static StackPanel CreateField(string label, Control control)
         {
+            var labelText = AddFioCaseHint(label);
             var panel = new StackPanel
             {
                 Margin = new Thickness(0, 0, 0, 12)
@@ -1760,7 +1780,7 @@ namespace Contract2512.Views
 
             panel.Children.Add(new TextBlock
             {
-                Text = label,
+                Text = labelText,
                 Foreground = Brushes.White,
                 FontWeight = FontWeights.SemiBold,
                 Margin = new Thickness(0, 0, 0, 6)
@@ -1768,6 +1788,21 @@ namespace Contract2512.Views
 
             panel.Children.Add(control);
             return panel;
+        }
+
+        private static string AddFioCaseHint(string label)
+        {
+            if (string.IsNullOrWhiteSpace(label) ||
+                label.Contains("падеж", StringComparison.OrdinalIgnoreCase))
+            {
+                return label;
+            }
+
+            var isFioLabel =
+                label.Contains("ФИО", StringComparison.OrdinalIgnoreCase) ||
+                label.Contains("Р¤РРћ", StringComparison.OrdinalIgnoreCase);
+
+            return isFioLabel ? $"{label} (именительный падеж)" : label;
         }
 
         private static StackPanel CreateSelectionSection(string label, Button button, TextBlock summaryText)

@@ -60,6 +60,8 @@ namespace Contract2512.Views
             panel.Children.Add(CreateButton("Открыть файл", OpenSelectedDocument));
             panel.Children.Add(CreateButton("Обновить список", RefreshDocuments));
 
+            panel.Children.Insert(1, CreateButton("Реестр приказов", OpenRegistryWindow));
+
             return panel;
         }
 
@@ -74,6 +76,16 @@ namespace Contract2512.Views
             {
                 RefreshDocuments();
             }
+        }
+
+        private void OpenRegistryWindow()
+        {
+            var window = new OrderRegistryWindow
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            window.ShowDialog();
         }
 
         private void RefreshDocuments()

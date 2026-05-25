@@ -30,6 +30,7 @@ namespace Contract2512.Services
         public DbSet<OrderTemplate> OrderTemplates { get; set; }
         public DbSet<OrderDocument> OrderDocuments { get; set; }
         public DbSet<ListenerApplication> ListenerApplications { get; set; }
+        public DbSet<OrderRegistryEntry> OrderRegistryEntries { get; set; }
 
         public void EnsureSchemaCompatibility()
         {
@@ -37,6 +38,33 @@ namespace Contract2512.Services
                 """
                 ALTER TABLE IF EXISTS public.person
                 ALTER COLUMN snils DROP NOT NULL;
+
+                ALTER TABLE IF EXISTS public.person
+                ALTER COLUMN snils TYPE VARCHAR(14);
+
+                ALTER TABLE IF EXISTS public.person
+                ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;
+
+                ALTER TABLE IF EXISTS public.person
+                ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL;
+
+                ALTER TABLE IF EXISTS public.contract
+                ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;
+
+                ALTER TABLE IF EXISTS public.contract
+                ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL;
+
+                ALTER TABLE IF EXISTS public.person
+                DROP CONSTRAINT IF EXISTS snils_format;
+
+                ALTER TABLE IF EXISTS public.person
+                ADD CONSTRAINT snils_format
+                CHECK (
+                    snils IS NULL
+                    OR snils = ''
+                    OR snils ~ '^[0-9]{11}$'
+                    OR snils ~ '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$'
+                );
 
                 SELECT setval(pg_get_serial_sequence('public.contacts', 'id'), COALESCE((SELECT MAX(id) FROM public.contacts), 0) + 1, false)
                 WHERE pg_get_serial_sequence('public.contacts', 'id') IS NOT NULL;
@@ -88,7 +116,22 @@ namespace Contract2512.Services
                     updated_at TIMESTAMP DEFAULT NOW() NOT NULL
                 );
 
+                CREATE TABLE IF NOT EXISTS public.order_registry_entry (
+                    id BIGSERIAL PRIMARY KEY,
+                    order_number VARCHAR(100) NOT NULL,
+                    order_date DATE NOT NULL,
+                    order_subject VARCHAR(255) NOT NULL,
+                    listener_name VARCHAR(500) NOT NULL,
+                    program_name VARCHAR(500) NOT NULL,
+                    created_at TIMESTAMP DEFAULT NOW() NOT NULL,
+                    updated_at TIMESTAMP DEFAULT NOW() NOT NULL
+                );
+
                 CREATE INDEX IF NOT EXISTS idx_order_document_program ON public.order_document(program_id);
+                CREATE INDEX IF NOT EXISTS idx_person_is_archived ON public.person(is_archived);
+                CREATE INDEX IF NOT EXISTS idx_contract_is_archived ON public.contract(is_archived);
+                CREATE INDEX IF NOT EXISTS idx_order_registry_entry_order_date ON public.order_registry_entry(order_date);
+                CREATE INDEX IF NOT EXISTS idx_order_registry_entry_order_number ON public.order_registry_entry(order_number);
                 CREATE INDEX IF NOT EXISTS idx_order_document_listener ON public.order_document(listener_id);
                 CREATE INDEX IF NOT EXISTS idx_order_document_teacher ON public.order_document(teacher_id);
                 CREATE INDEX IF NOT EXISTS idx_order_document_type ON public.order_document(order_type_key);
@@ -287,6 +330,12 @@ namespace Contract2512.Services
 
             modelBuilder.Entity<OrderDocument>()
                 .HasIndex(d => d.TeacherId);
+
+            modelBuilder.Entity<OrderRegistryEntry>()
+                .HasIndex(e => e.OrderDate);
+
+            modelBuilder.Entity<OrderRegistryEntry>()
+                .HasIndex(e => e.OrderNumber);
 
             modelBuilder.Entity<ListenerApplication>()
                 .HasOne(a => a.Contract)

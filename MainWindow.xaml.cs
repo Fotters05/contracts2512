@@ -24,14 +24,18 @@ namespace Contract2512
             ContractTypes,
             Organizations,
             Workload,
-            Orders
+            Orders,
+            Archive
         }
 
         private readonly record struct ViewSnapshot(int Count, long MaxId, DateTime? LastChangedAt, int Checksum = 0);
 
         private static readonly TimeSpan AutoRefreshInterval = TimeSpan.FromSeconds(30);
 
+        private System.Collections.ObjectModel.ObservableCollection<Person>? _allPersons;
         private System.Collections.ObjectModel.ObservableCollection<Contract>? _allContracts;
+        private System.Collections.ObjectModel.ObservableCollection<Person>? _archivedPersons;
+        private System.Collections.ObjectModel.ObservableCollection<Contract>? _archivedContracts;
         private System.Windows.Threading.DispatcherTimer? _autoRefreshTimer;
         private bool _dbConfigMissingNotified;
         private bool _isAutoRefreshInProgress;
@@ -42,6 +46,7 @@ namespace Contract2512
         private bool _organizationsLoaded;
         private bool _workloadLoaded;
         private bool _ordersLoaded;
+        private bool _archiveLoaded;
         private ViewSnapshot? _personsSnapshot;
         private ViewSnapshot? _contractsSnapshot;
         private ViewSnapshot? _programsSnapshot;
@@ -133,6 +138,7 @@ namespace Contract2512
             BtnOrganizations.Tag = null;
             BtnWorkload.Tag = null;
             BtnOrders.Tag = null;
+            BtnArchive.Tag = null;
             
             // Устанавливаем выделение выбранной кнопки
             if (selectedButton != null)
@@ -152,6 +158,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Persons);
         }
 
@@ -166,6 +173,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Contracts);
         }
 
@@ -180,6 +188,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Programs);
         }
 
@@ -194,6 +203,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureAiCourseDraftControlLoaded();
 
             if (AiCourseDraftHost.Content is AiCourseDraftControl aiCourseDraftControl)
@@ -213,6 +223,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.ContractTypes);
         }
 
@@ -227,6 +238,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Visible;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Organizations);
         }
 
@@ -241,6 +253,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Visible;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Workload);
         }
 
@@ -255,12 +268,28 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Visible;
+            ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Orders);
 
             if (OrdersHost.Content is OrdersControl ordersControl)
             {
                 ordersControl.NotifyPanelShown();
             }
+        }
+
+        private void BtnArchive_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnArchive);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            ArchivePanel.Visibility = Visibility.Visible;
+            EnsureSectionLoaded(MainSection.Archive);
         }
 
         private void BtnSupport_Click(object sender, RoutedEventArgs e)
@@ -435,6 +464,8 @@ namespace Contract2512
                 return MainSection.Workload;
             if (OrdersPanel.Visibility == Visibility.Visible)
                 return MainSection.Orders;
+            if (ArchivePanel.Visibility == Visibility.Visible)
+                return MainSection.Archive;
             return MainSection.Persons;
         }
 
@@ -459,6 +490,7 @@ namespace Contract2512
                 MainSection.Organizations => _organizationsLoaded,
                 MainSection.Workload => _workloadLoaded,
                 MainSection.Orders => _ordersLoaded,
+                MainSection.Archive => _archiveLoaded,
                 _ => true,
             };
         }
@@ -505,6 +537,9 @@ namespace Contract2512
                     EnsureOrdersControlLoaded();
                     _ordersLoaded = true;
                     break;
+                case MainSection.Archive:
+                    LoadArchive();
+                    break;
             }
         }
 
@@ -526,6 +561,9 @@ namespace Contract2512
                     break;
                 case MainSection.Workload when _workloadLoaded:
                     await RefreshWorkloadIfChangedAsync();
+                    break;
+                case MainSection.Archive when _archiveLoaded:
+                    await Dispatcher.InvokeAsync(() => LoadArchive(showErrors: false));
                     break;
             }
         }
@@ -610,6 +648,7 @@ namespace Contract2512
             using var db = new AppDbContext();
             return db.Persons
                 .AsNoTracking()
+                .Where(p => !p.IsArchived)
                 .Include(p => p.Gender)
                 .Include(p => p.Contacts)
                 .ToList();
@@ -620,6 +659,7 @@ namespace Contract2512
             using var db = new AppDbContext();
             return db.Contracts
                 .AsNoTracking()
+                .Where(c => !c.IsArchived)
                 .Include(c => c.ContractType)
                 .Include(c => c.Program)
                 .Include(c => c.Payer)
@@ -675,7 +715,8 @@ namespace Contract2512
 
         private void BindPersons(List<Person> persons, ViewSnapshot snapshot)
         {
-            PersonsDataGrid.ItemsSource = persons;
+            _allPersons = new System.Collections.ObjectModel.ObservableCollection<Person>(persons);
+            ApplyPersonFilter();
             _personsSnapshot = snapshot;
             _personsLoaded = true;
         }
@@ -712,7 +753,7 @@ namespace Contract2512
         private static ViewSnapshot GetPersonsSnapshot()
         {
             using var db = new AppDbContext();
-            var persons = db.Persons.AsNoTracking();
+            var persons = db.Persons.AsNoTracking().Where(p => !p.IsArchived);
             var count = persons.Count();
             if (count == 0)
             {
@@ -730,6 +771,7 @@ namespace Contract2512
             using var db = new AppDbContext();
             var rows = db.Contracts
                 .AsNoTracking()
+                .Where(c => !c.IsArchived)
                 .Select(c => new
                 {
                     c.Id,
@@ -747,6 +789,8 @@ namespace Contract2512
                     c.TimeOptionKey,
                     c.StudyOptionKey,
                     c.PaymentOptionKey,
+                    c.IsArchived,
+                    c.ArchivedAt,
                     c.CreatedAt
                 })
                 .OrderBy(c => c.Id)
@@ -775,6 +819,8 @@ namespace Contract2512
                 checksum.Add(row.TimeOptionKey);
                 checksum.Add(row.StudyOptionKey);
                 checksum.Add(row.PaymentOptionKey);
+                checksum.Add(row.IsArchived);
+                checksum.Add(row.ArchivedAt);
             }
 
             return new ViewSnapshot(
@@ -893,6 +939,63 @@ namespace Contract2512
             }
         }
 
+        private void LoadArchive(bool showErrors = true)
+        {
+            if (!IsDbConfigured())
+                return;
+
+            try
+            {
+                using var db = new AppDbContext();
+
+                _archivedPersons = new System.Collections.ObjectModel.ObservableCollection<Person>(db.Persons
+                    .AsNoTracking()
+                    .Where(p => p.IsArchived)
+                    .Include(p => p.Contacts)
+                    .OrderByDescending(p => p.ArchivedAt)
+                    .ThenBy(p => p.LastName)
+                    .ToList());
+
+                _archivedContracts = new System.Collections.ObjectModel.ObservableCollection<Contract>(db.Contracts
+                    .AsNoTracking()
+                    .Where(c => c.IsArchived)
+                    .Include(c => c.ContractType)
+                    .Include(c => c.Program)
+                    .Include(c => c.Payer)
+                    .Include(c => c.Listener)
+                    .OrderByDescending(c => c.ArchivedAt)
+                    .ThenByDescending(c => c.ContractDate)
+                    .ToList());
+
+                ApplyArchivePersonFilter();
+                ApplyArchiveContractFilter();
+
+                _archiveLoaded = true;
+            }
+            catch (Exception ex)
+            {
+                HandleLoadError("Ошибка при загрузке архива", ex, showErrors);
+            }
+        }
+
+        private void ApplyPersonFilter()
+        {
+            if (_allPersons == null)
+                return;
+
+            string searchText = PersonSearchTextBox?.Text?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                PersonsDataGrid.ItemsSource = _allPersons;
+                return;
+            }
+
+            PersonsDataGrid.ItemsSource = _allPersons
+                .Where(p => p.FullName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+        }
+
         private void ApplyContractFilter()
         {
             if (_allContracts == null)
@@ -917,6 +1020,233 @@ namespace Contract2512
         private void ContractSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
         {
             ApplyContractFilter();
+        }
+
+        private void ApplyArchivePersonFilter()
+        {
+            if (_archivedPersons == null)
+                return;
+
+            string searchText = ArchivedPersonSearchTextBox?.Text?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ArchivedPersonsDataGrid.ItemsSource = _archivedPersons;
+                return;
+            }
+
+            ArchivedPersonsDataGrid.ItemsSource = _archivedPersons
+                .Where(p => p.FullName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+        }
+
+        private void ApplyArchiveContractFilter()
+        {
+            if (_archivedContracts == null)
+                return;
+
+            string searchText = ArchivedContractSearchTextBox?.Text?.Trim() ?? "";
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                ArchivedContractsDataGrid.ItemsSource = _archivedContracts;
+                return;
+            }
+
+            ArchivedContractsDataGrid.ItemsSource = _archivedContracts
+                .Where(c => c.ContractNumber != null &&
+                            c.ContractNumber.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0)
+                .ToList();
+        }
+
+        private void PersonSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ApplyPersonFilter();
+        }
+
+        private void ArchivedPersonSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ApplyArchivePersonFilter();
+        }
+
+        private void ArchivedContractSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ApplyArchiveContractFilter();
+        }
+
+        private void ArchivePersonButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (PersonsDataGrid.SelectedItem is not Person selectedPerson)
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите физическое лицо для переноса в архив!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = System.Windows.MessageBox.Show(
+                $"Перенести {selectedPerson.FullName} в архив?",
+                "Подтверждение",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Question);
+
+            if (result != System.Windows.MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                using var db = new AppDbContext();
+                var person = db.Persons.Find(selectedPerson.Id);
+                if (person == null)
+                    return;
+
+                person.IsArchived = true;
+                person.ArchivedAt = DateTime.Now;
+                person.UpdatedAt = DateTime.Now;
+                db.SaveChanges();
+
+                _personsLoaded = false;
+                _archiveLoaded = false;
+                LoadPersons();
+                LoadArchive(showErrors: false);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при переносе в архив: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void ArchiveContractButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ContractsDataGrid.SelectedItem is not Contract selectedContract)
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите договор для переноса в архив!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            var result = System.Windows.MessageBox.Show(
+                $"Перенести договор {selectedContract.ContractNumber} в архив?",
+                "Подтверждение",
+                System.Windows.MessageBoxButton.YesNo,
+                System.Windows.MessageBoxImage.Question);
+
+            if (result != System.Windows.MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                using var db = new AppDbContext();
+                var contract = db.Contracts.Find(selectedContract.Id);
+                if (contract == null)
+                    return;
+
+                contract.IsArchived = true;
+                contract.ArchivedAt = DateTime.Now;
+                db.SaveChanges();
+
+                _contractsLoaded = false;
+                _archiveLoaded = false;
+                LoadContracts();
+                LoadArchive(showErrors: false);
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при переносе договора в архив: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void RestoreArchivedPersonButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ArchivedPersonsDataGrid.SelectedItem is not Person selectedPerson)
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите физическое лицо в архиве!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                using var db = new AppDbContext();
+                var person = db.Persons.Find(selectedPerson.Id);
+                if (person == null)
+                    return;
+
+                person.IsArchived = false;
+                person.ArchivedAt = null;
+                person.UpdatedAt = DateTime.Now;
+                db.SaveChanges();
+
+                _personsLoaded = false;
+                LoadPersons();
+                LoadArchive();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при возврате из архива: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void RestoreArchivedContractButton_Click(object sender, RoutedEventArgs e)
+        {
+            if (ArchivedContractsDataGrid.SelectedItem is not Contract selectedContract)
+            {
+                System.Windows.MessageBox.Show(
+                    "Выберите договор в архиве!",
+                    "Внимание",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Warning);
+                return;
+            }
+
+            try
+            {
+                using var db = new AppDbContext();
+                var contract = db.Contracts.Find(selectedContract.Id);
+                if (contract == null)
+                    return;
+
+                contract.IsArchived = false;
+                contract.ArchivedAt = null;
+                db.SaveChanges();
+
+                _contractsLoaded = false;
+                LoadContracts();
+                LoadArchive();
+            }
+            catch (Exception ex)
+            {
+                System.Windows.MessageBox.Show(
+                    $"Ошибка при возврате договора из архива: {ex.Message}",
+                    "Ошибка",
+                    System.Windows.MessageBoxButton.OK,
+                    System.Windows.MessageBoxImage.Error);
+            }
+        }
+
+        private void RefreshArchiveButton_Click(object sender, RoutedEventArgs e)
+        {
+            LoadArchive();
         }
 
         private void AddPersonButton_Click(object sender, RoutedEventArgs e)
@@ -1405,7 +1735,7 @@ namespace Contract2512
         {
             if (PersonsDataGrid.SelectedItem is Person selectedPerson)
             {
-                var window = new PersonContractsWindow(selectedPerson);
+                var window = new PersonDocumentsWindow(selectedPerson);
                 window.Owner = this;
                 window.ShowDialog();
             }
@@ -1528,18 +1858,18 @@ namespace Contract2512
             }
         }
 
-        private void ViewPersonContractsButton_Click(object sender, RoutedEventArgs e)
+        private void ViewPersonDocumentsButton_Click(object sender, RoutedEventArgs e)
         {
             if (PersonsDataGrid.SelectedItem is Person selectedPerson)
             {
-                var window = new PersonContractsWindow(selectedPerson);
+                var window = new PersonDocumentsWindow(selectedPerson);
                 window.Owner = this;
                 window.ShowDialog();
             }
             else
             {
                 System.Windows.MessageBox.Show(
-                    "Выберите физическое лицо для просмотра договоров!",
+                    "Выберите физическое лицо для просмотра документов!",
                     "Внимание",
                     System.Windows.MessageBoxButton.OK,
                     System.Windows.MessageBoxImage.Warning);

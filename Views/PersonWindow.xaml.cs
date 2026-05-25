@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Windows;
 using Contract2512.Models;
 using Contract2512.Services;
@@ -131,12 +132,17 @@ namespace Contract2512.Views
             // Валидация СНИЛС
             if (!string.IsNullOrWhiteSpace(SnilsTextBox.Text))
             {
-                string snils = SnilsTextBox.Text.Replace("-", "").Replace(" ", "").Trim();
-                if (snils.Length != 11)
+                string snilsInput = SnilsTextBox.Text.Trim();
+                string snilsDigits = snilsInput.Replace("-", "").Replace(" ", "").Trim();
+                bool hasValidFormat =
+                    Regex.IsMatch(snilsInput, @"^\d{11}$") ||
+                    Regex.IsMatch(snilsInput, @"^\d{3}-\d{3}-\d{3} \d{2}$");
+
+                if (snilsDigits.Length != 11)
                 {
                     MessageBox.Show(
                         $"СНИЛС должен содержать 11 цифр!\n\n" +
-                        $"Введено: {snils.Length} цифр\n" +
+                        $"Введено: {snilsDigits.Length} цифр\n" +
                         $"Формат: XXX-XXX-XXX XX или 11 цифр подряд",
                         "Ошибка валидации СНИЛС",
                         MessageBoxButton.OK,
@@ -145,7 +151,7 @@ namespace Contract2512.Views
                     return;
                 }
                 
-                if (!snils.All(char.IsDigit))
+                if (!hasValidFormat)
                 {
                     MessageBox.Show(
                         "СНИЛС должен содержать только цифры!\n\n" +
@@ -206,11 +212,6 @@ namespace Contract2512.Views
             }
         }
 
-        private static string NormalizeSnils(string snils)
-        {
-            return string.Concat(snils.Where(char.IsDigit));
-        }
-
         private void UpdatePersonData(Person person, AppDbContext db)
         {
             // Устанавливаем CreatedAt только для новых записей
@@ -226,7 +227,7 @@ namespace Contract2512.Views
             person.GenderId = GenderComboBox.SelectedItem != null ? ((Gender)GenderComboBox.SelectedItem).Id : null;
             person.PlaceOfBirth = string.IsNullOrWhiteSpace(PlaceOfBirthTextBox.Text) ? null : PlaceOfBirthTextBox.Text;
             person.Citizenship = string.IsNullOrWhiteSpace(CitizenshipTextBox.Text) ? null : CitizenshipTextBox.Text;
-            person.Snils = string.IsNullOrWhiteSpace(SnilsTextBox.Text) ? null : NormalizeSnils(SnilsTextBox.Text);
+            person.Snils = string.IsNullOrWhiteSpace(SnilsTextBox.Text) ? null : SnilsTextBox.Text.Trim();
             person.Inn = string.IsNullOrWhiteSpace(InnTextBox.Text) ? null : InnTextBox.Text;
             person.Workplace = string.IsNullOrWhiteSpace(WorkplaceTextBox.Text) ? null : WorkplaceTextBox.Text;
             person.UpdatedAt = DateTime.Now;

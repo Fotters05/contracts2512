@@ -101,7 +101,7 @@ namespace Contract2512.Views
                     .AsNoTracking()
                     .Include(c => c.Listener)
                     .Include(c => c.ContractType)
-                    .Where(c => c.ProgramId == selectedProgram.Id)
+                    .Where(c => c.ProgramId == selectedProgram.Id && !c.IsArchived)
                     .OrderByDescending(c => c.ContractDate)
                     .ToList()
                     .Where(c => selectedProgramCategory == null || IsContractCompatibleWithProgramCategory(c, selectedProgramCategory.Value))

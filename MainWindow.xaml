@@ -467,6 +467,15 @@
                                    FontSize="16"
                                    Foreground="{StaticResource TextPrimary}"/>
                     </Border>
+
+                    <!-- Архив -->
+                    <Border x:Name="BtnArchive"
+                            Style="{StaticResource MenuItemStyle}"
+                            MouseLeftButtonDown="BtnArchive_Click">
+                        <TextBlock Text="🗄  Архив"
+                                   FontSize="16"
+                                   Foreground="{StaticResource TextPrimary}"/>
+                    </Border>
                 </StackPanel>
 
                 <!-- Тех поддержка -->
@@ -503,38 +512,53 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                <!-- Панель кнопок -->
-                <StackPanel Grid.Row="0" Orientation="Horizontal" Margin="0,0,0,16">
-                    <Button Content="Добавить лицо" 
-                           x:Name="AddPersonButton" 
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="AddPersonButton_Click"
-                           Margin="0,0,8,0"/>
-                    <Button Content="Редактировать" 
-                           x:Name="EditPersonButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="EditPersonButton_Click"
-                           Margin="0,0,8,0"/>
-                    <Button Content="Удалить" 
-                           x:Name="DeletePersonButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="DeletePersonButton_Click"
-                           Margin="0,0,8,0"/>
-                    <Button Content="Создать договор" 
-                           x:Name="CreateContractForPersonButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="CreateContractForPersonButton_Click"
-                           Margin="0,0,8,0"/>
-                    <Button Content="Просмотр договоров" 
-                           x:Name="ViewPersonContractsButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="ViewPersonContractsButton_Click"
-                           Margin="0,0,8,0"/>
-                    <Button Content="Просмотр личных карточек" 
-                           x:Name="ViewPersonCardsButton"
-                           Style="{StaticResource DarkGrayButton}"
-                           Click="ViewPersonCardsButton_Click"/>
+                <!-- Панель кнопок и поиска -->
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <Button Content="Добавить лицо" 
+                               x:Name="AddPersonButton" 
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="AddPersonButton_Click"
+                               Margin="0,0,8,0"/>
+                        <Button Content="Редактировать" 
+                               x:Name="EditPersonButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="EditPersonButton_Click"
+                               Margin="0,0,8,0"/>
+                        <Button Content="Удалить" 
+                               x:Name="DeletePersonButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="DeletePersonButton_Click"
+                               Margin="0,0,8,0"/>
+                        <Button Content="В архив" 
+                               x:Name="ArchivePersonButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="ArchivePersonButton_Click"
+                               Margin="0,0,8,0"/>
+                        <Button Content="Создать договор" 
+                               x:Name="CreateContractForPersonButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="CreateContractForPersonButton_Click"
+                               Margin="0,0,8,0"/>
+                        <Button Content="Просмотр документов" 
+                               x:Name="ViewPersonDocumentsButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="ViewPersonDocumentsButton_Click"/>
                     </StackPanel>
+                    <TextBox Grid.Column="1"
+                             x:Name="PersonSearchTextBox"
+                             Style="{StaticResource DarkTextBoxStyle}"
+                             Margin="8,0,0,0"
+                             TextChanged="PersonSearchTextBox_TextChanged">
+                        <TextBox.ToolTip>
+                            <ToolTip Content="Поиск по ФИО слушателя"/>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                </Grid>
 
                 <!-- DataGrid -->
                 <Border Grid.Row="1" 
@@ -593,7 +617,12 @@
                             <Button Content="Просмотреть" 
                                x:Name="ViewContractButton"
                                Style="{StaticResource DarkGrayButton}"
-                               Click="ViewContractButton_Click"/>
+                               Click="ViewContractButton_Click"
+                               Margin="0,0,8,0"/>
+                            <Button Content="В архив" 
+                               x:Name="ArchiveContractButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="ArchiveContractButton_Click"/>
                     </StackPanel>
                     <TextBox Grid.Column="1" 
                             x:Name="ContractSearchTextBox"
@@ -1072,6 +1101,137 @@
                             </DataGrid.Columns>
                         </DataGrid>
                     </Grid>
+                </Border>
+            </Grid>
+
+            <!-- Архив -->
+            <Grid x:Name="ArchivePanel" Visibility="Collapsed">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+
+                <Grid Grid.Row="0" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="Архив физических лиц"
+                                   Foreground="{StaticResource TextPrimary}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,16,0"/>
+                        <Button Content="Вернуть лицо"
+                                x:Name="RestoreArchivedPersonButton"
+                                Style="{StaticResource DarkGrayButton}"
+                                Click="RestoreArchivedPersonButton_Click"
+                                Margin="0,0,8,0"/>
+                        <Button Content="Обновить"
+                                Style="{StaticResource DarkGrayButton}"
+                                Click="RefreshArchiveButton_Click"/>
+                    </StackPanel>
+                    <TextBox Grid.Column="1"
+                             x:Name="ArchivedPersonSearchTextBox"
+                             Style="{StaticResource DarkTextBoxStyle}"
+                             Margin="8,0,0,0"
+                             TextChanged="ArchivedPersonSearchTextBox_TextChanged">
+                        <TextBox.ToolTip>
+                            <ToolTip Content="Поиск по ФИО слушателя в архиве"/>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                </Grid>
+
+                <Border Grid.Row="1"
+                        Background="{StaticResource DataGridBackground}"
+                        CornerRadius="12"
+                        BorderBrush="#475569"
+                        BorderThickness="1"
+                        ClipToBounds="True"
+                        Effect="{StaticResource CardShadow}"
+                        Margin="0,0,0,20">
+                    <DataGrid x:Name="ArchivedPersonsDataGrid"
+                              Style="{StaticResource DarkDataGridStyle}"
+                              ClipToBounds="True">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DarkDataGridCellStyle}"/>
+                        </DataGrid.CellStyle>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DarkDataGridRowStyle}"/>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="ФИО" Binding="{Binding FullName}" Width="*"/>
+                            <DataGridTextColumn Header="СНИЛС" Binding="{Binding Snils}" Width="140"/>
+                            <DataGridTextColumn Header="Телефон" Binding="{Binding Contacts.ContactPhone}" Width="150"/>
+                            <DataGridTextColumn Header="Email" Binding="{Binding Contacts.Email}" Width="*"/>
+                            <DataGridTextColumn Header="В архиве с" Binding="{Binding ArchivedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
+                </Border>
+
+                <Grid Grid.Row="2" Margin="0,0,0,16">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Orientation="Horizontal">
+                        <TextBlock Text="Архив договоров"
+                                   Foreground="{StaticResource TextPrimary}"
+                                   FontSize="18"
+                                   FontWeight="SemiBold"
+                                   VerticalAlignment="Center"
+                                   Margin="0,0,16,0"/>
+                        <Button Content="Вернуть договор"
+                                x:Name="RestoreArchivedContractButton"
+                                Style="{StaticResource DarkGrayButton}"
+                                Click="RestoreArchivedContractButton_Click"/>
+                    </StackPanel>
+                    <TextBox Grid.Column="1"
+                             x:Name="ArchivedContractSearchTextBox"
+                             Style="{StaticResource DarkTextBoxStyle}"
+                             Margin="8,0,0,0"
+                             TextChanged="ArchivedContractSearchTextBox_TextChanged">
+                        <TextBox.ToolTip>
+                            <ToolTip Content="Поиск по номеру договора в архиве"/>
+                        </TextBox.ToolTip>
+                    </TextBox>
+                </Grid>
+
+                <Border Grid.Row="3"
+                        Background="{StaticResource DataGridBackground}"
+                        CornerRadius="12"
+                        BorderBrush="#475569"
+                        BorderThickness="1"
+                        ClipToBounds="True"
+                        Effect="{StaticResource CardShadow}">
+                    <DataGrid x:Name="ArchivedContractsDataGrid"
+                              Style="{StaticResource DarkDataGridStyle}"
+                              ClipToBounds="True">
+                        <DataGrid.ColumnHeaderStyle>
+                            <Style TargetType="DataGridColumnHeader" BasedOn="{StaticResource DarkDataGridColumnHeaderStyle}"/>
+                        </DataGrid.ColumnHeaderStyle>
+                        <DataGrid.CellStyle>
+                            <Style TargetType="DataGridCell" BasedOn="{StaticResource DarkDataGridCellStyle}"/>
+                        </DataGrid.CellStyle>
+                        <DataGrid.RowStyle>
+                            <Style TargetType="DataGridRow" BasedOn="{StaticResource DarkDataGridRowStyle}"/>
+                        </DataGrid.RowStyle>
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Номер" Binding="{Binding ContractNumber}" Width="150"/>
+                            <DataGridTextColumn Header="Дата" Binding="{Binding ContractDate, StringFormat=\{0:dd.MM.yyyy\}}" Width="100"/>
+                            <DataGridTextColumn Header="Тип договора" Binding="{Binding ContractType.Name}" Width="*"/>
+                            <DataGridTextColumn Header="Программа" Binding="{Binding Program.Name}" Width="*"/>
+                            <DataGridTextColumn Header="Заказчик" Binding="{Binding Payer.FullName}" Width="*"/>
+                            <DataGridTextColumn Header="Слушатель" Binding="{Binding Listener.FullName}" Width="*"/>
+                            <DataGridTextColumn Header="В архиве с" Binding="{Binding ArchivedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="150"/>
+                        </DataGrid.Columns>
+                    </DataGrid>
                 </Border>
             </Grid>
         </Grid>

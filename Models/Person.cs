@@ -44,7 +44,7 @@ namespace Contract2512.Models
         public string? Citizenship { get; set; }
 
         [Column("snils")]
-        [MaxLength(11)]
+        [MaxLength(14)]
         public string? Snils { get; set; }
 
         [Column("inn")]
@@ -70,6 +70,12 @@ namespace Contract2512.Models
 
         [Column("updated_at")]
         public DateTime? UpdatedAt { get; set; }
+
+        [Column("is_archived")]
+        public bool IsArchived { get; set; } = false;
+
+        [Column("archived_at")]
+        public DateTime? ArchivedAt { get; set; }
 
         public virtual System.Collections.Generic.ICollection<Education>? Educations { get; set; }
 
