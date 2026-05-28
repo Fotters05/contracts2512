@@ -146,7 +146,7 @@ namespace Contract2512.Views
             }
 
             // Загружаем варианты учебной нагрузки из статического списка (хранятся в коде, не в БД)
-            var studyOptions = GetStudyOptions();
+            var studyOptions = LoadStudyOptions();
             StudyOptionComboBox.ItemsSource = studyOptions;
             // Выбираем первый вариант по умолчанию
             if (studyOptions.Any())
@@ -313,7 +313,7 @@ namespace Contract2512.Views
             }
             
             // Загружаем опции для учебной нагрузки (1.5) для ПК
-            var timeOptions = GetTimeOptions();
+            var timeOptions = LoadTimeOptions(TimeOptionSeedData.PkCategory);
             TimeOptionComboBox.ItemsSource = timeOptions;
             if (timeOptions.Any())
             {
@@ -332,7 +332,7 @@ namespace Contract2512.Views
             }
             
             // Загружаем опции для учебной нагрузки (1.5) для ПП
-            var timeOptions = GetPPTimeOptions();
+            var timeOptions = LoadTimeOptions(TimeOptionSeedData.PpCategory);
             TimeOptionComboBox.ItemsSource = timeOptions;
             if (timeOptions.Any())
             {
@@ -343,7 +343,7 @@ namespace Contract2512.Views
         private void LoadDOPOptions()
         {
             // Загружаем опции для учебной нагрузки для ДОП
-            var timeOptions = GetDOPTimeOptions();
+            var timeOptions = LoadTimeOptions(TimeOptionSeedData.DopCategory);
             TimeOptionComboBox.ItemsSource = timeOptions;
             if (timeOptions.Any())
             {
@@ -787,12 +787,12 @@ namespace Contract2512.Views
                                 // Для индивидуальных программ или ДОП используем первую опцию по умолчанию
                                 if (isPK)
                                 {
-                                    var defaultOption = GetTimeOptions().FirstOrDefault();
+                                    var defaultOption = LoadTimeOptions(TimeOptionSeedData.PkCategory).FirstOrDefault();
                                     timeOptionKey = defaultOption?.OptionKey;
                                 }
                                 else if (isPP)
                                 {
-                                    var defaultOption = GetPPTimeOptions().FirstOrDefault();
+                                    var defaultOption = LoadTimeOptions(TimeOptionSeedData.PpCategory).FirstOrDefault();
                                     timeOptionKey = defaultOption?.OptionKey;
                                 }
                             }
@@ -802,12 +802,12 @@ namespace Contract2512.Views
                             // Если программа не выбрана, используем первую опцию по умолчанию
                             if (isPK)
                             {
-                                var defaultOption = GetTimeOptions().FirstOrDefault();
+                                var defaultOption = LoadTimeOptions(TimeOptionSeedData.PkCategory).FirstOrDefault();
                                 timeOptionKey = defaultOption?.OptionKey;
                             }
                             else if (isPP)
                             {
-                                var defaultOption = GetPPTimeOptions().FirstOrDefault();
+                                var defaultOption = LoadTimeOptions(TimeOptionSeedData.PpCategory).FirstOrDefault();
                                 timeOptionKey = defaultOption?.OptionKey;
                             }
                         }
@@ -834,14 +834,14 @@ namespace Contract2512.Views
                             else
                             {
                                 // Для индивидуальных программ используем первую опцию по умолчанию
-                                var defaultOption = GetStudyOptions().FirstOrDefault();
+                                var defaultOption = LoadStudyOptions().FirstOrDefault();
                                 studyOptionKey = defaultOption?.OptionKey;
                             }
                         }
                         else
                         {
                             // Для других типов договоров используем первую опцию по умолчанию
-                            var defaultOption = GetStudyOptions().FirstOrDefault();
+                            var defaultOption = LoadStudyOptions().FirstOrDefault();
                             studyOptionKey = defaultOption?.OptionKey;
                         }
                     }
@@ -1419,7 +1419,11 @@ namespace Contract2512.Views
                 // Опция учебной нагрузки (1.5) - берем из сохраненного в БД
                 if (!string.IsNullOrEmpty(contract.TimeOptionKey))
                 {
-                    List<TimeOption> timeOptions = isPK ? GetTimeOptionsStatic() : isPP ? GetPPTimeOptionsStatic() : GetDOPTimeOptionsStatic();
+                    List<TimeOption> timeOptions = isPK
+                        ? LoadTimeOptions(TimeOptionSeedData.PkCategory)
+                        : isPP
+                            ? LoadTimeOptions(TimeOptionSeedData.PpCategory)
+                            : LoadTimeOptions(TimeOptionSeedData.DopCategory);
                     var selectedTimeOption = timeOptions.FirstOrDefault(o => o.OptionKey == contract.TimeOptionKey);
                     if (selectedTimeOption != null)
                     {
@@ -1447,11 +1451,11 @@ namespace Contract2512.Views
                     TimeOption defaultTimeOption = null;
                     if (isPK)
                     {
-                        defaultTimeOption = GetTimeOptionsStatic().FirstOrDefault();
+                        defaultTimeOption = LoadTimeOptions(TimeOptionSeedData.PkCategory).FirstOrDefault();
                     }
                     else if (isPP)
                     {
-                        defaultTimeOption = GetPPTimeOptionsStatic().FirstOrDefault();
+                        defaultTimeOption = LoadTimeOptions(TimeOptionSeedData.PpCategory).FirstOrDefault();
                     }
                     
                     if (defaultTimeOption != null)
@@ -1489,7 +1493,7 @@ namespace Contract2512.Views
                 // Вариант учебной нагрузки - берем из сохраненного в БД
                 if (!string.IsNullOrEmpty(contract.StudyOptionKey))
                 {
-                    var studyOptions = GetStudyOptionsStatic();
+                    var studyOptions = LoadStudyOptions();
                     var selectedStudyOption = studyOptions.FirstOrDefault(o => o.OptionKey == contract.StudyOptionKey);
                     if (selectedStudyOption != null)
                     {
@@ -1514,7 +1518,7 @@ namespace Contract2512.Views
                 else
                 {
                     // По умолчанию - первая опция
-                    var defaultStudyOption = GetStudyOptionsStatic().FirstOrDefault();
+                    var defaultStudyOption = LoadStudyOptions().FirstOrDefault();
                     if (defaultStudyOption != null)
                     {
                         replacements[$"{{{{{defaultStudyOption.OptionKey}}}}}"] = defaultStudyOption.Text;
@@ -1764,48 +1768,6 @@ namespace Contract2512.Views
             replacements["{{Post_firstnames.}}"] = "";
         }
 
-        private static List<StudyOption> GetStudyOptionsStatic()
-        {
-            return new List<StudyOption>
-            {
-                new StudyOption
-                {
-                    Id = 1,
-                    Name = "Опция № 1: 1 час/нед, 20 недель",
-                    OptionKey = "Option_study1",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 1 академический час в неделю; общая продолжительность освоения — 20 недель."
-                },
-                new StudyOption
-                {
-                    Id = 2,
-                    Name = "Опция № 2: 2 часа/нед, 10 недель",
-                    OptionKey = "Option_study2",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 2 академических часа в неделю; общая продолжительность освоения — 10 недель."
-                },
-                new StudyOption
-                {
-                    Id = 3,
-                    Name = "Опция № 3: 4 часа/нед, 5 недель",
-                    OptionKey = "Option_study3",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 4 академических часа в неделю; общая продолжительность освоения — 5 недель."
-                },
-                new StudyOption
-                {
-                    Id = 4,
-                    Name = "Опция № 4: 8 часов/нед, 2,5 недели",
-                    OptionKey = "Option_study4",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 8 академических часов в неделю; общая продолжительность освоения — 2,5 недели."
-                },
-                new StudyOption
-                {
-                    Id = 5,
-                    Name = "Опция № 5: 10 часов/нед, 2 недели",
-                    OptionKey = "Option_study5",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 10 академических часов в неделю; общая продолжительность освоения — 2 недели."
-                }
-            };
-        }
-
         private static List<ItogDocumentOption> GetItogDocumentOptionsStatic()
         {
             // Опции для итогового документа (1.4) для типа договора ПК
@@ -1830,6 +1792,12 @@ namespace Contract2512.Views
 
         private static List<TimeOption> GetTimeOptionsStatic()
         {
+            var dbOptions = LoadTimeOptions(TimeOptionSeedData.PkCategory);
+            if (dbOptions.Any())
+            {
+                return dbOptions;
+            }
+
             // Опции для учебной нагрузки (1.5) для типа договора ПК
             return new List<TimeOption>
             {
@@ -1902,6 +1870,12 @@ namespace Contract2512.Views
 
         private static List<TimeOption> GetPPTimeOptionsStatic()
         {
+            var dbOptions = LoadTimeOptions(TimeOptionSeedData.PpCategory);
+            if (dbOptions.Any())
+            {
+                return dbOptions;
+            }
+
             // Опции для учебной нагрузки (1.5) для типа договора ПП
             return new List<TimeOption>
             {
@@ -1952,6 +1926,12 @@ namespace Contract2512.Views
 
         private static List<TimeOption> GetDOPTimeOptionsStatic()
         {
+            var dbOptions = LoadTimeOptions(TimeOptionSeedData.DopCategory);
+            if (dbOptions.Any())
+            {
+                return dbOptions;
+            }
+
             // Опции для учебной нагрузки (1.5) для типа договора ДОП
             return new List<TimeOption>
             {
@@ -2369,7 +2349,9 @@ namespace Contract2512.Views
                 // Опция учебной нагрузки (1.5) - берем из сохраненного в БД
                 if (!string.IsNullOrEmpty(contract.TimeOptionKey))
                 {
-                    List<TimeOption> timeOptions = isPK ? GetTimeOptions() : GetPPTimeOptions();
+                    List<TimeOption> timeOptions = isPK
+                        ? LoadTimeOptions(TimeOptionSeedData.PkCategory)
+                        : LoadTimeOptions(TimeOptionSeedData.PpCategory);
                     var selectedTimeOption = timeOptions.FirstOrDefault(o => o.OptionKey == contract.TimeOptionKey);
                     if (selectedTimeOption != null)
                     {
@@ -2399,11 +2381,11 @@ namespace Contract2512.Views
                     TimeOption defaultTimeOption = null;
                     if (isPK)
                     {
-                        defaultTimeOption = GetTimeOptions().FirstOrDefault();
+                        defaultTimeOption = LoadTimeOptions(TimeOptionSeedData.PkCategory).FirstOrDefault();
                     }
                     else if (isPP)
                     {
-                        defaultTimeOption = GetPPTimeOptions().FirstOrDefault();
+                        defaultTimeOption = LoadTimeOptions(TimeOptionSeedData.PpCategory).FirstOrDefault();
                     }
                     
                     if (defaultTimeOption != null)
@@ -2441,7 +2423,7 @@ namespace Contract2512.Views
                 // Вариант учебной нагрузки - берем из сохраненного в БД
                 if (!string.IsNullOrEmpty(contract.StudyOptionKey))
                 {
-                    var studyOptions = GetStudyOptions();
+                    var studyOptions = LoadStudyOptions();
                     var selectedStudyOption = studyOptions.FirstOrDefault(o => o.OptionKey == contract.StudyOptionKey);
                     if (selectedStudyOption != null)
                     {
@@ -2470,7 +2452,7 @@ namespace Contract2512.Views
                 else
                 {
                     // По умолчанию - первая опция
-                    var defaultStudyOption = GetStudyOptions().FirstOrDefault();
+                    var defaultStudyOption = LoadStudyOptions().FirstOrDefault();
                     if (defaultStudyOption != null)
                     {
                         replacements[$"{{{{{defaultStudyOption.OptionKey}}}}}"] = defaultStudyOption.Text;
@@ -2639,49 +2621,6 @@ namespace Contract2512.Views
             };
         }
 
-        private List<StudyOption> GetStudyOptions()
-        {
-            // Варианты учебной нагрузки хранятся в коде, не в БД
-            return new List<StudyOption>
-            {
-                new StudyOption
-                {
-                    Id = 1,
-                    Name = "Опция № 1: 1 час/нед, 20 недель",
-                    OptionKey = "Option_study1",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 1 академический час в неделю; общая продолжительность освоения — 20 недель."
-                },
-                new StudyOption
-                {
-                    Id = 2,
-                    Name = "Опция № 2: 2 часа/нед, 10 недель",
-                    OptionKey = "Option_study2",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 2 академических часа в неделю; общая продолжительность освоения — 10 недель."
-                },
-                new StudyOption
-                {
-                    Id = 3,
-                    Name = "Опция № 3: 4 часа/нед, 5 недель",
-                    OptionKey = "Option_study3",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 4 академических часа в неделю; общая продолжительность освоения — 5 недель."
-                },
-                new StudyOption
-                {
-                    Id = 4,
-                    Name = "Опция № 4: 8 часов/нед, 2,5 недели",
-                    OptionKey = "Option_study4",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 8 академических часов в неделю; общая продолжительность освоения — 2,5 недели."
-                },
-                new StudyOption
-                {
-                    Id = 5,
-                    Name = "Опция № 5: 10 часов/нед, 2 недели",
-                    OptionKey = "Option_study5",
-                    Text = "Недельная учебная нагрузка по настоящему договору составляет 10 академических часов в неделю; общая продолжительность освоения — 2 недели."
-                }
-            };
-        }
-
         private List<ItogDocumentOption> GetItogDocumentOptions()
         {
             // Опции для итогового документа (1.4) для типа договора ПК
@@ -2706,6 +2645,12 @@ namespace Contract2512.Views
 
         private List<TimeOption> GetTimeOptions()
         {
+            var dbOptions = LoadTimeOptions(TimeOptionSeedData.PkCategory);
+            if (dbOptions.Any())
+            {
+                return dbOptions;
+            }
+
             // Опции для учебной нагрузки (1.5) для типа договора ПК
             return new List<TimeOption>
             {
@@ -2778,6 +2723,12 @@ namespace Contract2512.Views
 
         private List<TimeOption> GetPPTimeOptions()
         {
+            var dbOptions = LoadTimeOptions(TimeOptionSeedData.PpCategory);
+            if (dbOptions.Any())
+            {
+                return dbOptions;
+            }
+
             // Опции для учебной нагрузки (1.5) для типа договора ПП
             return new List<TimeOption>
             {
@@ -2828,6 +2779,12 @@ namespace Contract2512.Views
 
         private List<TimeOption> GetDOPTimeOptions()
         {
+            var dbOptions = LoadTimeOptions(TimeOptionSeedData.DopCategory);
+            if (dbOptions.Any())
+            {
+                return dbOptions;
+            }
+
             // Опции для учебной нагрузки для типа договора ДОП
             return new List<TimeOption>
             {
@@ -2867,6 +2824,76 @@ namespace Contract2512.Views
                     Text = "Вариант 5 — с повышенной недельной учебной нагрузкой (10 акад. часов в неделю)."
                 }
             };
+        }
+
+        private static List<TimeOption> LoadTimeOptions(string category)
+        {
+            try
+            {
+                var categoryAliases = GetTimeOptionCategoryAliases(category);
+                using var db = new AppDbContext();
+                var options = db.TimeOptions
+                    .AsNoTracking()
+                    .Where(o => o.IsActive)
+                    .OrderBy(o => o.SortOrder)
+                    .ThenBy(o => o.Id)
+                    .AsEnumerable()
+                    .Where(o => categoryAliases.Contains(NormalizeTimeOptionCategory(o.ContractCategory)))
+                    .ToList();
+
+                if (options.Any())
+                {
+                    return options;
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки опций 1.5 из БД: {ex.Message}");
+            }
+
+            return new List<TimeOption>();
+        }
+
+        private static string[] GetTimeOptionCategoryAliases(string category)
+        {
+            return category switch
+            {
+                TimeOptionSeedData.PpCategory => new[] { TimeOptionSeedData.PpCategory, "ПП" },
+                TimeOptionSeedData.DopCategory => new[] { TimeOptionSeedData.DopCategory, "ДОП" },
+                _ => new[] { TimeOptionSeedData.PkCategory, "ПК" }
+            };
+        }
+
+        private static string NormalizeTimeOptionCategory(string? category)
+        {
+            var normalized = (category ?? string.Empty).Trim().ToUpperInvariant();
+
+            return normalized switch
+            {
+                "ПК" => TimeOptionSeedData.PkCategory,
+                "ПП" => TimeOptionSeedData.PpCategory,
+                "ДОП" => TimeOptionSeedData.DopCategory,
+                _ => normalized
+            };
+        }
+
+        private static List<StudyOption> LoadStudyOptions()
+        {
+            try
+            {
+                using var db = new AppDbContext();
+                return db.StudyOptions
+                    .AsNoTracking()
+                    .Where(o => o.IsActive)
+                    .OrderBy(o => o.SortOrder)
+                    .ThenBy(o => o.Id)
+                    .ToList();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки опций 1.4 ДОП из БД: {ex.Message}");
+                return new List<StudyOption>();
+            }
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)
@@ -3797,7 +3824,7 @@ namespace Contract2512.Views
                         if (isGroupFormat)
                         {
                             // Автоматически устанавливаем Вариант 2 (2 акад. часа в неделю)
-                            var studyOptions = GetStudyOptions();
+                            var studyOptions = LoadStudyOptions();
                             var option2Index = studyOptions.FindIndex(o => o.OptionKey == "Option_study2");
                             if (option2Index >= 0)
                             {
@@ -3823,7 +3850,7 @@ namespace Contract2512.Views
                         if (isGroupFormat)
                         {
                             // Автоматически устанавливаем Опцию № 3 (12 часов/нед, 21 неделя)
-                            var timeOptions = GetPPTimeOptions();
+                            var timeOptions = LoadTimeOptions(TimeOptionSeedData.PpCategory);
                             var option3Index = timeOptions.FindIndex(o => o.OptionKey == "Option_Time3");
                             if (option3Index >= 0)
                             {
@@ -3849,7 +3876,7 @@ namespace Contract2512.Views
                         if (isGroupFormat)
                         {
                             // Автоматически устанавливаем Опцию № 3 (12 часов/нед, 6 недель)
-                            var timeOptions = GetTimeOptions();
+                            var timeOptions = LoadTimeOptions(TimeOptionSeedData.PkCategory);
                             var option3Index = timeOptions.FindIndex(o => o.OptionKey == "Option_Time3");
                             if (option3Index >= 0)
                             {

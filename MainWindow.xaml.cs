@@ -1165,8 +1165,28 @@ namespace Contract2512
                     $"Ошибка при переносе договора в архив: {ex.Message}",
                     "Ошибка",
                     System.Windows.MessageBoxButton.OK,
-                    System.Windows.MessageBoxImage.Error);
+                System.Windows.MessageBoxImage.Error);
             }
+        }
+
+        private void EditTimeOptionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new TimeOptionsWindow
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
+        }
+
+        private void EditStudyOptionsButton_Click(object sender, RoutedEventArgs e)
+        {
+            var window = new StudyOptionsWindow
+            {
+                Owner = this
+            };
+
+            window.ShowDialog();
         }
 
         private void RestoreArchivedPersonButton_Click(object sender, RoutedEventArgs e)

@@ -622,11 +622,22 @@
                             <Button Content="В архив" 
                                x:Name="ArchiveContractButton"
                                Style="{StaticResource DarkGrayButton}"
-                               Click="ArchiveContractButton_Click"/>
+                               Click="ArchiveContractButton_Click"
+                               Margin="0,0,8,0"/>
+                            <Button Content="Редактировать опции" 
+                               x:Name="EditTimeOptionsButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="EditTimeOptionsButton_Click"
+                               Margin="0,0,8,0"/>
+                            <Button Content="Опции ДОП 1.4" 
+                               x:Name="EditStudyOptionsButton"
+                               Style="{StaticResource DarkGrayButton}"
+                               Click="EditStudyOptionsButton_Click"/>
                     </StackPanel>
                     <TextBox Grid.Column="1" 
                             x:Name="ContractSearchTextBox"
                             Style="{StaticResource DarkTextBoxStyle}"
+                            MinWidth="180"
                             Margin="8,0,0,0"
                             TextChanged="ContractSearchTextBox_TextChanged">
                         <TextBox.ToolTip>

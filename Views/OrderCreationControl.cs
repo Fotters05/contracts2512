@@ -1484,9 +1484,7 @@ namespace Contract2512.Views
         {
             if (!string.IsNullOrWhiteSpace(contract.StudyOptionKey) && IsDopContract(contract.ContractType?.Name))
             {
-                var text = GetStudyOptionTexts().TryGetValue(contract.StudyOptionKey, out var studyText)
-                    ? studyText
-                    : string.Empty;
+                var text = GetStudyOptionText(contract.StudyOptionKey);
                 if (!string.IsNullOrWhiteSpace(text))
                 {
                     return text;
@@ -1510,6 +1508,24 @@ namespace Contract2512.Views
             return string.Empty;
         }
 
+        private static string GetStudyOptionText(string optionKey)
+        {
+            try
+            {
+                using var db = new AppDbContext();
+                return db.StudyOptions
+                    .AsNoTracking()
+                    .Where(o => o.IsActive && o.OptionKey == optionKey)
+                    .Select(o => o.Text)
+                    .FirstOrDefault() ?? string.Empty;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки опции ДОП 1.4 из БД: {ex.Message}");
+                return string.Empty;
+            }
+        }
+
         private static bool IsDopContract(string? contractTypeName)
         {
             return !string.IsNullOrWhiteSpace(contractTypeName) &&
@@ -1523,15 +1539,6 @@ namespace Contract2512.Views
                    (contractTypeName.Contains("ПП", StringComparison.OrdinalIgnoreCase) ||
                     contractTypeName.Contains("проф", StringComparison.OrdinalIgnoreCase));
         }
-
-        private static Dictionary<string, string> GetStudyOptionTexts() => new()
-        {
-            ["Option_study1"] = "Недельная учебная нагрузка по настоящему договору составляет 1 академический час в неделю; общая продолжительность освоения — 20 недель.",
-            ["Option_study2"] = "Недельная учебная нагрузка по настоящему договору составляет 2 академических часа в неделю; общая продолжительность освоения — 10 недель.",
-            ["Option_study3"] = "Недельная учебная нагрузка по настоящему договору составляет 4 академических часа в неделю; общая продолжительность освоения — 5 недель.",
-            ["Option_study4"] = "Недельная учебная нагрузка по настоящему договору составляет 8 академических часов в неделю; общая продолжительность освоения — 2,5 недели.",
-            ["Option_study5"] = "Недельная учебная нагрузка по настоящему договору составляет 10 академических часов в неделю; общая продолжительность освоения — 2 недели."
-        };
 
         private static Dictionary<string, string> GetPkTimeOptionTexts() => new()
         {

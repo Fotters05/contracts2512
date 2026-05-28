@@ -340,16 +340,28 @@ namespace Contract2512.Views
 
         private StudyOptionInfo? GetStudyOptionByKey(string optionKey)
         {
-            var options = new Dictionary<string, StudyOptionInfo>
+            try
             {
-                { "Option_study1", new StudyOptionInfo { HoursPerWeek = 1, WeeksDuration = 20 } },
-                { "Option_study2", new StudyOptionInfo { HoursPerWeek = 2, WeeksDuration = 10 } },
-                { "Option_study3", new StudyOptionInfo { HoursPerWeek = 4, WeeksDuration = 5 } },
-                { "Option_study4", new StudyOptionInfo { HoursPerWeek = 8, WeeksDuration = 2 } }, // 2.5 недели округляем до 2
-                { "Option_study5", new StudyOptionInfo { HoursPerWeek = 10, WeeksDuration = 2 } },
-            };
-            
-            return options.TryGetValue(optionKey, out var option) ? option : null;
+                using var db = new AppDbContext();
+                var dbOption = db.StudyOptions
+                    .AsNoTracking()
+                    .FirstOrDefault(o => o.OptionKey == optionKey && o.IsActive);
+
+                if (dbOption?.HoursPerWeek != null && dbOption.WeeksDuration != null)
+                {
+                    return new StudyOptionInfo
+                    {
+                        HoursPerWeek = dbOption.HoursPerWeek.Value,
+                        WeeksDuration = (int)Math.Ceiling(dbOption.WeeksDuration.Value)
+                    };
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine($"Ошибка загрузки опции ДОП 1.4 из БД: {ex.Message}");
+            }
+
+            return null;
         }
 
         private void UpdateScheduleInfo()
