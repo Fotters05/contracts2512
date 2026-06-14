@@ -83,6 +83,47 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         });
     }
 
+    private async void StartServiceButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RunBusyAsync("Запускаю ai_service...", async () =>
+        {
+            var health = await TryRefreshHealthAsync(showUnavailableState: false);
+            if (health == null)
+            {
+                await _serviceHost.StartIfNeededAsync(_client.BaseAddress);
+                AiStatusTextBlock.Text = "ai_service запущен из приложения.";
+            }
+            else
+            {
+                AiStatusTextBlock.Text = "ai_service уже запущен и доступен.";
+            }
+
+            health = await TryRefreshHealthAsync(showUnavailableState: true);
+            if (health == null)
+            {
+                throw new InvalidOperationException("ai_service запущен, но не ответил на проверку состояния.");
+            }
+        });
+    }
+
+    private async void StopServiceButton_Click(object sender, RoutedEventArgs e)
+    {
+        await RunBusyAsync("Останавливаю ai_service...", async () =>
+        {
+            var stopped = _serviceHost.Stop();
+            if (stopped)
+            {
+                ApplyUnavailableHealthState("Сервис остановлен из приложения.");
+                AiStatusTextBlock.Text = "ai_service остановлен.";
+            }
+            else
+            {
+                AiStatusTextBlock.Text = "Сервис не был запущен этим приложением. Внешний процесс не остановлен.";
+                await TryRefreshHealthAsync(showUnavailableState: true);
+            }
+        });
+    }
+
     private async void GenerateDraftButton_Click(object sender, RoutedEventArgs e)
     {
         await RunBusyAsync("Формирую новый черновик курса...", async () =>
@@ -263,6 +304,8 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
     {
         _isBusy = isBusy;
         CheckHealthButton.IsEnabled = !isBusy;
+        StartServiceButton.IsEnabled = !isBusy;
+        StopServiceButton.IsEnabled = !isBusy;
         GenerateDraftButton.IsEnabled = !isBusy;
         LoadDraftButton.IsEnabled = !isBusy;
         ExportDraftButton.IsEnabled = !isBusy;
@@ -327,6 +370,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         ServiceHealthTextBlock.Foreground = Brushes.LightGreen;
         SetHealthLine(TemplateHealthTextBlock, "Шаблон DOCX", health.TemplateExists);
         SetHealthLine(OllamaHealthTextBlock, "AI API", health.OllamaAvailable);
+        SetHealthLine(DatabaseHealthTextBlock, "БД", health.DbAvailable);
     }
 
     private void ApplyUnavailableHealthState(string message)
@@ -338,6 +382,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         TemplateHealthTextBlock.Foreground = Brushes.Gainsboro;
         OllamaHealthTextBlock.Text = "AI API: неизвестно";
         OllamaHealthTextBlock.Foreground = Brushes.Gainsboro;
+        DatabaseHealthTextBlock.Text = "БД: неизвестно";
         DatabaseHealthTextBlock.Foreground = Brushes.Gainsboro;
     }
 

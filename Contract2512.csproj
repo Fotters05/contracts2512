@@ -63,6 +63,12 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
       <Link>parser_nodejs\%(RecursiveDir)%(Filename)%(Extension)</Link>
     </None>
+
+    <!-- Include ai_service runtime files for local course generation -->
+    <None Include="ai_service\**\*.*" Exclude="ai_service\.pytest_cache\**\*.*;ai_service\tests\**\*.*;ai_service\storage\drafts\**\*.*;ai_service\storage\output\**\*.*;ai_service\storage\uploads\**\*.*;ai_service\storage\tmp\**\*.*;ai_service\storage\temp\**\*.*;ai_service\venv\**\*.*;ai_service\.venv\**\*.*;ai_service\__pycache__\**\*.*;ai_service\**\__pycache__\**\*.*;ai_service\**\*.pyc">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Link>ai_service\%(RecursiveDir)%(Filename)%(Extension)</Link>
+    </None>
   </ItemGroup>
 
   <ItemGroup>

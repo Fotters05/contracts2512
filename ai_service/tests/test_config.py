@@ -34,6 +34,8 @@ def test_settings_use_groq_api_by_default(monkeypatch):
     assert settings.ai_provider == "groq"
     assert settings.ai_base_url == "https://api.groq.com/openai/v1"
     assert settings.ai_model == "qwen/qwen3-32b"
+    assert settings.output_dir.name == "Новые курсы"
+    assert settings.output_dir.parent.name == "Documents"
 
 
 def test_settings_allow_groq_overrides(monkeypatch):

@@ -42,6 +42,23 @@ jobs:
         GITHUB_TOKEN=${{ secrets.AUTO_UPDATE_TOKEN }}
         "@ | Out-File -FilePath bin/Release/net8.0-windows/publish/.env -Encoding UTF8
       shell: pwsh
+
+    - name: Verify ai_service package
+      run: |
+        $publishDir = "bin/Release/net8.0-windows/publish"
+        $requiredFiles = @(
+          "$publishDir/ai_service/app/main.py",
+          "$publishDir/ai_service/requirements.txt",
+          "$publishDir/ai_service/program_template.docx",
+          "$publishDir/ai_service/storage/standards/profiles.json"
+        )
+
+        foreach ($file in $requiredFiles) {
+          if (-not (Test-Path $file)) {
+            throw "Required ai_service file is missing from publish output: $file"
+          }
+        }
+      shell: pwsh
       
     - name: Get version from tag
       id: get_version
