@@ -12,6 +12,7 @@ from app.schemas.draft import (
 )
 from app.schemas.standard import StandardResolveRequest, StandardResolveResponse
 from app.services.errors import (
+    AiProviderUnavailableError,
     DatabaseUnavailableError,
     DraftNotFoundError,
     DraftValidationError,
@@ -28,7 +29,7 @@ def create_router() -> APIRouter:
         return HealthResponse(
             service="ai_service",
             template_exists=services["document_builder"].template_available(),
-            ollama_available=services["ollama_service"].check_health(),
+            ollama_available=services["ai_provider_service"].check_health(),
             db_available=services["db_service"].check_health(),
         )
 
@@ -63,7 +64,7 @@ def create_router() -> APIRouter:
             return GenerateDraftResponse(draft_id=draft.draft_id, draft=draft)
         except DraftValidationError as exc:
             raise HTTPException(status_code=422, detail=str(exc)) from exc
-        except OllamaUnavailableError as exc:
+        except (AiProviderUnavailableError, OllamaUnavailableError) as exc:
             raise HTTPException(status_code=503, detail=str(exc)) from exc
         except Exception as exc:  # pragma: no cover - guard rail
             raise HTTPException(status_code=500, detail=f"{exc.__class__.__name__}: {exc}") from exc

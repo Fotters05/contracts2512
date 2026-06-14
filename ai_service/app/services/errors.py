@@ -6,8 +6,12 @@ class DraftNotFoundError(FileNotFoundError):
     """Raised when a draft cannot be found in storage."""
 
 
-class OllamaUnavailableError(RuntimeError):
-    """Raised when Ollama cannot answer a request."""
+class AiProviderUnavailableError(RuntimeError):
+    """Raised when an AI provider cannot answer a request."""
+
+
+class OllamaUnavailableError(AiProviderUnavailableError):
+    """Backward-compatible alias for old Ollama errors."""
 
 
 class DatabaseUnavailableError(RuntimeError):

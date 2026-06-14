@@ -326,7 +326,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         ServiceHealthTextBlock.Text = $"Сервис: {health.Service ?? "ai_service"}";
         ServiceHealthTextBlock.Foreground = Brushes.LightGreen;
         SetHealthLine(TemplateHealthTextBlock, "Шаблон DOCX", health.TemplateExists);
-        SetHealthLine(OllamaHealthTextBlock, "Ollama", health.OllamaAvailable);
+        SetHealthLine(OllamaHealthTextBlock, "AI API", health.OllamaAvailable);
     }
 
     private void ApplyUnavailableHealthState(string message)
@@ -336,7 +336,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         ServiceHealthTextBlock.Foreground = Brushes.OrangeRed;
         TemplateHealthTextBlock.Text = "Шаблон DOCX: неизвестно";
         TemplateHealthTextBlock.Foreground = Brushes.Gainsboro;
-        OllamaHealthTextBlock.Text = "Ollama: неизвестно";
+        OllamaHealthTextBlock.Text = "AI API: неизвестно";
         OllamaHealthTextBlock.Foreground = Brushes.Gainsboro;
         DatabaseHealthTextBlock.Foreground = Brushes.Gainsboro;
     }
@@ -349,7 +349,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
 
     private static string BuildHealthSummary(AiHealthResponse health)
     {
-        return $"ai_service доступен. Шаблон: {(health.TemplateExists ? "OK" : "нет")}, Ollama: {(health.OllamaAvailable ? "OK" : "нет")}, БД: {(health.DbAvailable ? "OK" : "нет")}.";
+        return $"ai_service доступен. Шаблон: {(health.TemplateExists ? "OK" : "нет")}, AI API: {(health.OllamaAvailable ? "OK" : "нет")}, БД: {(health.DbAvailable ? "OK" : "нет")}.";
     }
 
     private void ApplyDraftResponse(AiGenerateDraftResponse response)

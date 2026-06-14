@@ -25,15 +25,15 @@ from app.schemas.draft import (
     Signatures,
     StudyPlanEntry,
 )
-from app.services.ollama_service import OllamaService
+from app.services.ai_provider_service import AiProviderService
 from app.services.standard_profiles import ResolvedStandardProfile, resolve_standard_profile
 from app.services.validation_service import ValidationService
 
 
 class DraftBuilder:
-    def __init__(self, settings: Settings, ollama_service: OllamaService, validation_service: ValidationService) -> None:
+    def __init__(self, settings: Settings, ai_provider_service: AiProviderService, validation_service: ValidationService) -> None:
         self._settings = settings
-        self._ollama = ollama_service
+        self._ai_provider = ai_provider_service
         self._validation = validation_service
         self._source_outline_cache: dict[str, dict[str, list[tuple[str, str]]]] = {}
 
@@ -755,13 +755,13 @@ class DraftBuilder:
 
     def _prompt_text(self, section_id: str, prompt: str, fallback: str) -> str:
         try:
-            return self._ollama.generate_text(f"SECTION_ID:{section_id}\n{prompt}")
+            return self._ai_provider.generate_text(f"SECTION_ID:{section_id}\n{prompt}")
         except Exception:
             return fallback
 
     def _prompt_json(self, section_id: str, prompt: str, default: dict) -> dict:
         try:
-            return self._ollama.generate_json(f"SECTION_ID:{section_id}\n{prompt}")
+            return self._ai_provider.generate_json(f"SECTION_ID:{section_id}\n{prompt}")
         except Exception:
             return default
 

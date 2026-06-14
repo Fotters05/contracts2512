@@ -4,11 +4,11 @@ from fastapi import FastAPI
 
 from app.api.routes import create_router
 from app.config import Settings
+from app.services.ai_provider_service import AiProviderService
 from app.services.db_service import DbService
 from app.services.document_builder import DocumentBuilder
 from app.services.draft_builder import DraftBuilder
 from app.services.draft_storage import DraftStorageService
-from app.services.ollama_service import OllamaService
 from app.services.standard_profiles import configure_dynamic_registry
 from app.services.standards_service import StandardsService
 from app.services.validation_service import ValidationService
@@ -20,21 +20,24 @@ def create_app(service_overrides: dict | None = None, settings: Settings | None 
     configure_dynamic_registry(settings.service_root / "storage" / "standards" / "profiles.json")
 
     validation_service = ValidationService(settings)
-    ollama_service = OllamaService(settings)
+    ai_provider_service = AiProviderService(settings)
 
     services = {
         "settings": settings,
         "validation_service": validation_service,
-        "ollama_service": ollama_service,
+        "ai_provider_service": ai_provider_service,
+        "ollama_service": ai_provider_service,
         "draft_storage": DraftStorageService(settings, validation_service),
         "document_builder": DocumentBuilder(settings),
         "db_service": DbService(settings),
         "standards_service": StandardsService(),
     }
-    services["draft_builder"] = DraftBuilder(settings, ollama_service, validation_service)
+    services["draft_builder"] = DraftBuilder(settings, ai_provider_service, validation_service)
 
     if service_overrides:
         services.update(service_overrides)
+        if "ollama_service" in service_overrides and "ai_provider_service" not in service_overrides:
+            services["ai_provider_service"] = services["ollama_service"]
 
     api = FastAPI(title="AI Course Builder", version="1.0.0")
     api.include_router(create_router())

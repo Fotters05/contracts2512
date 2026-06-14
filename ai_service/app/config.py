@@ -14,6 +14,11 @@ class Settings:
     template_path: Path
     drafts_dir: Path
     output_dir: Path
+    ai_provider: str
+    ai_api_key: str
+    ai_base_url: str
+    ai_model: str
+    ai_timeout_seconds: int
     ollama_url: str
     ollama_model: str
     ollama_timeout_seconds: int
@@ -64,6 +69,24 @@ class Settings:
             template_path=template_path,
             drafts_dir=Path(os.getenv("AI_SERVICE_DRAFTS_DIR", str(service_root / "storage" / "drafts"))),
             output_dir=Path(os.getenv("AI_SERVICE_OUTPUT_DIR", str(service_root / "storage" / "output"))),
+            ai_provider=os.getenv("AI_PROVIDER", "groq").strip().lower(),
+            ai_api_key=(
+                os.getenv("AI_API_KEY")
+                or os.getenv("GROQ_API_KEY")
+                or os.getenv("GROQ_QWEN_API")
+                or ""
+            ),
+            ai_base_url=(
+                os.getenv("AI_BASE_URL")
+                or os.getenv("GROQ_BASE_URL")
+                or "https://api.groq.com/openai/v1"
+            ),
+            ai_model=(
+                os.getenv("AI_MODEL")
+                or os.getenv("GROQ_MODEL")
+                or "qwen/qwen3-32b"
+            ),
+            ai_timeout_seconds=int(os.getenv("AI_TIMEOUT_SECONDS", os.getenv("GROQ_TIMEOUT_SECONDS", "120"))),
             ollama_url=os.getenv("AI_SERVICE_OLLAMA_URL", "http://127.0.0.1:11434"),
             ollama_model=os.getenv("AI_SERVICE_OLLAMA_MODEL", "qwen2.5:7b"),
             ollama_timeout_seconds=int(os.getenv("AI_SERVICE_OLLAMA_TIMEOUT", "30")),
