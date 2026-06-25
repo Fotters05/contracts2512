@@ -248,7 +248,7 @@ namespace Contract2512.Views
                             placeholders["{{Program_name}}"] = program.Name ?? string.Empty;
                             placeholders["{{time_program}}"] = $"{program.Hours} академических часов";
                             placeholders["{{Option_Time}}"] = GetOptionTimeText(firstContract);
-                            placeholders["{{FIO_organizator}}"] = Normalize(organizerFioTextBox.Text);
+                            placeholders["{{FIO_organizator}}"] = ConvertFullNameToAccusative(Normalize(organizerFioTextBox.Text));
                             placeholders["{{Post_organizator}}"] = Normalize(organizerPostTextBox.Text);
 
                             var request = new OrderGenerationRequest
@@ -958,7 +958,7 @@ namespace Contract2512.Views
             placeholders["{{time_program}}"] = $"{program.Hours} академических часов";
             placeholders["{{Education}}"] = listener == null ? string.Empty : GetEducationName(listener.Id);
             placeholders["{{Option_Time}}"] = GetOptionTimeText(contract);
-            placeholders["{{FIO_organizator}}"] = organizerFio;
+            placeholders["{{FIO_organizator}}"] = ConvertFullNameToAccusative(organizerFio);
             placeholders["{{Post_organizator}}"] = organizerPost;
             placeholders["{{FIO_Slushatel}}"] = ConvertToGenitive(
                 listener?.LastName ?? string.Empty,
@@ -1232,6 +1232,147 @@ namespace Contract2512.Views
             return contracts
                 .Select(c => c.ContractDate.Date)
                 .FirstOrDefault(DateTime.Today);
+        }
+
+        private static string ConvertFullNameToAccusative(string fullName)
+        {
+            var normalized = NormalizeInlineText(fullName);
+            if (string.IsNullOrWhiteSpace(normalized))
+            {
+                return string.Empty;
+            }
+
+            var parts = normalized
+                .Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries)
+                .ToArray();
+
+            if (parts.Length < 2)
+            {
+                return normalized;
+            }
+
+            var lastName = parts[0];
+            var firstName = parts[1];
+            var patronymic = parts.Length > 2 ? parts[2] : string.Empty;
+            var tail = parts.Length > 3 ? string.Join(" ", parts.Skip(3)) : string.Empty;
+
+            var converted = IsLikelyFemaleFullName(firstName, patronymic)
+                ? $"{ConvertFemaleLastNameToAccusative(lastName)} {ConvertFemaleFirstNameToAccusative(firstName)} {ConvertFemalePatronymicToAccusative(patronymic)}"
+                : ConvertToGenitive(lastName, firstName, patronymic);
+
+            converted = NormalizeInlineText(converted);
+            return string.IsNullOrWhiteSpace(tail)
+                ? converted
+                : $"{converted} {tail}".Trim();
+        }
+
+        private static bool IsLikelyFemaleFullName(string firstName, string patronymic)
+        {
+            var normalizedPatronymic = NormalizeInlineText(patronymic);
+            if (normalizedPatronymic.EndsWith("овна", StringComparison.OrdinalIgnoreCase) ||
+                normalizedPatronymic.EndsWith("евна", StringComparison.OrdinalIgnoreCase) ||
+                normalizedPatronymic.EndsWith("ична", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+
+            if (normalizedPatronymic.EndsWith("ович", StringComparison.OrdinalIgnoreCase) ||
+                normalizedPatronymic.EndsWith("евич", StringComparison.OrdinalIgnoreCase) ||
+                normalizedPatronymic.EndsWith("ич", StringComparison.OrdinalIgnoreCase))
+            {
+                return false;
+            }
+
+            var normalizedFirstName = NormalizeInlineText(firstName);
+            return normalizedFirstName.EndsWith("а", StringComparison.OrdinalIgnoreCase) ||
+                   normalizedFirstName.EndsWith("я", StringComparison.OrdinalIgnoreCase);
+        }
+
+        private static string ConvertFemaleLastNameToAccusative(string lastName)
+        {
+            if (string.IsNullOrWhiteSpace(lastName))
+            {
+                return string.Empty;
+            }
+
+            lastName = lastName.Trim();
+
+            if (lastName.EndsWith("ова", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ева", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ёва", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ина", StringComparison.OrdinalIgnoreCase) ||
+                lastName.EndsWith("ына", StringComparison.OrdinalIgnoreCase))
+            {
+                return lastName[..^1] + "у";
+            }
+
+            if (lastName.EndsWith("ая", StringComparison.OrdinalIgnoreCase))
+            {
+                return lastName[..^2] + "ую";
+            }
+
+            if (lastName.EndsWith("яя", StringComparison.OrdinalIgnoreCase))
+            {
+                return lastName[..^2] + "юю";
+            }
+
+            if (lastName.EndsWith("а", StringComparison.OrdinalIgnoreCase))
+            {
+                return lastName[..^1] + "у";
+            }
+
+            if (lastName.EndsWith("я", StringComparison.OrdinalIgnoreCase))
+            {
+                return lastName[..^1] + "ю";
+            }
+
+            return lastName;
+        }
+
+        private static string ConvertFemaleFirstNameToAccusative(string firstName)
+        {
+            if (string.IsNullOrWhiteSpace(firstName))
+            {
+                return string.Empty;
+            }
+
+            firstName = firstName.Trim();
+
+            if (firstName.EndsWith("ия", StringComparison.OrdinalIgnoreCase))
+            {
+                return firstName[..^1] + "ю";
+            }
+
+            if (firstName.EndsWith("а", StringComparison.OrdinalIgnoreCase))
+            {
+                return firstName[..^1] + "у";
+            }
+
+            if (firstName.EndsWith("я", StringComparison.OrdinalIgnoreCase))
+            {
+                return firstName[..^1] + "ю";
+            }
+
+            return firstName;
+        }
+
+        private static string ConvertFemalePatronymicToAccusative(string patronymic)
+        {
+            if (string.IsNullOrWhiteSpace(patronymic))
+            {
+                return string.Empty;
+            }
+
+            patronymic = patronymic.Trim();
+
+            if (patronymic.EndsWith("овна", StringComparison.OrdinalIgnoreCase) ||
+                patronymic.EndsWith("евна", StringComparison.OrdinalIgnoreCase) ||
+                patronymic.EndsWith("ична", StringComparison.OrdinalIgnoreCase))
+            {
+                return patronymic[..^1] + "у";
+            }
+
+            return patronymic;
         }
 
         private static string ConvertToGenitive(string lastName, string firstName, string patronymic)

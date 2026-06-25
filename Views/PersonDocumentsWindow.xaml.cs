@@ -66,12 +66,15 @@ namespace Contract2512.Views
             try
             {
                 using var db = new AppDbContext();
+                db.EnsureOrderDocumentArchiveColumns();
+
                 OrdersDataGrid.ItemsSource = db.OrderDocuments
                     .AsNoTracking()
                     .Include(o => o.Program)
                     .Include(o => o.Contract)
                     .Include(o => o.Listener)
-                    .Where(o => o.ListenerId == _person.Id || (o.Contract != null && o.Contract.ListenerId == _person.Id))
+                    .Where(o => !o.IsArchived &&
+                        (o.ListenerId == _person.Id || (o.Contract != null && o.Contract.ListenerId == _person.Id)))
                     .OrderByDescending(o => o.GeneratedAt)
                     .ToList();
             }

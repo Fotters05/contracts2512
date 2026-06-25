@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Windows;
 using System.Windows.Input;
@@ -20,7 +21,6 @@ namespace Contract2512.Views
         public OrderRegistryWindow()
         {
             InitializeComponent();
-            OrderDatePicker.SelectedDate = DateTime.Today;
             LoadEntries();
         }
 
@@ -44,18 +44,24 @@ namespace Contract2512.Views
         private void SaveButton_Click(object sender, RoutedEventArgs e)
         {
             var orderNumber = Normalize(OrderNumberTextBox.Text);
-            var orderDate = OrderDatePicker.SelectedDate;
+            var orderDateText = Normalize(OrderDateTextBox.Text);
             var orderSubject = Normalize(OrderSubjectTextBox.Text);
             var listenerName = Normalize(ListenerNameTextBox.Text);
             var programName = Normalize(ProgramNameTextBox.Text);
 
             if (string.IsNullOrWhiteSpace(orderNumber) ||
-                orderDate == null ||
+                string.IsNullOrWhiteSpace(orderDateText) ||
                 string.IsNullOrWhiteSpace(orderSubject) ||
                 string.IsNullOrWhiteSpace(listenerName) ||
                 string.IsNullOrWhiteSpace(programName))
             {
                 ShowWarning("Заполните все поля реестра.");
+                return;
+            }
+
+            if (!TryParseOrderDate(orderDateText, out var orderDate))
+            {
+                ShowWarning("Введите дату приказа в формате дд.мм.гггг.");
                 return;
             }
 
@@ -87,7 +93,7 @@ namespace Contract2512.Views
                 }
 
                 entry.OrderNumber = orderNumber;
-                entry.OrderDate = orderDate.Value.Date;
+                entry.OrderDate = orderDate.Date;
                 entry.OrderSubject = orderSubject;
                 entry.ListenerName = listenerName;
                 entry.ProgramName = programName;
@@ -157,7 +163,7 @@ namespace Contract2512.Views
             _isLoadingSelection = true;
             _editingId = selected.Id;
             OrderNumberTextBox.Text = selected.OrderNumber;
-            OrderDatePicker.SelectedDate = selected.OrderDate;
+            OrderDateTextBox.Text = selected.OrderDate.ToString("dd.MM.yyyy");
             OrderSubjectTextBox.Text = selected.OrderSubject;
             ListenerNameTextBox.Text = selected.ListenerName;
             ProgramNameTextBox.Text = selected.ProgramName;
@@ -168,7 +174,7 @@ namespace Contract2512.Views
         {
             _editingId = null;
             OrderNumberTextBox.Text = string.Empty;
-            OrderDatePicker.SelectedDate = DateTime.Today;
+            OrderDateTextBox.Text = string.Empty;
             OrderSubjectTextBox.Text = string.Empty;
             ListenerNameTextBox.Text = string.Empty;
             ProgramNameTextBox.Text = string.Empty;
@@ -178,6 +184,29 @@ namespace Contract2512.Views
         private static string Normalize(string? value)
         {
             return value?.Trim() ?? string.Empty;
+        }
+
+        private static bool TryParseOrderDate(string value, out DateTime date)
+        {
+            var formats = new[]
+            {
+                "dd.MM.yyyy",
+                "d.M.yyyy",
+                "dd.MM.yy",
+                "d.M.yy"
+            };
+
+            return DateTime.TryParseExact(
+                       value,
+                       formats,
+                       CultureInfo.GetCultureInfo("ru-RU"),
+                       DateTimeStyles.None,
+                       out date) ||
+                   DateTime.TryParse(
+                       value,
+                       CultureInfo.GetCultureInfo("ru-RU"),
+                       DateTimeStyles.None,
+                       out date);
         }
 
         private void MinimizeButton_Click(object sender, RoutedEventArgs e)

@@ -948,7 +948,7 @@ namespace Contract2512.Views
                     CreateContractDocument(savedContract, db);
                     
                     // Создаем личную карточку слушателя
-                    CreateListenerCard(savedContract, db);
+                    CreateListenerCard(savedContract, db, finalContractNumber);
                     
                     // Создаем заявление для договоров ПК (двухсторонний и трехсторонний)
                     var savedContractType = db.ContractTypes.Find(savedContract.ContractTypeId);
@@ -2935,7 +2935,7 @@ namespace Contract2512.Views
             }
         }
 
-        private void CreateListenerCard(Contract contract, AppDbContext db)
+        private void CreateListenerCard(Contract contract, AppDbContext db, string contractNumber)
         {
             string templatePath = @"C:\Dogovora\Личная карточка.docx";
             
@@ -2984,11 +2984,15 @@ namespace Contract2512.Views
             var education = db.Educations.FirstOrDefault(e => e.PersonId == listener.Id);
             var baseEducation = education?.BaseEducationId.HasValue == true ? db.BaseEducations.Find(education.BaseEducationId.Value) : null;
 
+            string listenerCardContractNumber = string.IsNullOrWhiteSpace(contractNumber)
+                ? contract.ContractNumber ?? ""
+                : contractNumber.Trim();
+
             // Формируем словарь замен (используем точные плейсхолдеры из шаблона)
             var replacements = new Dictionary<string, string>();
 
             // Основная информация
-            replacements["{{number_dogovor}}"] = contract.ContractNumber ?? "";
+            replacements["{{number_dogovor}}"] = listenerCardContractNumber;
             replacements["{{Program_name}}"] = program.Name ?? "";
             replacements["{{Type_program}}"] = programView?.Name ?? "";
             replacements["{{time_program}}"] = $"{program.Hours} часов";
@@ -3072,7 +3076,7 @@ namespace Contract2512.Views
                 Directory.CreateDirectory(outputFolder);
             }
 
-            string outputFileName = $"Личная карточка_{contract.ContractNumber}_{listener.LastName}.docx";
+            string outputFileName = $"Личная карточка_{listenerCardContractNumber}_{listener.LastName}.docx";
             string outputPath = Path.Combine(outputFolder, outputFileName);
 
             try

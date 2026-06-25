@@ -60,18 +60,65 @@ namespace Contract2512.Services
         public List<OrderDocument> GetGeneratedDocuments()
         {
             using var db = new AppDbContext();
+            db.EnsureOrderDocumentArchiveColumns();
+
             return db.OrderDocuments
                 .AsNoTracking()
                 .Include(d => d.Program)
                 .Include(d => d.Listener)
                 .Include(d => d.Teacher)
+                .Where(d => !d.IsArchived)
                 .OrderByDescending(d => d.GeneratedAt)
                 .ToList();
+        }
+
+        public List<OrderDocument> GetArchivedDocuments()
+        {
+            using var db = new AppDbContext();
+            db.EnsureOrderDocumentArchiveColumns();
+
+            return db.OrderDocuments
+                .AsNoTracking()
+                .Include(d => d.Program)
+                .Include(d => d.Listener)
+                .Include(d => d.Teacher)
+                .Where(d => d.IsArchived)
+                .OrderByDescending(d => d.ArchivedAt)
+                .ThenByDescending(d => d.GeneratedAt)
+                .ToList();
+        }
+
+        public void ArchiveDocument(long documentId)
+        {
+            using var db = new AppDbContext();
+            db.EnsureOrderDocumentArchiveColumns();
+
+            var document = db.OrderDocuments.Find(documentId)
+                ?? throw new InvalidOperationException("Приказ не найден.");
+
+            document.IsArchived = true;
+            document.ArchivedAt = DateTime.Now;
+            db.SaveChanges();
+        }
+
+        public void RestoreDocument(long documentId)
+        {
+            using var db = new AppDbContext();
+            db.EnsureOrderDocumentArchiveColumns();
+
+            var document = db.OrderDocuments.Find(documentId)
+                ?? throw new InvalidOperationException("Приказ не найден.");
+
+            document.IsArchived = false;
+            document.ArchivedAt = null;
+            db.SaveChanges();
         }
 
         public string GenerateDocument(OrderGenerationRequest request)
         {
             using var db = new AppDbContext();
+            db.EnsureOrderDocumentArchiveColumns();
+
             var timestamp = DateTime.Now;
             var outputPath = CreateDocumentFile(db, request, timestamp);
 

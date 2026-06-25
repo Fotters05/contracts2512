@@ -50,17 +50,30 @@ namespace Contract2512.Views
 
         private UIElement BuildButtons()
         {
-            var panel = new StackPanel
+            var panel = new DockPanel
             {
-                Orientation = Orientation.Horizontal,
+                LastChildFill = false,
                 Margin = new Thickness(0, 6, 0, 0)
             };
 
-            panel.Children.Add(CreateButton("Создать приказ", OpenCreationWindow));
-            panel.Children.Add(CreateButton("Открыть файл", OpenSelectedDocument));
-            panel.Children.Add(CreateButton("Обновить список", RefreshDocuments));
+            var leftButtons = new StackPanel
+            {
+                Orientation = Orientation.Horizontal
+            };
 
-            panel.Children.Insert(1, CreateButton("Реестр приказов", OpenRegistryWindow));
+            leftButtons.Children.Add(CreateButton("Создать приказ", OpenCreationWindow));
+            leftButtons.Children.Add(CreateButton("Реестр приказов", OpenRegistryWindow));
+            leftButtons.Children.Add(CreateButton("Открыть файл", OpenSelectedDocument));
+            leftButtons.Children.Add(CreateButton("В архив", ArchiveSelectedDocument));
+            leftButtons.Children.Add(CreateButton("Обновить список", RefreshDocuments));
+
+            DockPanel.SetDock(leftButtons, Dock.Left);
+            panel.Children.Add(leftButtons);
+
+            var archiveButton = CreateButton("Архив приказов", OpenArchiveWindow);
+            archiveButton.Margin = new Thickness(16, 0, 0, 0);
+            DockPanel.SetDock(archiveButton, Dock.Right);
+            panel.Children.Add(archiveButton);
 
             return panel;
         }
@@ -86,6 +99,17 @@ namespace Contract2512.Views
             };
 
             window.ShowDialog();
+        }
+
+        private void OpenArchiveWindow()
+        {
+            var window = new OrderArchiveWindow
+            {
+                Owner = Window.GetWindow(this)
+            };
+
+            window.ShowDialog();
+            RefreshDocuments();
         }
 
         private void RefreshDocuments()
@@ -121,6 +145,34 @@ namespace Contract2512.Views
             catch (Exception ex)
             {
                 ShowError($"Ошибка при открытии файла: {ex.Message}");
+            }
+        }
+
+        private void ArchiveSelectedDocument()
+        {
+            if (_documentsGrid.SelectedItem is not OrderDocument document)
+            {
+                ShowWarning("Выберите приказ для перемещения в архив.");
+                return;
+            }
+
+            var result = MessageBox.Show(
+                $"Переместить приказ \"{document.OrderName}\" в архив?",
+                "Подтверждение",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question);
+
+            if (result != MessageBoxResult.Yes)
+                return;
+
+            try
+            {
+                _orderService.ArchiveDocument(document.Id);
+                RefreshDocuments();
+            }
+            catch (Exception ex)
+            {
+                ShowError($"Ошибка при перемещении приказа в архив: {ex.Message}");
             }
         }
 

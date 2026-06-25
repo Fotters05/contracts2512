@@ -70,5 +70,11 @@ namespace Contract2512.Models
         [Column("created_at")]
         [Required]
         public DateTime CreatedAt { get; set; } = DateTime.Now;
+
+        [Column("is_archived")]
+        public bool IsArchived { get; set; } = false;
+
+        [Column("archived_at")]
+        public DateTime? ArchivedAt { get; set; }
     }
 }

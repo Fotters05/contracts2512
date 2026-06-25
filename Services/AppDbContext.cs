@@ -104,6 +104,12 @@ namespace Contract2512.Services
                     created_at TIMESTAMP DEFAULT NOW() NOT NULL
                 );
 
+                ALTER TABLE IF EXISTS public.order_document
+                ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;
+
+                ALTER TABLE IF EXISTS public.order_document
+                ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL;
+
                 CREATE TABLE IF NOT EXISTS public.listener_application (
                     id BIGSERIAL PRIMARY KEY,
                     application_type_key VARCHAR(100) NOT NULL,
@@ -178,6 +184,7 @@ namespace Contract2512.Services
                 CREATE INDEX IF NOT EXISTS idx_order_document_listener ON public.order_document(listener_id);
                 CREATE INDEX IF NOT EXISTS idx_order_document_teacher ON public.order_document(teacher_id);
                 CREATE INDEX IF NOT EXISTS idx_order_document_type ON public.order_document(order_type_key);
+                CREATE INDEX IF NOT EXISTS idx_order_document_is_archived ON public.order_document(is_archived);
                 CREATE INDEX IF NOT EXISTS idx_listener_application_listener ON public.listener_application(listener_id);
                 CREATE INDEX IF NOT EXISTS idx_listener_application_program ON public.listener_application(program_id);
                 CREATE INDEX IF NOT EXISTS idx_listener_application_order_document ON public.listener_application(order_document_id);
@@ -198,6 +205,20 @@ namespace Contract2512.Services
 
             SeedDefaultTimeOptions();
             SeedDefaultStudyOptions();
+        }
+
+        public void EnsureOrderDocumentArchiveColumns()
+        {
+            Database.ExecuteSqlRaw(
+                """
+                ALTER TABLE IF EXISTS public.order_document
+                ADD COLUMN IF NOT EXISTS is_archived BOOLEAN NOT NULL DEFAULT FALSE;
+
+                ALTER TABLE IF EXISTS public.order_document
+                ADD COLUMN IF NOT EXISTS archived_at TIMESTAMP NULL;
+
+                CREATE INDEX IF NOT EXISTS idx_order_document_is_archived ON public.order_document(is_archived);
+                """);
         }
 
         private void SeedDefaultTimeOptions()
@@ -428,6 +449,9 @@ namespace Contract2512.Services
 
             modelBuilder.Entity<OrderDocument>()
                 .HasIndex(d => d.TeacherId);
+
+            modelBuilder.Entity<OrderDocument>()
+                .HasIndex(d => d.IsArchived);
 
             modelBuilder.Entity<OrderRegistryEntry>()
                 .HasIndex(e => e.OrderDate);
