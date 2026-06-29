@@ -133,6 +133,7 @@ namespace Contract2512.Views
                                 ProgramId = program.Id,
                                 ContractId = contract.Id,
                                 ListenerId = listener.Id,
+                                DocumentDate = date,
                                 DocumentNumber = Normalize(numberTextBox.Text),
                                 SubjectName = listener.LastName,
                                 Placeholders = BuildAdmissionPlaceholders(
@@ -256,6 +257,7 @@ namespace Contract2512.Views
                                 OrderTypeKey = OrderDocumentService.AdmissionGroupKey,
                                 OrderName = OrderDocumentService.GetOrderName(OrderDocumentService.AdmissionGroupKey),
                                 ProgramId = program.Id,
+                                DocumentDate = orderDate,
                                 DocumentNumber = Normalize(numberTextBox.Text),
                                 SubjectName = program.Name,
                                 Placeholders = placeholders,
@@ -361,6 +363,7 @@ namespace Contract2512.Views
                                 OrderTypeKey = OrderDocumentService.ExpulsionKey,
                                 OrderName = OrderDocumentService.GetOrderName(OrderDocumentService.ExpulsionKey),
                                 ProgramId = program.Id,
+                                DocumentDate = date,
                                 SubjectName = program.Name,
                                 Placeholders = placeholders,
                                 Metadata = new
@@ -431,6 +434,7 @@ namespace Contract2512.Views
                                 OrderTypeKey = OrderDocumentService.CommissionCompositionKey,
                                 OrderName = OrderDocumentService.GetOrderName(OrderDocumentService.CommissionCompositionKey),
                                 ProgramId = program.Id,
+                                DocumentDate = date,
                                 SubjectName = program.Name,
                                 Placeholders = placeholders,
                                 Metadata = new
@@ -509,6 +513,7 @@ namespace Contract2512.Views
                                 OrderTypeKey = OrderDocumentService.FinalAttestationAdmissionKey,
                                 OrderName = OrderDocumentService.GetOrderName(OrderDocumentService.FinalAttestationAdmissionKey),
                                 ProgramId = program.Id,
+                                DocumentDate = date,
                                 SubjectName = program.Name,
                                 Placeholders = placeholders,
                                 Metadata = new
@@ -627,6 +632,7 @@ namespace Contract2512.Views
                                 OrderTypeKey = OrderDocumentService.CommissionMeetingProtocolKey,
                                 OrderName = OrderDocumentService.GetOrderName(OrderDocumentService.CommissionMeetingProtocolKey),
                                 ProgramId = program.Id,
+                                DocumentDate = date,
                                 DocumentNumber = Normalize(protocolNumberTextBox.Text),
                                 SubjectName = program.Name,
                                 Placeholders = placeholders,
@@ -767,6 +773,7 @@ namespace Contract2512.Views
                                 OrderName = OrderDocumentService.GetOrderName(OrderDocumentService.StatementKey),
                                 ProgramId = program.Id,
                                 TeacherId = teacher.Id,
+                                DocumentDate = date,
                                 DocumentNumber = Normalize(statementNumberTextBox.Text),
                                 SubjectName = program.Name,
                                 Placeholders = placeholders,
@@ -2361,7 +2368,7 @@ namespace Contract2512.Views
             grid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Дата",
-                Binding = new System.Windows.Data.Binding("GeneratedAt") { StringFormat = "dd.MM.yyyy HH:mm" },
+                Binding = new System.Windows.Data.Binding("GeneratedAt") { StringFormat = "dd.MM.yyyy" },
                 Width = 150
             });
             grid.Columns.Add(new DataGridTextColumn
@@ -2434,7 +2441,7 @@ namespace Contract2512.Views
 
         private static void ShowError(string message)
         {
-            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Contract2512.Services.UserErrorMessageService.ToRussianText(message), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

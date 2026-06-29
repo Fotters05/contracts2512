@@ -164,6 +164,13 @@ namespace Contract2512.Views
                 }
             }
 
+            var validationError = ValidateFormBeforeSave();
+            if (!string.IsNullOrWhiteSpace(validationError))
+            {
+                MessageBox.Show(validationError, "Не заполнены обязательные поля", MessageBoxButton.OK, MessageBoxImage.Warning);
+                return;
+            }
+
             try
             {
                 using (var db = new AppDbContext())
@@ -196,20 +203,20 @@ namespace Contract2512.Views
             }
             catch (Exception ex)
             {
-                string errorMessage = $"Ошибка при сохранении: {ex.Message}";
-                
-                if (ex.InnerException != null)
-                {
-                    errorMessage += $"\n\nВнутренняя ошибка: {ex.InnerException.Message}";
-                    
-                    if (ex.InnerException.InnerException != null)
-                    {
-                        errorMessage += $"\n\nДетали: {ex.InnerException.InnerException.Message}";
-                    }
-                }
-                
+                string errorMessage = $"Ошибка при сохранении: {UserErrorMessageService.ToRussian(ex)}";
                 MessageBox.Show(errorMessage, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
             }
+        }
+
+        private string? ValidateFormBeforeSave()
+        {
+            if (HasEducationData() && !EnrollmentDatePicker.SelectedDate.HasValue)
+            {
+                EnrollmentDatePicker.Focus();
+                return "Заполните поле \"Дата поступления\" в разделе \"Образование\".";
+            }
+
+            return null;
         }
 
         private void UpdatePersonData(Person person, AppDbContext db)
@@ -323,13 +330,7 @@ namespace Contract2512.Views
             }
 
             // Обновляем или создаем образование - только если есть данные
-            bool hasEducationData = EnrollmentDatePicker.SelectedDate.HasValue ||
-                                   !string.IsNullOrWhiteSpace(EducationNumberTextBox.Text) ||
-                                   EducationIssueDatePicker.SelectedDate.HasValue ||
-                                   !string.IsNullOrWhiteSpace(EducationIssuedByTextBox.Text) ||
-                                   !string.IsNullOrWhiteSpace(EducationPlaceOfIssueTextBox.Text) ||
-                                   !string.IsNullOrWhiteSpace(EducationCityTextBox.Text) ||
-                                   !string.IsNullOrWhiteSpace(EducationSpecialtyTextBox.Text);
+            bool hasEducationData = HasEducationData();
 
             if (hasEducationData)
             {
@@ -365,6 +366,20 @@ namespace Contract2512.Views
                     db.Educations.Remove(existingEducation);
                 }
             }
+        }
+
+        private bool HasEducationData()
+        {
+            return EnrollmentDatePicker.SelectedDate.HasValue ||
+                   BaseEducationComboBox.SelectedValue != null ||
+                   EducationLevelComboBox.SelectedValue != null ||
+                   !string.IsNullOrWhiteSpace(EducationSeriesTextBox.Text) ||
+                   !string.IsNullOrWhiteSpace(EducationNumberTextBox.Text) ||
+                   EducationIssueDatePicker.SelectedDate.HasValue ||
+                   !string.IsNullOrWhiteSpace(EducationIssuedByTextBox.Text) ||
+                   !string.IsNullOrWhiteSpace(EducationPlaceOfIssueTextBox.Text) ||
+                   !string.IsNullOrWhiteSpace(EducationCityTextBox.Text) ||
+                   !string.IsNullOrWhiteSpace(EducationSpecialtyTextBox.Text);
         }
 
         private void CancelButton_Click(object sender, RoutedEventArgs e)

@@ -74,7 +74,11 @@ namespace Contract2512.Views
                     .Include(o => o.Contract)
                     .Include(o => o.Listener)
                     .Where(o => !o.IsArchived &&
-                        (o.ListenerId == _person.Id || (o.Contract != null && o.Contract.ListenerId == _person.Id)))
+                        (o.ListenerId == _person.Id ||
+                         (o.Contract != null && o.Contract.ListenerId == _person.Id) ||
+                         db.ListenerApplications.Any(a =>
+                             a.OrderDocumentId == o.Id &&
+                             a.ListenerId == _person.Id)))
                     .OrderByDescending(o => o.GeneratedAt)
                     .ToList();
             }
@@ -277,7 +281,7 @@ namespace Contract2512.Views
 
         private static void ShowError(string message)
         {
-            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Contract2512.Services.UserErrorMessageService.ToRussianText(message), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

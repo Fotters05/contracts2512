@@ -59,7 +59,7 @@ namespace Contract2512.Views
                     // Ошибка при проверке
                     IconTextBlock.Text = "⚠️";
                     StatusTextBlock.Text = "Ошибка проверки обновлений";
-                    DetailsTextBlock.Text = $"Не удалось проверить обновления.\n{_updateInfo.Error}";
+                    DetailsTextBlock.Text = $"Не удалось проверить обновления.\n{UserErrorMessageService.ToRussianText(_updateInfo.Error)}";
                     ProgressBar.IsIndeterminate = false;
                     ProgressBar.Visibility = Visibility.Collapsed;
                     
@@ -85,7 +85,7 @@ namespace Contract2512.Views
             {
                 IconTextBlock.Text = "❌";
                 StatusTextBlock.Text = "Ошибка";
-                DetailsTextBlock.Text = $"Произошла ошибка: {ex.Message}";
+                DetailsTextBlock.Text = $"Произошла ошибка: {UserErrorMessageService.ToRussian(ex)}";
                 ProgressBar.IsIndeterminate = false;
                 ProgressBar.Visibility = Visibility.Collapsed;
                 

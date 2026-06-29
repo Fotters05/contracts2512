@@ -154,15 +154,15 @@ namespace Contract2512.Services
                 if (process.ExitCode == 0)
                 {
                     PersistNodeModulesToSharedStorage();
-                    progress?.Report("npm install completed successfully!");
+                    progress?.Report("npm install успешно завершён.");
                     return (true, output);
                 }
 
-                return (false, $"npm install failed with exit code {process.ExitCode}\n{error}");
+                return (false, $"npm install завершился с ошибкой. Код выхода: {process.ExitCode}\n{error}");
             }
             catch (Exception ex)
             {
-                return (false, $"Error during npm install: {ex.Message}");
+                return (false, $"Ошибка во время npm install: {UserErrorMessageService.ToRussian(ex)}");
             }
         }
 
@@ -172,10 +172,10 @@ namespace Contract2512.Services
         public void ShowNodeJsInstallDialog()
         {
             var result = MessageBox.Show(
-                "Node.js is not installed on your system.\n\n" +
-                "The parser requires Node.js to work.\n\n" +
-                "Would you like to download Node.js now?",
-                "Node.js Required",
+                "Node.js не установлен.\n\n" +
+                "Он нужен для работы парсера.\n\n" +
+                "Открыть сайт Node.js для скачивания?",
+                "Требуется Node.js",
                 MessageBoxButton.YesNo,
                 MessageBoxImage.Warning
             );
@@ -193,9 +193,9 @@ namespace Contract2512.Services
                 catch (Exception ex)
                 {
                     MessageBox.Show(
-                        $"Failed to open browser: {ex.Message}\n\n" +
-                        "Please visit https://nodejs.org/ manually to download Node.js",
-                        "Error",
+                        $"Не удалось открыть браузер: {UserErrorMessageService.ToRussian(ex)}\n\n" +
+                        "Откройте https://nodejs.org/ вручную, чтобы скачать Node.js.",
+                        "Ошибка",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error
                     );

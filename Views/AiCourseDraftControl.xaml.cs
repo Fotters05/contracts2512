@@ -173,7 +173,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         }
         catch (Exception ex)
         {
-            MessageBox.Show(ex.Message, "Ошибка открытия DOCX", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(UserErrorMessageService.ToRussian(ex), "Ошибка открытия DOCX", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -291,8 +291,9 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         }
         catch (Exception ex)
         {
-            AiStatusTextBlock.Text = ex.Message;
-            MessageBox.Show(ex.Message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            var errorMessage = UserErrorMessageService.ToRussian(ex);
+            AiStatusTextBlock.Text = errorMessage;
+            MessageBox.Show(errorMessage, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
         finally
         {
@@ -356,7 +357,7 @@ public partial class AiCourseDraftControl : UserControl, IDisposable
         {
             if (showUnavailableState)
             {
-                ApplyUnavailableHealthState(ex.Message);
+                ApplyUnavailableHealthState(UserErrorMessageService.ToRussian(ex));
             }
 
             return null;

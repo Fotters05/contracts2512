@@ -176,10 +176,10 @@ namespace Contract2512
                         System.Diagnostics.Debug.WriteLine("⚠️ npm install failed or was cancelled");
                         
                         var result = MessageBox.Show(
-                            "Parser dependencies were not installed.\n\n" +
-                            "The parser will not work without these dependencies.\n\n" +
-                            "Do you want to continue anyway?",
-                            "Warning",
+                            "Зависимости парсера не установлены.\n\n" +
+                            "Без них парсер не будет работать.\n\n" +
+                            "Продолжить запуск приложения?",
+                            "Внимание",
                             MessageBoxButton.YesNo,
                             MessageBoxImage.Warning
                         );
@@ -256,7 +256,7 @@ namespace Contract2512
                     if (showErrorsToUser)
                     {
                         MessageBox.Show(
-                            $"Не удалось проверить обновления.\n{updateInfo.Error}",
+                            $"Не удалось проверить обновления.\n{UserErrorMessageService.ToRussianText(updateInfo.Error)}",
                             "Ошибка проверки обновлений",
                             MessageBoxButton.OK,
                             MessageBoxImage.Warning);
@@ -270,7 +270,7 @@ namespace Contract2512
                 if (showErrorsToUser)
                 {
                     MessageBox.Show(
-                        $"Не удалось проверить обновления.\n{ex.Message}",
+                        $"Не удалось проверить обновления.\n{UserErrorMessageService.ToRussian(ex)}",
                         "Ошибка проверки обновлений",
                         MessageBoxButton.OK,
                         MessageBoxImage.Warning);

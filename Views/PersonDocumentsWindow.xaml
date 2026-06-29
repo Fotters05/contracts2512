@@ -311,7 +311,7 @@
                                 <Style TargetType="DataGridRow" BasedOn="{StaticResource DarkDataGridRowStyle}"/>
                             </DataGrid.RowStyle>
                             <DataGrid.Columns>
-                                <DataGridTextColumn Header="Дата" Binding="{Binding GeneratedAt, StringFormat=\{0:dd.MM.yyyy HH:mm\}}" Width="150"/>
+                                <DataGridTextColumn Header="Дата" Binding="{Binding GeneratedAt, StringFormat=\{0:dd.MM.yyyy\}}" Width="150"/>
                                 <DataGridTextColumn Header="Тип" Binding="{Binding OrderName}" Width="220"/>
                                 <DataGridTextColumn Header="Номер" Binding="{Binding DocumentNumber}" Width="120"/>
                                 <DataGridTextColumn Header="Программа" Binding="{Binding Program.Name}" Width="*"/>

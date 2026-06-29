@@ -358,7 +358,7 @@ namespace Contract2512.Views
             grid.Columns.Add(new DataGridTextColumn
             {
                 Header = "Дата создания",
-                Binding = new Binding("GeneratedAt") { StringFormat = "dd.MM.yyyy HH:mm" },
+                Binding = new Binding("GeneratedAt") { StringFormat = "dd.MM.yyyy" },
                 Width = 150
             });
 
@@ -494,7 +494,7 @@ namespace Contract2512.Views
 
         private static void ShowError(string message)
         {
-            MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Contract2512.Services.UserErrorMessageService.ToRussianText(message), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 }

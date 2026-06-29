@@ -239,6 +239,95 @@ namespace Contract2512.Views
                         <Setter Property="BorderThickness" Value="1"/>
                         <Setter Property="FontSize" Value="14"/>
                         <Setter Property="CalendarStyle" Value="{StaticResource DarkCalendarStyle}"/>
+                        <Setter Property="Template">
+                            <Setter.Value>
+                                <ControlTemplate TargetType="DatePicker">
+                                    <Grid>
+                                        <Border Background="{TemplateBinding Background}"
+                                                BorderBrush="{TemplateBinding BorderBrush}"
+                                                BorderThickness="{TemplateBinding BorderThickness}"
+                                                CornerRadius="6"
+                                                SnapsToDevicePixels="True">
+                                            <Grid>
+                                                <Grid.ColumnDefinitions>
+                                                    <ColumnDefinition/>
+                                                    <ColumnDefinition Width="Auto"/>
+                                                </Grid.ColumnDefinitions>
+                                                <DatePickerTextBox Name="PART_TextBox"
+                                                                   Grid.Column="0"
+                                                                   Foreground="{TemplateBinding Foreground}"
+                                                                   Background="Transparent"
+                                                                   BorderThickness="0"
+                                                                   Padding="8,6"
+                                                                   FontSize="{TemplateBinding FontSize}">
+                                                    <DatePickerTextBox.Style>
+                                                        <Style TargetType="DatePickerTextBox">
+                                                            <Setter Property="Template">
+                                                                <Setter.Value>
+                                                                    <ControlTemplate TargetType="DatePickerTextBox">
+                                                                        <Border Background="Transparent"
+                                                                                BorderThickness="0"
+                                                                                CornerRadius="6,0,0,6">
+                                                                            <ScrollViewer x:Name="PART_ContentHost"
+                                                                                          Background="Transparent"
+                                                                                          Foreground="{TemplateBinding Foreground}"/>
+                                                                        </Border>
+                                                                    </ControlTemplate>
+                                                                </Setter.Value>
+                                                            </Setter>
+                                                        </Style>
+                                                    </DatePickerTextBox.Style>
+                                                </DatePickerTextBox>
+                                                <ToggleButton Name="PART_Button"
+                                                              Grid.Column="1"
+                                                              Focusable="False"
+                                                              Background="Transparent"
+                                                              BorderThickness="0"
+                                                              Width="34"
+                                                              Cursor="Hand"
+                                                              IsChecked="{Binding IsDropDownOpen, RelativeSource={RelativeSource AncestorType=DatePicker}, Mode=TwoWay}">
+                                                    <ToggleButton.Template>
+                                                        <ControlTemplate TargetType="ToggleButton">
+                                                            <Border Background="Transparent"
+                                                                    BorderThickness="0"
+                                                                    CornerRadius="0,6,6,0">
+                                                                <Path HorizontalAlignment="Center"
+                                                                      VerticalAlignment="Center"
+                                                                      Data="M 0 0 L 4 4 L 8 0 Z"
+                                                                      Fill="{StaticResource TextPrimary}"/>
+                                                            </Border>
+                                                        </ControlTemplate>
+                                                    </ToggleButton.Template>
+                                                </ToggleButton>
+                                            </Grid>
+                                        </Border>
+                                        <Popup Name="PART_Popup"
+                                               Placement="Bottom"
+                                               IsOpen="{Binding IsDropDownOpen, RelativeSource={RelativeSource AncestorType=DatePicker}}"
+                                               AllowsTransparency="True"
+                                               PopupAnimation="Slide"
+                                               StaysOpen="False">
+                                            <Border Background="#334155"
+                                                    BorderBrush="#64748B"
+                                                    BorderThickness="1"
+                                                    CornerRadius="6"
+                                                    Padding="4"
+                                                    Opacity="0.98">
+                                                <Calendar Name="PART_Calendar"
+                                                          Style="{StaticResource DarkCalendarStyle}"
+                                                          SelectedDate="{Binding SelectedDate, RelativeSource={RelativeSource AncestorType=DatePicker}, Mode=TwoWay}"
+                                                          DisplayDate="{Binding SelectedDate, RelativeSource={RelativeSource AncestorType=DatePicker}}"/>
+                                            </Border>
+                                        </Popup>
+                                    </Grid>
+                                    <ControlTemplate.Triggers>
+                                        <DataTrigger Binding="{Binding SelectedDate, RelativeSource={RelativeSource AncestorType=DatePicker}}" Value="{x:Null}">
+                                            <Setter TargetName="PART_TextBox" Property="Text" Value=""/>
+                                        </DataTrigger>
+                                    </ControlTemplate.Triggers>
+                                </ControlTemplate>
+                            </Setter.Value>
+                        </Setter>
                     </Style>
 
                     <Style x:Key="DarkButtonStyle" TargetType="Button">

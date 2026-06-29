@@ -64,8 +64,8 @@ namespace Contract2512.Services
                 CHECK (
                     snils IS NULL
                     OR snils = ''
-                    OR snils ~ '^[0-9]{11}$'
-                    OR snils ~ '^[0-9]{3}-[0-9]{3}-[0-9]{3} [0-9]{2}$'
+                    OR snils ~ '^[0-9]{{11}}$'
+                    OR snils ~ '^[0-9]{{3}}-[0-9]{{3}}-[0-9]{{3}}[- ][0-9]{{2}}$'
                 );
 
                 SELECT setval(pg_get_serial_sequence('public.contacts', 'id'), COALESCE((SELECT MAX(id) FROM public.contacts), 0) + 1, false)
@@ -191,15 +191,15 @@ namespace Contract2512.Services
                 CREATE UNIQUE INDEX IF NOT EXISTS ux_listener_application_contract_type
                     ON public.listener_application(contract_id, application_type_key);
 
-                INSERT INTO public.order_template (order_type_key, name, file_path)
+                INSERT INTO public.order_template (order_type_key, name, file_path, created_at)
                 VALUES
-                    ('admission', 'О зачислении', 'C:\Dogovora\Приказы\Пример приказа о зачислении.docx'),
-                    ('admission_group', 'О зачислении группа', 'C:\Dogovora\Приказы\Пример приказа о зачислении группа.docx'),
-                    ('expulsion', 'Об отчислении', 'C:\Dogovora\Приказы\Пример приказа об отчислении.docx'),
-                    ('commission_composition', 'На состав комиссии', 'C:\Dogovora\Приказы\Пример приказа на состав комиссии.docx'),
-                    ('final_attestation_admission', 'О допуске итоговой аттестации', 'C:\Dogovora\Приказы\Пример приказа о допуске итоговой аттестации.docx'),
-                    ('commission_meeting_protocol', 'О заседании комиссии', 'C:\Dogovora\Приказы\Пример протокола заседании комиссии.docx'),
-                    ('statement', 'Ведомости', 'C:\Dogovora\Приказы\Пример ведомости.docx')
+                    ('admission', 'О зачислении', 'C:\Dogovora\Приказы\Пример приказа о зачислении.docx', NOW()),
+                    ('admission_group', 'О зачислении группа', 'C:\Dogovora\Приказы\Пример приказа о зачислении группа.docx', NOW()),
+                    ('expulsion', 'Об отчислении', 'C:\Dogovora\Приказы\Пример приказа об отчислении.docx', NOW()),
+                    ('commission_composition', 'На состав комиссии', 'C:\Dogovora\Приказы\Пример приказа на состав комиссии.docx', NOW()),
+                    ('final_attestation_admission', 'О допуске итоговой аттестации', 'C:\Dogovora\Приказы\Пример приказа о допуске итоговой аттестации.docx', NOW()),
+                    ('commission_meeting_protocol', 'О заседании комиссии', 'C:\Dogovora\Приказы\Пример протокола заседании комиссии.docx', NOW()),
+                    ('statement', 'Ведомости', 'C:\Dogovora\Приказы\Пример ведомости.docx', NOW())
                 ON CONFLICT (order_type_key) DO NOTHING;
                 """);
 
@@ -226,8 +226,8 @@ namespace Contract2512.Services
             Database.ExecuteSqlRaw(
                 """
                 INSERT INTO public.time_option
-                    (contract_category, name, option_key, text, hours_per_week, weeks_duration, sort_order, is_active)
-                SELECT *
+                    (contract_category, name, option_key, text, hours_per_week, weeks_duration, sort_order, is_active, created_at, updated_at)
+                SELECT seed.*, NOW(), NOW()
                 FROM (VALUES
                     ('PK', 'Опция № 1: 3 часа/нед, 21 неделя', 'Option_Time1', 'Недельная учебная нагрузка по настоящему договору составляет 3 академических часа в неделю, включая 2 академических часа взаимодействия с преподавателем и 1 академический час самостоятельной работы; общая продолжительность освоения — 21 неделя.', 3, 21, 1, TRUE),
                     ('PK', 'Опция № 2: 6 часов/нед, 11 недель', 'Option_Time2', 'Недельная учебная нагрузка по настоящему договору составляет 6 академических часов в неделю, включая 4 академических часа взаимодействия с преподавателем и 2 академических часа самостоятельной работы; общая продолжительность освоения — 11 недель.', 6, 11, 2, TRUE),
@@ -259,8 +259,8 @@ namespace Contract2512.Services
             Database.ExecuteSqlRaw(
                 """
                 INSERT INTO public.study_option
-                    (name, option_key, text, hours_per_week, weeks_duration, sort_order, is_active)
-                SELECT *
+                    (name, option_key, text, hours_per_week, weeks_duration, sort_order, is_active, created_at, updated_at)
+                SELECT seed.*, NOW(), NOW()
                 FROM (VALUES
                     ('Опция № 1: 1 час/нед, 20 недель', 'Option_study1', 'Недельная учебная нагрузка по настоящему договору составляет 1 академический час в неделю; общая продолжительность освоения — 20 недель.', 1, 20.00, 1, TRUE),
                     ('Опция № 2: 2 часа/нед, 10 недель', 'Option_study2', 'Недельная учебная нагрузка по настоящему договору составляет 2 академических часа в неделю; общая продолжительность освоения — 10 недель.', 2, 10.00, 2, TRUE),

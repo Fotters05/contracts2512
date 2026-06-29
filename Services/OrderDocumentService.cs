@@ -120,6 +120,7 @@ namespace Contract2512.Services
             db.EnsureOrderDocumentArchiveColumns();
 
             var timestamp = DateTime.Now;
+            var documentDate = request.DocumentDate?.Date ?? timestamp;
             var outputPath = CreateDocumentFile(db, request, timestamp);
 
             var document = new OrderDocument
@@ -138,7 +139,7 @@ namespace Contract2512.Services
                     Version = 1,
                     Request = request
                 }),
-                GeneratedAt = timestamp,
+                GeneratedAt = documentDate,
                 CreatedAt = timestamp
             };
 
@@ -534,6 +535,7 @@ namespace Contract2512.Services
         public long? ContractId { get; init; }
         public long? ListenerId { get; init; }
         public long? TeacherId { get; init; }
+        public DateTime? DocumentDate { get; init; }
         public string? DocumentNumber { get; init; }
         public string? SubjectName { get; init; }
         public Dictionary<string, string> Placeholders { get; init; } = new();

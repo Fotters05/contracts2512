@@ -239,6 +239,6 @@ namespace Contract2512.Views
 
         private static void ShowWarning(string message) => MessageBox.Show(message, "Внимание", MessageBoxButton.OK, MessageBoxImage.Warning);
 
-        private static void ShowError(string message) => MessageBox.Show(message, "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+        private static void ShowError(string message) => MessageBox.Show(Contract2512.Services.UserErrorMessageService.ToRussianText(message), "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
     }
 }

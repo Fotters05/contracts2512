@@ -29,13 +29,12 @@ namespace Contract2512.Views
         {
             try
             {
-                // Check if Node.js is installed
-                StatusTextBlock.Text = "Checking Node.js installation...";
+                StatusTextBlock.Text = "Проверяю установку Node.js...";
                 var isNodeInstalled = await _nodePackageService.IsNodeJsInstalledAsync();
 
                 if (!isNodeInstalled)
                 {
-                    StatusTextBlock.Text = "Node.js not found!";
+                    StatusTextBlock.Text = "Node.js не найден.";
                     ProgressBar.IsIndeterminate = false;
                     
                     await Task.Delay(500);
@@ -45,8 +44,7 @@ namespace Contract2512.Views
                     return;
                 }
 
-                // Install packages
-                StatusTextBlock.Text = "Installing npm packages...";
+                StatusTextBlock.Text = "Устанавливаю npm-пакеты...";
                 
                 var progress = new Progress<string>(message =>
                 {
@@ -67,7 +65,7 @@ namespace Contract2512.Views
                 if (success)
                 {
                     _installSuccess = true;
-                    StatusTextBlock.Text = "Installation completed successfully!";
+                    StatusTextBlock.Text = "Установка успешно завершена.";
                     ProgressBar.IsIndeterminate = false;
                     ProgressBar.Value = 100;
                     
@@ -76,12 +74,12 @@ namespace Contract2512.Views
                 }
                 else
                 {
-                    StatusTextBlock.Text = "Installation failed!";
+                    StatusTextBlock.Text = "Не удалось установить npm-пакеты.";
                     ProgressBar.IsIndeterminate = false;
                     
                     MessageBox.Show(
-                        $"Failed to install npm packages:\n\n{output}",
-                        "Installation Error",
+                        $"Не удалось установить npm-пакеты:\n\n{UserErrorMessageService.ToRussianText(output)}",
+                        "Ошибка установки",
                         MessageBoxButton.OK,
                         MessageBoxImage.Error
                     );
@@ -91,12 +89,12 @@ namespace Contract2512.Views
             }
             catch (Exception ex)
             {
-                StatusTextBlock.Text = "Error occurred!";
+                StatusTextBlock.Text = "Произошла ошибка.";
                 ProgressBar.IsIndeterminate = false;
                 
                 MessageBox.Show(
-                    $"Error during installation:\n\n{ex.Message}",
-                    "Error",
+                    $"Ошибка во время установки:\n\n{UserErrorMessageService.ToRussian(ex)}",
+                    "Ошибка",
                     MessageBoxButton.OK,
                     MessageBoxImage.Error
                 );

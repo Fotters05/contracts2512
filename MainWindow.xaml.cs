@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Windows;
@@ -25,6 +26,7 @@ namespace Contract2512
             Organizations,
             Workload,
             Orders,
+            Placeholders,
             Archive
         }
 
@@ -36,6 +38,7 @@ namespace Contract2512
         private System.Collections.ObjectModel.ObservableCollection<Contract>? _allContracts;
         private System.Collections.ObjectModel.ObservableCollection<Person>? _archivedPersons;
         private System.Collections.ObjectModel.ObservableCollection<Contract>? _archivedContracts;
+        private IReadOnlyList<PlaceholderInfo>? _allPlaceholders;
         private System.Windows.Threading.DispatcherTimer? _autoRefreshTimer;
         private bool _dbConfigMissingNotified;
         private bool _isAutoRefreshInProgress;
@@ -46,6 +49,7 @@ namespace Contract2512
         private bool _organizationsLoaded;
         private bool _workloadLoaded;
         private bool _ordersLoaded;
+        private bool _placeholdersLoaded;
         private bool _archiveLoaded;
         private ViewSnapshot? _personsSnapshot;
         private ViewSnapshot? _contractsSnapshot;
@@ -138,6 +142,7 @@ namespace Contract2512
             BtnOrganizations.Tag = null;
             BtnWorkload.Tag = null;
             BtnOrders.Tag = null;
+            BtnPlaceholders.Tag = null;
             BtnArchive.Tag = null;
             
             // Устанавливаем выделение выбранной кнопки
@@ -158,6 +163,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Persons);
         }
@@ -173,6 +179,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Contracts);
         }
@@ -188,6 +195,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Programs);
         }
@@ -203,6 +211,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureAiCourseDraftControlLoaded();
 
@@ -223,6 +232,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.ContractTypes);
         }
@@ -238,6 +248,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Visible;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Organizations);
         }
@@ -253,6 +264,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Visible;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Workload);
         }
@@ -268,6 +280,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Visible;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Collapsed;
             EnsureSectionLoaded(MainSection.Orders);
 
@@ -275,6 +288,22 @@ namespace Contract2512
             {
                 ordersControl.NotifyPanelShown();
             }
+        }
+
+        private void BtnPlaceholders_Click(object sender, RoutedEventArgs e)
+        {
+            UpdateMenuSelection(BtnPlaceholders);
+            PersonsPanel.Visibility = Visibility.Collapsed;
+            ContractsPanel.Visibility = Visibility.Collapsed;
+            ProgramsPanel.Visibility = Visibility.Collapsed;
+            AiCourseDraftsPanel.Visibility = Visibility.Collapsed;
+            ContractTypesPanel.Visibility = Visibility.Collapsed;
+            OrganizationsPanel.Visibility = Visibility.Collapsed;
+            WorkloadPanel.Visibility = Visibility.Collapsed;
+            OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Visible;
+            ArchivePanel.Visibility = Visibility.Collapsed;
+            EnsureSectionLoaded(MainSection.Placeholders);
         }
 
         private void BtnArchive_Click(object sender, RoutedEventArgs e)
@@ -288,6 +317,7 @@ namespace Contract2512
             OrganizationsPanel.Visibility = Visibility.Collapsed;
             WorkloadPanel.Visibility = Visibility.Collapsed;
             OrdersPanel.Visibility = Visibility.Collapsed;
+            PlaceholdersPanel.Visibility = Visibility.Collapsed;
             ArchivePanel.Visibility = Visibility.Visible;
             EnsureSectionLoaded(MainSection.Archive);
         }
@@ -441,6 +471,7 @@ namespace Contract2512
             _organizationsLoaded = false;
             _workloadLoaded = false;
             _ordersLoaded = false;
+            _placeholdersLoaded = false;
             _personsSnapshot = null;
             _contractsSnapshot = null;
             _programsSnapshot = null;
@@ -464,6 +495,8 @@ namespace Contract2512
                 return MainSection.Workload;
             if (OrdersPanel.Visibility == Visibility.Visible)
                 return MainSection.Orders;
+            if (PlaceholdersPanel.Visibility == Visibility.Visible)
+                return MainSection.Placeholders;
             if (ArchivePanel.Visibility == Visibility.Visible)
                 return MainSection.Archive;
             return MainSection.Persons;
@@ -490,6 +523,7 @@ namespace Contract2512
                 MainSection.Organizations => _organizationsLoaded,
                 MainSection.Workload => _workloadLoaded,
                 MainSection.Orders => _ordersLoaded,
+                MainSection.Placeholders => _placeholdersLoaded,
                 MainSection.Archive => _archiveLoaded,
                 _ => true,
             };
@@ -497,6 +531,12 @@ namespace Contract2512
 
         private void LoadActiveSection(bool forceReload)
         {
+            if (GetActiveSection() == MainSection.Placeholders)
+            {
+                LoadSection(MainSection.Placeholders, forceReload);
+                return;
+            }
+
             if (!IsDbConfigured())
             {
                 NotifyDbConfigMissingOnce();
@@ -537,10 +577,49 @@ namespace Contract2512
                     EnsureOrdersControlLoaded();
                     _ordersLoaded = true;
                     break;
+                case MainSection.Placeholders:
+                    LoadPlaceholders();
+                    break;
                 case MainSection.Archive:
                     LoadArchive();
                     break;
             }
+        }
+
+        private void LoadPlaceholders()
+        {
+            _allPlaceholders = PlaceholderCatalogService.GetPlaceholders();
+            ApplyPlaceholderFilter();
+            _placeholdersLoaded = true;
+        }
+
+        private void ApplyPlaceholderFilter()
+        {
+            if (PlaceholdersDataGrid == null)
+            {
+                return;
+            }
+
+            var source = _allPlaceholders ?? PlaceholderCatalogService.GetPlaceholders();
+            var searchText = PlaceholderSearchTextBox?.Text?.Trim() ?? string.Empty;
+
+            if (string.IsNullOrWhiteSpace(searchText))
+            {
+                PlaceholdersDataGrid.ItemsSource = source;
+                return;
+            }
+
+            PlaceholdersDataGrid.ItemsSource = source
+                .Where(p =>
+                    p.Group.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    p.Placeholder.Contains(searchText, StringComparison.OrdinalIgnoreCase) ||
+                    p.Description.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                .ToList();
+        }
+
+        private void PlaceholderSearchTextBox_TextChanged(object sender, System.Windows.Controls.TextChangedEventArgs e)
+        {
+            ApplyPlaceholderFilter();
         }
 
         private async Task RefreshActiveSectionIfChangedAsync()
